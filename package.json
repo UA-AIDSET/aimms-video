@@ -1,0 +1,29 @@
+{
+  "name": "aimms-video",
+  "version": "1.0.0",
+  "description": "AIMMS LMS Flow Demo Video - University of Arizona",
+  "scripts": {
+    "dev": "npx remotion studio src/index.ts",
+    "build": "npx remotion render src/index.ts AimmsFlow out/aimms-lms-flow.mp4",
+    "preview": "npx remotion preview src/index.ts"
+  },
+  "dependencies": {
+    "@react-three/drei": "^10.7.7",
+    "@remotion/cli": "^4.0.432",
+    "@remotion/google-fonts": "^4.0.432",
+    "@remotion/light-leaks": "4.0.432",
+    "@remotion/media-utils": "^4.0.432",
+    "@remotion/tailwind": "^4.0.432",
+    "@remotion/three": "4.0.432",
+    "@remotion/transitions": "4.0.432",
+    "@types/react": "^19.2.14",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "remotion": "^4.0.432",
+    "three": "^0.183.2",
+    "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "@types/three": "^0.183.1"
+  }
+}
