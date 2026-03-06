@@ -27,8 +27,14 @@ const vitals = [
 
 /* ── Exam instruments ── */
 const instruments = [
-  "Penlight", "Ophthalmoscope", "Otoscope",
-  "Reflex Hammer", "Tuning Fork", "Stethoscope",
+  { name: "Penlight", image: "penlight (1).png" },
+  { name: "Ophthalmoscope", image: "ophthalmoscope (1).png" },
+  { name: "Otoscope", image: "otoscope (1).png" },
+  { name: "Reflex Hammer", image: "reflex_hammer (1).png" },
+  { name: "Tuning Fork", image: "tuning_fork (1).png" },
+  { name: "Stethoscope", image: "stethicon (1).png" },
+  { name: "BP Cuff", image: "bloodpressurecuff (1).png" },
+  { name: "Dermatoscope", image: "dermatoscope (1).png" },
 ];
 
 /* ── Examination categories ── */
@@ -360,27 +366,25 @@ export const Scene4_VirtualPatient: React.FC = () => {
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
                   {instruments.map((inst, i) => {
-                    const instDelay = 450 + i * 10;
+                    const instDelay = 450 + i * 8;
                     const instOpacity = interpolate(frame, [instDelay, instDelay + 14], [0, 1], clamp);
                     const isInstSelected = i === selectedInstrument;
                     const selectGlow = isInstSelected ? interpolate(frame, [530, 555], [0, 1], clamp) : 0;
                     return (
-                      <div key={inst} style={{
+                      <div key={inst.name} style={{
                         display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-                        padding: "10px 6px", borderRadius: 8,
+                        padding: "18px 4px", borderRadius: 8,
                         background: isInstSelected && selectGlow > 0 ? `${colors.oasis}15` : `${colors.white}05`,
                         border: `1px solid ${isInstSelected && selectGlow > 0 ? `${colors.oasis}50` : `${colors.white}10`}`,
                         opacity: instOpacity, gap: 4,
                       }}>
-                        <div style={{
-                          width: 32, height: 32, borderRadius: 6,
-                          background: `${colors.white}06`,
-                          display: "flex", alignItems: "center", justifyContent: "center",
-                          fontSize: 16,
-                        }}>
-                          {["🔦", "👁", "🔍", "🔨", "🎵", "🩺"][i]}
-                        </div>
-                        <span style={{ fontFamily: fonts.body, fontSize: 11, color: colors.white, textAlign: "center" as const }}>{inst}</span>
+                        <Img
+                          src={staticFile(`screenshots/${inst.image}`)}
+                          style={{
+                            width: 32, height: 32, objectFit: "contain" as const,
+                          }}
+                        />
+                        <span style={{ fontFamily: fonts.body, fontSize: 9, color: colors.white, textAlign: "center" as const }}>{inst.name}</span>
                       </div>
                     );
                   })}
@@ -392,16 +396,19 @@ export const Scene4_VirtualPatient: React.FC = () => {
             <div style={{
               flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
               position: "relative" as const,
+              overflow: "hidden",
             }}>
-              {/* Patient model — visible during Phases 2 & 3 */}
+              {/* Exam room with patient — visible during Phases 2 & 3 */}
               {frame >= 160 && frame < 790 && (
                 <Img
-                  src={staticFile("screenshots/patientvector.png")}
+                  src={staticFile("screenshots/examroompatient.png")}
                   style={{
-                    height: "72%",
-                    objectFit: "contain" as const,
+                    position: "absolute",
+                    inset: 0,
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover" as const,
                     opacity: interpolate(frame, [160, 185, 760, 790], [0, 1, 1, 0], clamp),
-                    filter: `drop-shadow(0 4px 20px rgba(0,0,0,0.3))`,
                   }}
                 />
               )}
