@@ -4,7 +4,7 @@
  * 
  * Usage:
  *   npm run voiceover           # Generate all scenes
- *   npm run voiceover 3         # Generate only scene 3
+ *   npm run voiceover -- 3      # Generate only scene 3
  * 
  * Requires: ELEVENLABS_API_KEY in .env file or environment variable
  */
@@ -53,7 +53,7 @@ function parseVoiceoverScript() {
   const content = readFileSync(scriptPath, 'utf-8');
   
   const scenes = [];
-  const sceneRegex = /## Scene (\d+):.*?\(speed ([\d.]+),.*?\)\n\n([\s\S]*?)(?=\n## Scene|\n*$)/g;
+  const sceneRegex = /^## Scene (\d+):.*?\(speed ([\d.]+),.*?\)\r?\n\r?\n([\s\S]*?)(?=\r?\n## Scene |\s*$)/gm;
   
   let match;
   while ((match = sceneRegex.exec(content)) !== null) {
@@ -74,7 +74,8 @@ async function generateAudio(scene) {
   
   if (!apiKey) {
     console.error('❌ ELEVENLABS_API_KEY environment variable not set');
-    console.error('   Set it with: export ELEVENLABS_API_KEY=your_key_here');
+    console.error('   PowerShell: $env:ELEVENLABS_API_KEY="your_key_here"');
+    console.error('   Or put ELEVENLABS_API_KEY=your_key_here in .env');
     process.exit(1);
   }
   
@@ -124,7 +125,8 @@ async function generateAudio(scene) {
 }
 
 async function main() {
-  const sceneArg = process.argv[2];
+  const args = process.argv.slice(2).filter((arg) => !arg.startsWith('--'));
+  const sceneArg = args.find((arg) => /^\d+$/.test(arg));
   const scenes = parseVoiceoverScript();
   
   if (sceneArg) {

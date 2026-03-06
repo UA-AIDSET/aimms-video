@@ -1,0 +1,12 @@
+2026-03-05
+- ElevenLabs automation is now wired into project scripts:
+  - `package.json` includes `voiceover`: `node scripts/generate-voiceover.js`
+  - `scripts/generate-voiceover.js` reads `scripts/voiceover.md` and writes MP3s to `public/audio/`.
+- Parser fix applied in `generate-voiceover.js`:
+  - Scene extraction now supports Windows newlines (`\r\n`) and robust section matching.
+  - CLI arg parsing now supports npm usage with `--` separator: `npm run voiceover -- 4`.
+- Env/key guidance in generator now includes PowerShell syntax and `.env` fallback.
+- Scene 4 script text in `scripts/voiceover.md` set to:
+  - "A patient icon appears with real-time vitals."
+- Verified command success:
+  - `npm run voiceover -- 4` generated `public/audio/scene4_vp.mp3`.
