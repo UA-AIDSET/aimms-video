@@ -41,11 +41,11 @@ Each scene represents its concept through visual metaphor, not UI simulation.
 | 1 | Scene1_Intro.tsx | 400 | Emergence | NodeNetwork morphs from chaos → hexagonal order |
 | 2 | Scene2_MCC.tsx | 700 | Knowledge Assembly | Text fragments converge into a document, AI neural net pulses |
 | 3 | Scene3_Assignment.tsx | 500 | Connection | Faculty node → DataStreams → student nodes light up |
-| 4 | Scene4_VirtualPatient.tsx | 900 | Holographic Exam | AbstractBody with OrbitRings, ScanBeam, WaveformLines |
+| 4 | Scene4_VirtualPatient.tsx | 1400 | Virtual Patient Exam | Clinical UI with instruments, exam categories, differential dx, assessment, submit |
 | 5 | Scene5_AIMHEI.tsx | 600 | Analysis | Particles converge → crystallize into score arc + radar axes |
 | 6 | Scene6_FlowRecap.tsx | 600 | Complete Pipeline | 5 NodeNetwork clusters with distinct shapes, connected by DataStreams |
 
-Total: 3625 frames (~2:01) after fade overlaps.
+Total: 3865 frames (~2:09) after fade overlaps.
 
 ### 3D Components (src/three/)
 

@@ -18,9 +18,9 @@ It starts with the Medical Case Creator. Faculty browse the ASTEC Case Library �
 
 Next, faculty assign cases through the Dashboard. The three-panel layout shows classes, students, and cases — side by side. Select a class, choose students, pick a case, set a due date, and assign. All in one streamlined view. Assignments reach students instantly.
 
-## Scene 4: Virtual Patient (speed 0.90, ~30s)
+## Scene 4: Virtual Patient (speed 0.90, ~45s)
 
-Students enter the Virtual Patient — an immersive clinical encounter. A holographic patient appears with real-time vitals. The student interviews through natural conversation, exploring symptoms and history. Then, the physical exam. Stethoscope, palpation, percussion — revealing clinical findings. Next, diagnostic tests. Results return with severity indicators. The full encounter is captured, ready for evaluation.
+Students enter the Virtual Patient — an immersive clinical encounter. A 3D patient model appears with real-time vital signs. The student interviews through natural conversation, exploring symptoms and history. Then, the physical exam — stethoscope, palpation, percussion — each revealing real clinical media from a curated patient library. Actual heart sounds, lung audio, and examination images — mapped to the case. Next, the student builds a differential diagnosis and orders the diagnostic tests needed to support it. From there, assessment and planning — documenting the approach and calling for consult if needed. At the end, the full patient encounter is available for review. Submit — and the session is captured, ready for evaluation.
 
 ## Scene 5: AIMHEI Reports (speed 0.92, ~17s)
 
