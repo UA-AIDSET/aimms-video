@@ -2,10 +2,12 @@
   "name": "aimms-video",
   "version": "1.0.0",
   "description": "AIMMS LMS Flow Demo Video - University of Arizona",
+  "type": "module",
   "scripts": {
     "dev": "npx remotion studio src/index.ts",
     "build": "npx remotion render src/index.ts AimmsFlow out/aimms-lms-flow.mp4",
-    "preview": "npx remotion preview src/index.ts"
+    "preview": "npx remotion preview src/index.ts",
+    "voiceover": "node scripts/generate-voiceover.js"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",
