@@ -166,7 +166,7 @@ export const Scene4_VirtualPatient: React.FC = () => {
   const threeContent = (
     <>
       <AnimatedGrid color={colors.azurite} opacity={0.04} waveSpeed={0.01} />
-      <ParticleField count={60} color={colors.oasis} speed={0.001} opacity={0.12} />
+      <ParticleField count={30} color={colors.oasis} speed={0.001} opacity={0.08} />
       <GlowOrb position={[0, 0, -3]} color={colors.oasis} radius={2} baseOpacity={0.06} />
       <CameraRig positions={[
         { frame: 0, position: [0, 0, 10] },
@@ -195,12 +195,12 @@ export const Scene4_VirtualPatient: React.FC = () => {
           opacity: phase1Opacity, pointerEvents: "none", zIndex: 10,
         }}>
           <div style={{
-            fontFamily: fonts.heading, fontSize: 28, fontWeight: 700,
+            fontFamily: fonts.heading, fontSize: 32, fontWeight: 700,
             color: colors.white, marginBottom: 8,
             opacity: interpolate(frame, [70, 95], [0, 1], clamp),
           }}>Select a Patient Case</div>
           <div style={{
-            fontFamily: fonts.body, fontSize: 15, color: `${colors.white}70`, marginBottom: 36,
+            fontFamily: fonts.body, fontSize: 17, color: `${colors.white}70`, marginBottom: 36,
             opacity: interpolate(frame, [80, 100], [0, 1], clamp),
           }}>Choose a virtual patient to begin the encounter</div>
 
@@ -235,11 +235,11 @@ export const Scene4_VirtualPatient: React.FC = () => {
                     display: "flex", alignItems: "center", justifyContent: "center",
                     fontFamily: fonts.heading, fontSize: 18, fontWeight: 700, color: colors.white,
                   }}>{pc.name.split(" ").map(n => n[0]).join("")}</div>
-                  <div style={{ fontFamily: fonts.heading, fontSize: 15, fontWeight: 700, color: colors.white, textAlign: "center" as const }}>{pc.name}</div>
-                  <div style={{ fontFamily: fonts.mono, fontSize: 12, color: `${colors.white}60`, textAlign: "center" as const, marginTop: 4 }}>{pc.age}</div>
-                  <div style={{ fontFamily: fonts.body, fontSize: 12, color: `${colors.white}50`, textAlign: "center" as const, marginTop: 8 }}>{pc.cc}</div>
+                  <div style={{ fontFamily: fonts.heading, fontSize: 16, fontWeight: 700, color: colors.white, textAlign: "center" as const }}>{pc.name}</div>
+                  <div style={{ fontFamily: fonts.mono, fontSize: 13, color: `${colors.white}60`, textAlign: "center" as const, marginTop: 4 }}>{pc.age}</div>
+                  <div style={{ fontFamily: fonts.body, fontSize: 13, color: `${colors.white}60`, textAlign: "center" as const, marginTop: 8 }}>{pc.cc}</div>
                   <div style={{
-                    fontFamily: fonts.mono, fontSize: 10, fontWeight: 600,
+                    fontFamily: fonts.mono, fontSize: 11, fontWeight: 600,
                     color: acuityColor, textAlign: "center" as const, marginTop: 10,
                     background: `${acuityColor}15`, padding: "3px 10px", borderRadius: 4,
                     display: "inline-block", width: "auto",
@@ -271,7 +271,7 @@ export const Scene4_VirtualPatient: React.FC = () => {
             opacity: interpolate(frame, [158, 175], [0, 1], clamp),
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 16, flex: 1 }}>
-              <span style={{ fontFamily: fonts.heading, fontSize: 18, fontWeight: 700, color: colors.white }}>
+              <span style={{ fontFamily: fonts.heading, fontSize: 20, fontWeight: 700, color: colors.white }}>
                 Virtual Patient
               </span>
               <div style={{
@@ -279,7 +279,7 @@ export const Scene4_VirtualPatient: React.FC = () => {
                 background: `${colors.white}10`, borderRadius: 16, padding: "4px 12px",
               }}>
                 <PulsingDot color={colors.vitalsCritical} size={6} delay={165} />
-                <span style={{ fontFamily: fonts.mono, fontSize: 13, color: colors.white }}>
+                <span style={{ fontFamily: fonts.mono, fontSize: 14, color: colors.white }}>
                   {timerMin}:{timerSec}
                 </span>
               </div>
@@ -291,7 +291,7 @@ export const Scene4_VirtualPatient: React.FC = () => {
                 const tabEnter = interpolate(frame, [163 + i * 4, 175 + i * 4], [0, 1], clamp);
                 return (
                   <div key={tab} style={{
-                    fontFamily: fonts.heading, fontSize: 13, fontWeight: isActive ? 700 : 500,
+                    fontFamily: fonts.heading, fontSize: 14, fontWeight: isActive ? 700 : 500,
                     color: isActive ? colors.white : `${colors.white}50`,
                     background: isActive ? `${colors.oasis}25` : "transparent",
                     padding: "8px 14px", borderRadius: 8,
@@ -307,7 +307,7 @@ export const Scene4_VirtualPatient: React.FC = () => {
           {/* ── Vitals Strip ── */}
           {frame >= 170 && frame < 1370 && (
             <div style={{
-              height: 42, display: "flex", alignItems: "center", justifyContent: "center", gap: 24,
+              height: 48, display: "flex", alignItems: "center", justifyContent: "center", gap: 28,
               background: "rgba(12,35,75,0.6)",
               borderBottom: `1px solid ${colors.white}06`,
               opacity: interpolate(frame, [170, 190, 1340, 1365], [0, 1, 1, 0], clamp),
@@ -318,9 +318,9 @@ export const Scene4_VirtualPatient: React.FC = () => {
                   <div key={v.label} style={{
                     display: "flex", alignItems: "baseline", gap: 6, opacity: vOpacity,
                   }}>
-                    <span style={{ fontFamily: fonts.mono, fontSize: 10, color: `${colors.white}45`, letterSpacing: 0.8 }}>{v.label}</span>
-                    <span style={{ fontFamily: fonts.mono, fontSize: 16, fontWeight: 700, color: v.color }}>{v.value}</span>
-                    <span style={{ fontFamily: fonts.mono, fontSize: 9, color: `${colors.white}30` }}>{v.unit}</span>
+                    <span style={{ fontFamily: fonts.mono, fontSize: 12, color: `${colors.white}55`, letterSpacing: 0.8 }}>{v.label}</span>
+                    <span style={{ fontFamily: fonts.mono, fontSize: 20, fontWeight: 700, color: v.color }}>{v.value}</span>
+                    <span style={{ fontFamily: fonts.mono, fontSize: 11, color: `${colors.white}40` }}>{v.unit}</span>
                   </div>
                 );
               })}
@@ -344,7 +344,7 @@ export const Scene4_VirtualPatient: React.FC = () => {
                   {["Front", "Back"].map((side, i) => (
                     <div key={side} style={{
                       flex: 1, textAlign: "center" as const,
-                      fontFamily: fonts.heading, fontSize: 12, fontWeight: i === 0 ? 700 : 500,
+                      fontFamily: fonts.heading, fontSize: 13, fontWeight: i === 0 ? 700 : 500,
                       color: i === 0 ? colors.white : `${colors.white}50`,
                       background: i === 0 ? colors.arizonaBlue : `${colors.white}06`,
                       padding: "6px 0", borderRadius: 6,
@@ -353,8 +353,8 @@ export const Scene4_VirtualPatient: React.FC = () => {
                   ))}
                 </div>
 
-                <div style={{ fontFamily: fonts.heading, fontSize: 14, fontWeight: 700, color: colors.white }}>Instruments</div>
-                <div style={{ fontFamily: fonts.body, fontSize: 10, color: `${colors.white}40`, marginBottom: 4 }}>
+                <div style={{ fontFamily: fonts.heading, fontSize: 15, fontWeight: 700, color: colors.white }}>Instruments</div>
+                <div style={{ fontFamily: fonts.body, fontSize: 11, color: `${colors.white}50`, marginBottom: 4 }}>
                   Select an instrument to examine
                 </div>
 
@@ -380,7 +380,7 @@ export const Scene4_VirtualPatient: React.FC = () => {
                         }}>
                           {["🔦", "👁", "🔍", "🔨", "🎵", "🩺"][i]}
                         </div>
-                        <span style={{ fontFamily: fonts.body, fontSize: 10, color: colors.white, textAlign: "center" as const }}>{inst}</span>
+                        <span style={{ fontFamily: fonts.body, fontSize: 11, color: colors.white, textAlign: "center" as const }}>{inst}</span>
                       </div>
                     );
                   })}
@@ -414,7 +414,7 @@ export const Scene4_VirtualPatient: React.FC = () => {
                   opacity: interpolate(frame, [185, 205], [0, 1], clamp),
                 }}>
                   <PulsingDot color={colors.vitalsNormal} size={8} delay={190} />
-                  <span style={{ fontFamily: fonts.mono, fontSize: 11, color: colors.vitalsNormal }}>
+                  <span style={{ fontFamily: fonts.mono, fontSize: 12, color: colors.vitalsNormal }}>
                     Patient Interview Active
                   </span>
                 </div>
@@ -436,10 +436,10 @@ export const Scene4_VirtualPatient: React.FC = () => {
                   }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
                       <div>
-                        <div style={{ fontFamily: fonts.heading, fontSize: 18, fontWeight: 700, color: colors.white }}>
+                        <div style={{ fontFamily: fonts.heading, fontSize: 20, fontWeight: 700, color: colors.white }}>
                           Examination Findings
                         </div>
-                        <div style={{ fontFamily: fonts.body, fontSize: 12, color: `${colors.white}50`, marginTop: 2 }}>
+                        <div style={{ fontFamily: fonts.body, fontSize: 13, color: `${colors.white}60`, marginTop: 2 }}>
                           Real clinical media from patient library
                         </div>
                       </div>
@@ -474,7 +474,7 @@ export const Scene4_VirtualPatient: React.FC = () => {
                           );
                         })}
                       </div>
-                      <span style={{ fontFamily: fonts.mono, fontSize: 11, color: `${colors.white}50` }}>
+                      <span style={{ fontFamily: fonts.mono, fontSize: 12, color: `${colors.white}60` }}>
                         Heart Sounds — S3 Gallop
                       </span>
                     </div>
@@ -492,8 +492,8 @@ export const Scene4_VirtualPatient: React.FC = () => {
                             opacity: tagOpacity,
                           }}>
                             <span style={{ fontSize: 12 }}>{item.icon}</span>
-                            <span style={{ fontFamily: fonts.body, fontSize: 11, color: colors.white }}>{item.label}</span>
-                            <span style={{ fontFamily: fonts.mono, fontSize: 9, color: `${item.color}` }}>{item.type}</span>
+                            <span style={{ fontFamily: fonts.body, fontSize: 12, color: colors.white }}>{item.label}</span>
+                            <span style={{ fontFamily: fonts.mono, fontSize: 10, color: `${item.color}` }}>{item.type}</span>
                           </div>
                         );
                       })}
@@ -515,10 +515,10 @@ export const Scene4_VirtualPatient: React.FC = () => {
                     border: `1px solid ${colors.white}10`, padding: "18px 20px",
                     display: "flex", flexDirection: "column",
                   }}>
-                    <div style={{ fontFamily: fonts.heading, fontSize: 16, fontWeight: 700, color: colors.white, marginBottom: 4 }}>
+                    <div style={{ fontFamily: fonts.heading, fontSize: 18, fontWeight: 700, color: colors.white, marginBottom: 4 }}>
                       Differential Diagnosis
                     </div>
-                    <div style={{ fontFamily: fonts.body, fontSize: 11, color: `${colors.white}40`, marginBottom: 14 }}>
+                    <div style={{ fontFamily: fonts.body, fontSize: 13, color: `${colors.white}50`, marginBottom: 14 }}>
                       Ranked by clinical likelihood
                     </div>
                     {differentials.map((dx, i) => {
@@ -532,10 +532,10 @@ export const Scene4_VirtualPatient: React.FC = () => {
                           marginBottom: 8, opacity: dxOpacity,
                         }}>
                           <div style={{ flex: 1 }}>
-                            <div style={{ fontFamily: fonts.body, fontSize: 13, color: colors.white, fontWeight: 600 }}>{dx.name}</div>
+                            <div style={{ fontFamily: fonts.body, fontSize: 15, color: colors.white, fontWeight: 600 }}>{dx.name}</div>
                           </div>
                           <span style={{
-                            fontFamily: fonts.mono, fontSize: 10, fontWeight: 600, color: dx.color,
+                            fontFamily: fonts.mono, fontSize: 12, fontWeight: 600, color: dx.color,
                             background: `${dx.color}15`, padding: "3px 8px", borderRadius: 4,
                           }}>{dx.likelihood}</span>
                         </div>
@@ -549,10 +549,10 @@ export const Scene4_VirtualPatient: React.FC = () => {
                     border: `1px solid ${colors.white}10`, padding: "18px 20px",
                     display: "flex", flexDirection: "column",
                   }}>
-                    <div style={{ fontFamily: fonts.heading, fontSize: 16, fontWeight: 700, color: colors.white, marginBottom: 4 }}>
+                    <div style={{ fontFamily: fonts.heading, fontSize: 18, fontWeight: 700, color: colors.white, marginBottom: 4 }}>
                       Diagnostic Tests
                     </div>
-                    <div style={{ fontFamily: fonts.body, fontSize: 11, color: `${colors.white}40`, marginBottom: 14 }}>
+                    <div style={{ fontFamily: fonts.body, fontSize: 13, color: `${colors.white}50`, marginBottom: 14 }}>
                       Ordered to support diagnosis
                     </div>
                     {diagnosticTests.map((test, i) => {
@@ -566,13 +566,13 @@ export const Scene4_VirtualPatient: React.FC = () => {
                           marginBottom: 6, opacity: testOpacity,
                         }}>
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                            <span style={{ fontFamily: fonts.body, fontSize: 12, fontWeight: 600, color: colors.white }}>{test.name}</span>
+                            <span style={{ fontFamily: fonts.body, fontSize: 14, fontWeight: 600, color: colors.white }}>{test.name}</span>
                             <span style={{
-                              fontFamily: fonts.mono, fontSize: 9, fontWeight: 600, color: sevColor,
+                              fontFamily: fonts.mono, fontSize: 11, fontWeight: 600, color: sevColor,
                               background: `${sevColor}15`, padding: "2px 6px", borderRadius: 3,
                             }}>{test.severity}</span>
                           </div>
-                          <div style={{ fontFamily: fonts.mono, fontSize: 11, color: `${colors.white}60`, marginTop: 3 }}>{test.result}</div>
+                          <div style={{ fontFamily: fonts.mono, fontSize: 12, color: `${colors.white}70`, marginTop: 3 }}>{test.result}</div>
                         </div>
                       );
                     })}
@@ -591,10 +591,10 @@ export const Scene4_VirtualPatient: React.FC = () => {
                     width: 560, background: "rgba(12,35,75,0.6)", borderRadius: 12,
                     border: `1px solid ${colors.white}10`, padding: "22px 26px",
                   }}>
-                    <div style={{ fontFamily: fonts.heading, fontSize: 18, fontWeight: 700, color: colors.white, marginBottom: 4 }}>
+                    <div style={{ fontFamily: fonts.heading, fontSize: 20, fontWeight: 700, color: colors.white, marginBottom: 4 }}>
                       Assessment & Plan
                     </div>
-                    <div style={{ fontFamily: fonts.body, fontSize: 11, color: `${colors.white}40`, marginBottom: 16 }}>
+                    <div style={{ fontFamily: fonts.body, fontSize: 13, color: `${colors.white}50`, marginBottom: 16 }}>
                       Document approach and consult orders
                     </div>
                     {assessmentItems.map((item, i) => {
@@ -610,11 +610,11 @@ export const Scene4_VirtualPatient: React.FC = () => {
                           opacity: apOpacity,
                         }}>
                           <span style={{
-                            fontFamily: fonts.mono, fontSize: 10, fontWeight: 700,
+                            fontFamily: fonts.mono, fontSize: 12, fontWeight: 700,
                             color: isConsult ? colors.vitalsWarning : colors.oasis,
                             minWidth: 80, flexShrink: 0,
                           }}>{item.label}</span>
-                          <span style={{ fontFamily: fonts.body, fontSize: 13, color: colors.white }}>{item.value}</span>
+                          <span style={{ fontFamily: fonts.body, fontSize: 15, color: colors.white }}>{item.value}</span>
                         </div>
                       );
                     })}
@@ -633,10 +633,10 @@ export const Scene4_VirtualPatient: React.FC = () => {
                     width: 480, background: "rgba(12,35,75,0.6)", borderRadius: 12,
                     border: `1px solid ${colors.white}10`, padding: "22px 26px",
                   }}>
-                    <div style={{ fontFamily: fonts.heading, fontSize: 18, fontWeight: 700, color: colors.white, marginBottom: 4 }}>
+                    <div style={{ fontFamily: fonts.heading, fontSize: 20, fontWeight: 700, color: colors.white, marginBottom: 4 }}>
                       Patient Encounter
                     </div>
-                    <div style={{ fontFamily: fonts.body, fontSize: 11, color: `${colors.white}40`, marginBottom: 16 }}>
+                    <div style={{ fontFamily: fonts.body, fontSize: 13, color: `${colors.white}50`, marginBottom: 16 }}>
                       Full encounter summary — ready for submission
                     </div>
 
@@ -651,10 +651,10 @@ export const Scene4_VirtualPatient: React.FC = () => {
                           marginBottom: 4, opacity: secOpacity,
                         }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                            <span style={{ fontFamily: fonts.mono, fontSize: 12, color: colors.vitalsNormal }}>✓</span>
-                            <span style={{ fontFamily: fonts.body, fontSize: 13, color: colors.white }}>{sec.label}</span>
+                            <span style={{ fontFamily: fonts.mono, fontSize: 14, color: colors.vitalsNormal }}>✓</span>
+                            <span style={{ fontFamily: fonts.body, fontSize: 15, color: colors.white }}>{sec.label}</span>
                           </div>
-                          <span style={{ fontFamily: fonts.mono, fontSize: 10, color: `${colors.white}40` }}>
+                          <span style={{ fontFamily: fonts.mono, fontSize: 12, color: `${colors.white}50` }}>
                             {sec.items} items
                           </span>
                         </div>
@@ -668,7 +668,7 @@ export const Scene4_VirtualPatient: React.FC = () => {
                         ? `linear-gradient(135deg, ${colors.vitalsNormal}, #059669)`
                         : `linear-gradient(135deg, ${colors.arizonaBlue}, ${colors.azurite})`,
                       border: `1px solid ${submitProgress > 0 ? `${colors.vitalsNormal}50` : `${colors.oasis}30`}`,
-                      fontFamily: fonts.heading, fontSize: 15, fontWeight: 700,
+                      fontFamily: fonts.heading, fontSize: 16, fontWeight: 700,
                       color: colors.white,
                       opacity: interpolate(frame, [1280, 1300], [0, 1], clamp),
                       transform: `scale(${submitProgress > 0 ? 1 + submitProgress * 0.03 : 1})`,
@@ -699,7 +699,7 @@ export const Scene4_VirtualPatient: React.FC = () => {
                     opacity: phase2Opacity,
                   }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 2 }}>
-                      <span style={{ fontFamily: fonts.heading, fontSize: 15, fontWeight: 700, color: colors.white }}>
+                      <span style={{ fontFamily: fonts.heading, fontSize: 16, fontWeight: 700, color: colors.white }}>
                         Patient Interview
                       </span>
                       <PulsingDot color={colors.oasis} size={7} delay={195} />
@@ -721,10 +721,10 @@ export const Scene4_VirtualPatient: React.FC = () => {
                                 ? `linear-gradient(135deg, ${colors.arizonaBlue}, ${colors.azurite})`
                                 : `${colors.white}10`,
                               border: `1px solid ${isStudent ? `${colors.oasis}20` : `${colors.white}08`}`,
-                              fontFamily: fonts.body, fontSize: 13, color: colors.white, lineHeight: 1.45,
+                              fontFamily: fonts.body, fontSize: 14, color: colors.white, lineHeight: 1.45,
                             }}>
                               <div style={{
-                                fontFamily: fonts.mono, fontSize: 9, color: isStudent ? colors.oasis : `${colors.white}40`,
+                                fontFamily: fonts.mono, fontSize: 10, color: isStudent ? colors.oasis : `${colors.white}50`,
                                 marginBottom: 3,
                               }}>{isStudent ? "Student" : "Patient"}</div>
                               {msg.text}
@@ -737,7 +737,7 @@ export const Scene4_VirtualPatient: React.FC = () => {
                     <div style={{
                       padding: "9px 13px", borderRadius: 8,
                       background: `${colors.white}06`, border: `1px solid ${colors.white}10`,
-                      fontFamily: fonts.body, fontSize: 12, color: `${colors.white}25`,
+                      fontFamily: fonts.body, fontSize: 13, color: `${colors.white}30`,
                       opacity: interpolate(frame, [370, 395], [0, 1], clamp),
                     }}>Type your response...</div>
                   </div>
@@ -749,14 +749,14 @@ export const Scene4_VirtualPatient: React.FC = () => {
                     display: "flex", flexDirection: "column", gap: 8, flex: 1,
                     opacity: phase3Opacity,
                   }}>
-                    <div style={{ fontFamily: fonts.heading, fontSize: 15, fontWeight: 700, color: colors.white }}>
+                    <div style={{ fontFamily: fonts.heading, fontSize: 16, fontWeight: 700, color: colors.white }}>
                       Examination Categories
                     </div>
 
                     <div style={{
                       padding: "7px 10px", borderRadius: 8,
                       background: `${colors.white}05`, border: `1px solid ${colors.white}12`,
-                      fontFamily: fonts.body, fontSize: 11, color: `${colors.white}25`,
+                      fontFamily: fonts.body, fontSize: 12, color: `${colors.white}30`,
                       opacity: interpolate(frame, [435, 455], [0, 1], clamp),
                     }}>Search categories...</div>
 
@@ -775,15 +775,15 @@ export const Scene4_VirtualPatient: React.FC = () => {
                             opacity: catOpacity,
                           }}>
                             <span style={{
-                              fontFamily: fonts.body, fontSize: 13,
+                              fontFamily: fonts.body, fontSize: 14,
                               color: isChecked && checkAnim > 0 ? colors.oasis : colors.white,
                               fontWeight: isChecked ? 600 : 400,
                             }}>{cat}</span>
                             <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                               {isChecked && checkAnim > 0 && (
-                                <span style={{ fontFamily: fonts.mono, fontSize: 11, color: colors.vitalsNormal, opacity: checkAnim }}>✓</span>
+                                <span style={{ fontFamily: fonts.mono, fontSize: 13, color: colors.vitalsNormal, opacity: checkAnim }}>✓</span>
                               )}
-                              <span style={{ fontFamily: fonts.body, fontSize: 13, color: `${colors.white}20` }}>›</span>
+                              <span style={{ fontFamily: fonts.body, fontSize: 14, color: `${colors.white}25` }}>›</span>
                             </div>
                           </div>
                         );
@@ -796,7 +796,7 @@ export const Scene4_VirtualPatient: React.FC = () => {
                       opacity: interpolate(frame, [560, 585], [0, 1], clamp),
                     }}>
                       <div style={{
-                        fontFamily: fonts.mono, fontSize: 9, color: `${colors.white}40`,
+                        fontFamily: fonts.mono, fontSize: 10, color: `${colors.white}50`,
                         letterSpacing: 1, textTransform: "uppercase" as const, marginBottom: 6,
                       }}>Findings</div>
                       {examFindings.map((ef, i) => {
@@ -806,13 +806,13 @@ export const Scene4_VirtualPatient: React.FC = () => {
                             display: "flex", gap: 6, marginBottom: 6, opacity: fOpacity, alignItems: "center",
                           }}>
                             <span style={{
-                              fontFamily: fonts.mono, fontSize: 10, fontWeight: 600, color: colors.oasis,
+                              fontFamily: fonts.mono, fontSize: 11, fontWeight: 600, color: colors.oasis,
                               background: `${colors.oasis}12`, padding: "2px 6px", borderRadius: 3,
                               whiteSpace: "nowrap" as const, flexShrink: 0,
                             }}>{ef.tool}</span>
-                            <span style={{ fontFamily: fonts.body, fontSize: 11, color: `${colors.white}70`, lineHeight: 1.3 }}>{ef.finding}</span>
+                            <span style={{ fontFamily: fonts.body, fontSize: 12, color: `${colors.white}70`, lineHeight: 1.3 }}>{ef.finding}</span>
                             <span style={{
-                              fontFamily: fonts.mono, fontSize: 8, color: ef.mediaType === "audio" ? colors.vitalsWarning : "#06b6d4",
+                              fontFamily: fonts.mono, fontSize: 9, color: ef.mediaType === "audio" ? colors.vitalsWarning : "#06b6d4",
                               background: `${ef.mediaType === "audio" ? colors.vitalsWarning : "#06b6d4"}15`,
                               padding: "1px 5px", borderRadius: 3, flexShrink: 0,
                             }}>{ef.mediaType === "audio" ? "♫" : "◉"}</span>

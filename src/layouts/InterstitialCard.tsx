@@ -93,7 +93,7 @@ export const InterstitialCard: React.FC<InterstitialCardProps> = ({
         <span
           style={{
             color: colors.white,
-            fontSize: 15,
+            fontSize: 17,
             fontFamily: fonts.body,
             fontWeight: 600,
             letterSpacing: 3,
@@ -138,13 +138,13 @@ export const InterstitialCard: React.FC<InterstitialCardProps> = ({
       {/* Subtitle */}
       <span
         style={{
-          color: `${colors.slate200}A0`,
-          fontSize: 20,
+          color: `${colors.slate200}B8`,
+          fontSize: 24,
           fontFamily: fonts.body,
           fontWeight: 400,
           marginTop: 10,
           textAlign: "center",
-          maxWidth: 600,
+          maxWidth: 700,
           position: "relative",
           zIndex: 1,
         }}

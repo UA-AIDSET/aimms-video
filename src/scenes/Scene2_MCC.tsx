@@ -51,11 +51,7 @@ const libraryCases = [
   { title: "Asthma Exacerbation", sections: 8, tag: "Respiratory", author: "KT", uses: 0, completion: 0.6 },
   { title: "Stroke — Acute Ischemic", sections: 8, tag: "Neurology", author: "RH", uses: 41, completion: 0.95 },
   { title: "Sepsis — Early Recognition", sections: 8, tag: "Critical Care", author: "SJ", uses: 36, completion: 0.88 },
-  { title: "Type 2 Diabetes — New Dx", sections: 8, tag: "Endocrine", author: "LW", uses: 0, completion: 0.45 },
   { title: "Chest Pain — ACS Workup", sections: 8, tag: "Cardiology", author: "ML", uses: 22, completion: 1.0 },
-  { title: "UTI — Complicated", sections: 8, tag: "Infectious", author: "JN", uses: 15, completion: 0.82 },
-  { title: "COPD Exacerbation", sections: 8, tag: "Respiratory", author: "KT", uses: 12, completion: 0.75 },
-  { title: "Anaphylaxis — Peds", sections: 8, tag: "Emergency", author: "PD", uses: 38, completion: 0.91 },
 ];
 
 /* ── ASTEC template sections ── */
@@ -142,7 +138,7 @@ export const Scene2_MCC: React.FC = () => {
   const threeContent = (
     <>
       <AnimatedGrid color={colors.azurite} opacity={0.08} />
-      <ParticleField count={120} color={colors.oasis} speed={0.002} opacity={0.3} />
+      <ParticleField count={60} color={colors.oasis} speed={0.002} opacity={0.2} />
 
       {networkOpacity > 0 && (
         <NodeNetwork
@@ -196,16 +192,16 @@ export const Scene2_MCC: React.FC = () => {
           {/* Header bar */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-              <div style={{ fontFamily: fonts.heading, fontSize: 24, fontWeight: 700, color: colors.white }}>
+              <div style={{ fontFamily: fonts.heading, fontSize: 26, fontWeight: 700, color: colors.white }}>
                 ASTEC Case Library
               </div>
-              <div style={{ fontFamily: fonts.mono, fontSize: 14, color: `${colors.white}50`, background: `${colors.white}08`, padding: "4px 12px", borderRadius: 6 }}>
+              <div style={{ fontFamily: fonts.mono, fontSize: 15, color: `${colors.white}60`, background: `${colors.white}08`, padding: "4px 12px", borderRadius: 6 }}>
                 {libraryCases.length} cases
               </div>
             </div>
             <div
               style={{
-                fontFamily: fonts.body, fontSize: 16, fontWeight: 600,
+                fontFamily: fonts.body, fontSize: 17, fontWeight: 600,
                 color: colors.oasis, background: `${colors.oasis}20`,
                 padding: "8px 20px", borderRadius: 8,
                 border: `1px solid ${colors.oasis}${Math.round(interpolate(createOwnGlow, [0, 1], [20, 80])).toString(16).padStart(2, "0")}`,
@@ -252,16 +248,16 @@ export const Scene2_MCC: React.FC = () => {
                   <div style={{ padding: "8px 12px 9px", display: "flex", flexDirection: "column" as const, gap: 5, flex: 1 }}>
                     {/* Title + status */}
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 6 }}>
-                      <div style={{ fontFamily: fonts.heading, fontSize: 13, fontWeight: 700, color: colors.white, lineHeight: 1.3, flex: 1 }}>
+                      <div style={{ fontFamily: fonts.heading, fontSize: 15, fontWeight: 700, color: colors.white, lineHeight: 1.3, flex: 1 }}>
                         {c.title}
                       </div>
                       <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
                         {isSelected && <PulsingDot color={colors.ecgGreen} size={8} delay={110} />}
                         <span style={{
-                          fontFamily: fonts.mono, fontSize: 8, fontWeight: 700,
+                          fontFamily: fonts.mono, fontSize: 10, fontWeight: 700,
                           color: isDraft ? colors.vitalsWarning : colors.vitalsNormal,
                           background: isDraft ? `${colors.vitalsWarning}15` : `${colors.vitalsNormal}15`,
-                          padding: "1px 6px", borderRadius: 3,
+                          padding: "2px 7px", borderRadius: 3,
                         }}>
                           {isDraft ? "Draft" : "Published"}
                         </span>
@@ -271,13 +267,13 @@ export const Scene2_MCC: React.FC = () => {
                     {/* Tag + section count */}
                     <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                       <span style={{
-                        fontFamily: fonts.mono, fontSize: 9, fontWeight: 600,
+                        fontFamily: fonts.mono, fontSize: 11, fontWeight: 600,
                         color: colors.oasis, background: `${colors.oasis}15`,
                         padding: "2px 7px", borderRadius: 4,
                       }}>
                         {c.tag}
                       </span>
-                      <span style={{ fontFamily: fonts.mono, fontSize: 9, color: `${colors.white}35` }}>
+                      <span style={{ fontFamily: fonts.mono, fontSize: 11, color: `${colors.white}45` }}>
                         {c.sections} sections
                       </span>
                     </div>
@@ -290,7 +286,7 @@ export const Scene2_MCC: React.FC = () => {
                           background: c.completion >= 1 ? colors.vitalsNormal : colors.oasis,
                         }} />
                       </div>
-                      <span style={{ fontFamily: fonts.mono, fontSize: 8, color: `${colors.white}40`, flexShrink: 0 }}>
+                      <span style={{ fontFamily: fonts.mono, fontSize: 10, color: `${colors.white}50`, flexShrink: 0 }}>
                         {Math.round(c.completion * 100)}%
                       </span>
                     </div>
@@ -302,13 +298,13 @@ export const Scene2_MCC: React.FC = () => {
                           width: 18, height: 18, borderRadius: "50%",
                           background: `${colors.oasis}25`, border: `1px solid ${colors.oasis}30`,
                           display: "flex", alignItems: "center", justifyContent: "center",
-                          fontFamily: fonts.mono, fontSize: 8, fontWeight: 700, color: colors.oasis,
+                          fontFamily: fonts.mono, fontSize: 10, fontWeight: 700, color: colors.oasis,
                         }}>
                           {c.author}
                         </div>
                       </div>
                       {c.uses > 0 && (
-                        <span style={{ fontFamily: fonts.mono, fontSize: 9, color: `${colors.white}35` }}>
+                        <span style={{ fontFamily: fonts.mono, fontSize: 11, color: `${colors.white}45` }}>
                           {c.uses} uses
                         </span>
                       )}
@@ -350,13 +346,13 @@ export const Scene2_MCC: React.FC = () => {
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-              <div style={{ fontFamily: fonts.heading, fontSize: 22, fontWeight: 700, color: colors.white }}>
+              <div style={{ fontFamily: fonts.heading, fontSize: 24, fontWeight: 700, color: colors.white }}>
                 Pneumonia Case — Adult
               </div>
               <div
                 style={{
                   fontFamily: fonts.mono,
-                  fontSize: 14,
+                  fontSize: 15,
                   padding: "3px 10px",
                   borderRadius: 6,
                   background: publishFlip > 0 ? `${colors.vitalsNormal}25` : `${colors.vitalsWarning}20`,
@@ -372,7 +368,7 @@ export const Scene2_MCC: React.FC = () => {
                   key={btn}
                   style={{
                     fontFamily: fonts.body,
-                    fontSize: 14,
+                    fontSize: 15,
                     fontWeight: 600,
                     color: btn === "Test in VP" ? colors.oasis : `${colors.white}80`,
                     background: btn === "Test in VP" ? `${colors.oasis}20` : `${colors.white}10`,
@@ -400,7 +396,7 @@ export const Scene2_MCC: React.FC = () => {
                     key={sec}
                     style={{
                       fontFamily: fonts.body,
-                      fontSize: 16,
+                      fontSize: 17,
                       fontWeight: isActive ? 600 : 400,
                       color: isActive ? colors.oasis : `${colors.white}70`,
                       background: isActive ? `${colors.oasis}15` : "transparent",
@@ -423,20 +419,20 @@ export const Scene2_MCC: React.FC = () => {
                   opacity: interpolate(frame, [245, 260], [0, 1], clamp),
                 }}
               >
-                <div style={{ fontFamily: fonts.mono, fontSize: 13, color: `${colors.white}60`, marginBottom: 8 }}>
+                <div style={{ fontFamily: fonts.mono, fontSize: 14, color: `${colors.white}60`, marginBottom: 8 }}>
                   AI Temperature
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <div style={{ flex: 1, height: 6, borderRadius: 3, background: `${colors.white}15` }}>
                     <div style={{ width: "70%", height: "100%", borderRadius: 3, background: colors.oasis }} />
                   </div>
-                  <span style={{ fontFamily: fonts.mono, fontSize: 14, color: colors.oasis }}>0.7</span>
+                  <span style={{ fontFamily: fonts.mono, fontSize: 15, color: colors.oasis }}>0.7</span>
                 </div>
               </div>
 
               {/* Case stats panel */}
               <GlassPanel enterFrame={260} exitFrame={phase3Opacity > 0 ? 500 : 370} style={{ padding: "12px 14px", marginTop: 10 }}>
-                <div style={{ fontFamily: fonts.mono, fontSize: 12, color: `${colors.white}50`, marginBottom: 8, letterSpacing: 1, textTransform: "uppercase" as const }}>
+                <div style={{ fontFamily: fonts.mono, fontSize: 13, color: `${colors.white}60`, marginBottom: 8, letterSpacing: 1, textTransform: "uppercase" as const }}>
                   Case Stats
                 </div>
                 {[
@@ -445,25 +441,25 @@ export const Scene2_MCC: React.FC = () => {
                   { label: "AI Fields", value: phase3Opacity > 0 ? `${tableRows.filter((_, i) => cellFillProgress[i] >= 1).length}/${tableRows.length}` : "0/" + tableRows.length },
                 ].map((stat, i) => (
                   <div key={stat.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "4px 0", opacity: interpolate(frame, [265 + i * 7, 273 + i * 7], [0, 1], clamp) }}>
-                    <span style={{ fontFamily: fonts.body, fontSize: 13, color: `${colors.white}60` }}>{stat.label}</span>
-                    <span style={{ fontFamily: fonts.mono, fontSize: 13, color: colors.oasis }}>{stat.value}</span>
+                    <span style={{ fontFamily: fonts.body, fontSize: 14, color: `${colors.white}70` }}>{stat.label}</span>
+                    <span style={{ fontFamily: fonts.mono, fontSize: 14, color: colors.oasis }}>{stat.value}</span>
                   </div>
                 ))}
               </GlassPanel>
 
               {/* AI Model info */}
               <GlassPanel enterFrame={275} exitFrame={phase3Opacity > 0 ? 500 : 370} style={{ padding: "12px 14px", marginTop: 8 }}>
-                <div style={{ fontFamily: fonts.mono, fontSize: 12, color: `${colors.white}50`, marginBottom: 6, letterSpacing: 1, textTransform: "uppercase" as const }}>
+                <div style={{ fontFamily: fonts.mono, fontSize: 13, color: `${colors.white}60`, marginBottom: 6, letterSpacing: 1, textTransform: "uppercase" as const }}>
                   AI Model
                 </div>
-                <div style={{ fontFamily: fonts.mono, fontSize: 13, color: colors.azurite }}>GPT-4o</div>
+                <div style={{ fontFamily: fonts.mono, fontSize: 14, color: colors.azurite }}>GPT-4o</div>
                 <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
-                  <div style={{ fontFamily: fonts.mono, fontSize: 11, color: `${colors.vitalsNormal}90`, background: `${colors.vitalsNormal}15`, padding: "2px 8px", borderRadius: 4 }}>
+                  <div style={{ fontFamily: fonts.mono, fontSize: 12, color: `${colors.vitalsNormal}90`, background: `${colors.vitalsNormal}15`, padding: "2px 8px", borderRadius: 4 }}>
                     Connected
                   </div>
                   {phase3Opacity > 0 && (
                     <div style={{
-                      fontFamily: fonts.mono, fontSize: 11, color: `${colors.oasis}90`, background: `${colors.oasis}15`, padding: "2px 8px", borderRadius: 4,
+                      fontFamily: fonts.mono, fontSize: 12, color: `${colors.oasis}90`, background: `${colors.oasis}15`, padding: "2px 8px", borderRadius: 4,
                       opacity: interpolate(frame, [375, 383, 425, 435], [0, 1, 1, 0.6], clamp),
                     }}>
                       Generating...
@@ -485,7 +481,7 @@ export const Scene2_MCC: React.FC = () => {
                 <div style={{ display: "flex", gap: 6, marginBottom: 12 }}>
                   {["Patient Demographics", "Chief Complaint", "HPI"].map((tab, i) => (
                     <div key={tab} style={{
-                      fontFamily: fonts.mono, fontSize: 11, fontWeight: i === 0 ? 700 : 400,
+                      fontFamily: fonts.mono, fontSize: 12, fontWeight: i === 0 ? 700 : 400,
                       color: i === 0 ? colors.oasis : `${colors.white}40`,
                       background: i === 0 ? `${colors.oasis}15` : `${colors.white}06`,
                       padding: "4px 10px", borderRadius: 4,
@@ -493,7 +489,7 @@ export const Scene2_MCC: React.FC = () => {
                     }}>{tab}</div>
                   ))}
                   <div style={{
-                    fontFamily: fonts.mono, fontSize: 11, color: `${colors.white}25`,
+                    fontFamily: fonts.mono, fontSize: 12, color: `${colors.white}35`,
                     padding: "4px 8px",
                     opacity: interpolate(frame, [233, 243], [0, 1], clamp),
                   }}>+5 more</div>
@@ -503,17 +499,17 @@ export const Scene2_MCC: React.FC = () => {
                 <div
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "140px 1fr 24px",
+                    gridTemplateColumns: "155px 1fr 24px",
                     gap: 8,
                     borderBottom: `1px solid ${colors.oasis}25`,
                     paddingBottom: 8,
                     marginBottom: 6,
                   }}
                 >
-                  <span style={{ fontFamily: fonts.heading, fontSize: 13, fontWeight: 700, color: colors.oasis, letterSpacing: 1, textTransform: "uppercase" as const }}>
+                  <span style={{ fontFamily: fonts.heading, fontSize: 14, fontWeight: 700, color: colors.oasis, letterSpacing: 1, textTransform: "uppercase" as const }}>
                     Field
                   </span>
-                  <span style={{ fontFamily: fonts.heading, fontSize: 13, fontWeight: 700, color: colors.oasis, letterSpacing: 1, textTransform: "uppercase" as const }}>
+                  <span style={{ fontFamily: fonts.heading, fontSize: 14, fontWeight: 700, color: colors.oasis, letterSpacing: 1, textTransform: "uppercase" as const }}>
                     Value
                   </span>
                   <span />
@@ -532,20 +528,20 @@ export const Scene2_MCC: React.FC = () => {
                       key={row.field}
                       style={{
                         display: "grid",
-                        gridTemplateColumns: "140px 1fr 24px",
+                        gridTemplateColumns: "155px 1fr 24px",
                         gap: 8,
                         padding: "5px 0",
                         opacity: rowOpacity,
                         borderBottom: i < tableRows.length - 1 ? `1px solid ${colors.white}08` : "none",
                       }}
                     >
-                      <span style={{ fontFamily: fonts.body, fontSize: 13, fontWeight: 500, color: colors.white }}>
+                      <span style={{ fontFamily: fonts.body, fontSize: 14, fontWeight: 500, color: colors.white }}>
                         {row.field}
                       </span>
                       <span
                         style={{
                           fontFamily: fonts.mono,
-                          fontSize: 13,
+                          fontSize: 14,
                           color: showValue ? colors.white : colors.oasis,
                           opacity: showValue ? interpolate(filled, [0, 1], [0.5, 1]) : 0.7,
                           position: "relative",
@@ -593,7 +589,7 @@ export const Scene2_MCC: React.FC = () => {
                   >
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                       <PulsingDot color={colors.oasis} size={10} delay={370} />
-                      <span style={{ fontFamily: fonts.mono, fontSize: 13, color: colors.oasis }}>
+                      <span style={{ fontFamily: fonts.mono, fontSize: 14, color: colors.oasis }}>
                         AI Generating — {tableRows.filter((_, i) => cellFillProgress[i] >= 1).length}/{tableRows.length} fields
                       </span>
                     </div>
@@ -615,7 +611,7 @@ export const Scene2_MCC: React.FC = () => {
                     display: "flex", alignItems: "center", gap: 8,
                     opacity: interpolate(frame, [430, 440, 480, 495], [0, 1, 1, 0], clamp),
                   }}>
-                    <span style={{ fontFamily: fonts.mono, fontSize: 13, color: colors.vitalsNormal }}>✓ All fields generated</span>
+                    <span style={{ fontFamily: fonts.mono, fontSize: 14, color: colors.vitalsNormal }}>✓ All fields generated</span>
                   </div>
                 )}
               </GlassPanel>
@@ -626,10 +622,10 @@ export const Scene2_MCC: React.FC = () => {
                 exitFrame={phase3Opacity > 0 ? 500 : 370}
                 style={{ width: 340, padding: "16px 18px", display: "flex", flexDirection: "column" }}
               >
-                <div style={{ fontFamily: fonts.heading, fontSize: 15, fontWeight: 700, color: colors.white, marginBottom: 12 }}>
+                <div style={{ fontFamily: fonts.heading, fontSize: 16, fontWeight: 700, color: colors.white, marginBottom: 12 }}>
                   Case Media
                 </div>
-                <div style={{ fontFamily: fonts.mono, fontSize: 11, color: `${colors.white}40`, marginBottom: 14, letterSpacing: 1, textTransform: "uppercase" as const }}>
+                <div style={{ fontFamily: fonts.mono, fontSize: 12, color: `${colors.white}50`, marginBottom: 14, letterSpacing: 1, textTransform: "uppercase" as const }}>
                   Attachments for Virtual Patient
                 </div>
 
@@ -668,15 +664,15 @@ export const Scene2_MCC: React.FC = () => {
                         {media.icon}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontFamily: fonts.body, fontSize: 12, fontWeight: 500, color: colors.white, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                        <div style={{ fontFamily: fonts.body, fontSize: 13, fontWeight: 500, color: colors.white, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                           {media.label}
                         </div>
-                        <div style={{ fontFamily: fonts.mono, fontSize: 10, color: `${colors.white}40` }}>
+                        <div style={{ fontFamily: fonts.mono, fontSize: 11, color: `${colors.white}50` }}>
                           {media.size}
                         </div>
                       </div>
                       <div style={{
-                        fontFamily: fonts.mono, fontSize: 9, fontWeight: 600,
+                        fontFamily: fonts.mono, fontSize: 10, fontWeight: 600,
                         color: `${media.color}CC`,
                         background: `${media.color}15`,
                         padding: "2px 6px", borderRadius: 4,
@@ -702,10 +698,10 @@ export const Scene2_MCC: React.FC = () => {
                     opacity: interpolate(frame, [325, 340], [0, 0.7], clamp),
                   }}
                 >
-                  <span style={{ fontFamily: fonts.body, fontSize: 12, color: `${colors.white}50` }}>
+                  <span style={{ fontFamily: fonts.body, fontSize: 13, color: `${colors.white}50` }}>
                     Drop files to upload
                   </span>
-                  <span style={{ fontFamily: fonts.mono, fontSize: 10, color: `${colors.white}25` }}>
+                  <span style={{ fontFamily: fonts.mono, fontSize: 11, color: `${colors.white}30` }}>
                     Images, Audio, Video, Documents
                   </span>
                 </div>
@@ -742,7 +738,7 @@ export const Scene2_MCC: React.FC = () => {
             <span
               style={{
                 fontFamily: fonts.heading,
-                fontSize: 44,
+                fontSize: 52,
                 fontWeight: 700,
                 color: colors.white,
                 textShadow: `0 0 32px ${colors.azurite}80`,
@@ -755,11 +751,11 @@ export const Scene2_MCC: React.FC = () => {
               <div
                 style={{
                   fontFamily: fonts.mono,
-                  fontSize: 14,
+                  fontSize: 16,
                   fontWeight: 600,
                   color: colors.vitalsNormal,
                   background: `${colors.vitalsNormal}20`,
-                  padding: "5px 14px",
+                  padding: "6px 16px",
                   borderRadius: 6,
                 }}
               >
@@ -768,11 +764,11 @@ export const Scene2_MCC: React.FC = () => {
               <div
                 style={{
                   fontFamily: fonts.mono,
-                  fontSize: 14,
+                  fontSize: 16,
                   fontWeight: 600,
                   color: colors.oasis,
                   background: `${colors.oasis}20`,
-                  padding: "5px 14px",
+                  padding: "6px 16px",
                   borderRadius: 6,
                   boxShadow: `0 0 12px ${colors.oasis}25`,
                 }}

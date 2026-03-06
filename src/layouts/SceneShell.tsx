@@ -84,14 +84,14 @@ export const SceneShell: React.FC<SceneShellProps> = ({
               style={{
                 backgroundColor: `${colors.arizonaRed}20`,
                 borderRadius: 24,
-                padding: "8px 24px",
+                padding: "10px 28px",
                 border: `1px solid ${colors.arizonaRed}40`,
               }}
             >
               <span
                 style={{
                   color: colors.white,
-                  fontSize: 15,
+                  fontSize: 17,
                   fontFamily: fonts.body,
                   fontWeight: 600,
                   letterSpacing: 2,

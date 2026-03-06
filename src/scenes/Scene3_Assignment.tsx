@@ -104,7 +104,7 @@ export const Scene3_Assignment: React.FC = () => {
   const threeContent = (
     <>
       <AnimatedGrid color={colors.azurite} opacity={0.08} />
-      <ParticleField count={100} color={colors.oasis} speed={0.002} opacity={0.25} />
+      <ParticleField count={50} color={colors.oasis} speed={0.002} opacity={0.18} />
       <GlowOrb position={[0, 0, -3]} color={colors.azurite} radius={3} baseOpacity={0.08} />
       <DataStream direction="right" position={[-4, 0, -2]} color={colors.oasis} opacity={0.15} length={8} speed={0.04} />
       <CameraRig
@@ -142,11 +142,11 @@ export const Scene3_Assignment: React.FC = () => {
         >
           {/* Header */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-            <div style={{ fontFamily: fonts.heading, fontSize: 22, fontWeight: 700, color: colors.white }}>
+            <div style={{ fontFamily: fonts.heading, fontSize: 24, fontWeight: 700, color: colors.white }}>
               Faculty Dashboard — MED 501
             </div>
             <div style={{
-              fontFamily: fonts.body, fontSize: 15, fontWeight: 600,
+              fontFamily: fonts.body, fontSize: 16, fontWeight: 600,
               color: assignButtonClick > 0.5 ? colors.white : colors.oasis,
               background: assignButtonClick > 0.5 ? colors.oasis : `${colors.oasis}20`,
               padding: "6px 18px", borderRadius: 8,
@@ -162,7 +162,7 @@ export const Scene3_Assignment: React.FC = () => {
           <div style={{ display: "flex", gap: 12, flex: 1 }}>
             {/* ── Left Panel: Class List ── */}
             <GlassPanel enterFrame={70} exitFrame={490} style={{ width: 260, padding: "14px 16px", display: "flex", flexDirection: "column" }}>
-              <div style={{ fontFamily: fonts.heading, fontSize: 15, fontWeight: 700, color: colors.oasis, marginBottom: 10, letterSpacing: 1 }}>
+              <div style={{ fontFamily: fonts.heading, fontSize: 16, fontWeight: 700, color: colors.oasis, marginBottom: 10, letterSpacing: 1 }}>
                 Classes
               </div>
               {classes.map((cls, i) => {
@@ -182,14 +182,14 @@ export const Scene3_Assignment: React.FC = () => {
                         : "3px solid transparent",
                     }}
                   >
-                    <div style={{ fontFamily: fonts.body, fontSize: 14, fontWeight: isActive ? 600 : 400, color: isActive ? colors.white : `${colors.white}70` }}>
+                    <div style={{ fontFamily: fonts.body, fontSize: 15, fontWeight: isActive ? 600 : 400, color: isActive ? colors.white : `${colors.white}70` }}>
                       {cls.name}
                     </div>
                     <div style={{ display: "flex", gap: 10, marginTop: 3 }}>
-                      <span style={{ fontFamily: fonts.mono, fontSize: 12, color: `${colors.white}50` }}>
+                      <span style={{ fontFamily: fonts.mono, fontSize: 13, color: `${colors.white}60` }}>
                         {cls.students} students
                       </span>
-                      <span style={{ fontFamily: fonts.mono, fontSize: 12, color: colors.oasis }}>
+                      <span style={{ fontFamily: fonts.mono, fontSize: 13, color: colors.oasis }}>
                         {cls.active} active
                       </span>
                     </div>
@@ -199,12 +199,12 @@ export const Scene3_Assignment: React.FC = () => {
               {/* Class stats at bottom */}
               <div style={{ marginTop: "auto", paddingTop: 10, borderTop: `1px solid ${colors.white}08` }}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                  <span style={{ fontFamily: fonts.mono, fontSize: 12, color: `${colors.white}50` }}>Total Students</span>
-                  <span style={{ fontFamily: fonts.mono, fontSize: 14, fontWeight: 700, color: colors.oasis }}>74</span>
+                  <span style={{ fontFamily: fonts.mono, fontSize: 13, color: `${colors.white}60` }}>Total Students</span>
+                  <span style={{ fontFamily: fonts.mono, fontSize: 15, fontWeight: 700, color: colors.oasis }}>74</span>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span style={{ fontFamily: fonts.mono, fontSize: 12, color: `${colors.white}50` }}>Active Cases</span>
-                  <span style={{ fontFamily: fonts.mono, fontSize: 14, fontWeight: 700, color: colors.vitalsNormal }}>54</span>
+                  <span style={{ fontFamily: fonts.mono, fontSize: 13, color: `${colors.white}60` }}>Active Cases</span>
+                  <span style={{ fontFamily: fonts.mono, fontSize: 15, fontWeight: 700, color: colors.vitalsNormal }}>54</span>
                 </div>
               </div>
             </GlassPanel>
@@ -215,11 +215,11 @@ export const Scene3_Assignment: React.FC = () => {
               {existingFadeOut > 0 && (
                 <div style={{ opacity: existingFadeOut, display: "flex", flexDirection: "column", flex: 1 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                    <div style={{ fontFamily: fonts.heading, fontSize: 15, fontWeight: 700, color: colors.oasis, letterSpacing: 1 }}>
+                    <div style={{ fontFamily: fonts.heading, fontSize: 16, fontWeight: 700, color: colors.oasis, letterSpacing: 1 }}>
                       Current Assignments
                     </div>
                     <div style={{
-                      fontFamily: fonts.mono, fontSize: 12, color: `${colors.white}50`,
+                      fontFamily: fonts.mono, fontSize: 13, color: `${colors.white}60`,
                       background: `${colors.white}08`, padding: "3px 10px", borderRadius: 4,
                     }}>
                       {existingAssignments.length} active
@@ -233,7 +233,7 @@ export const Scene3_Assignment: React.FC = () => {
                     borderBottom: `1px solid ${colors.oasis}20`,
                   }}>
                     {["Case", "Student", "Due", "Status"].map((h) => (
-                      <span key={h} style={{ fontFamily: fonts.mono, fontSize: 11, fontWeight: 700, color: colors.oasis, letterSpacing: 1, textTransform: "uppercase" as const }}>{h}</span>
+                      <span key={h} style={{ fontFamily: fonts.mono, fontSize: 12, fontWeight: 700, color: colors.oasis, letterSpacing: 1, textTransform: "uppercase" as const }}>{h}</span>
                     ))}
                   </div>
 
@@ -247,10 +247,10 @@ export const Scene3_Assignment: React.FC = () => {
                         padding: "7px 0", opacity: rowOp * existingTableContent,
                         borderBottom: i < existingAssignments.length - 1 ? `1px solid ${colors.white}06` : "none",
                       }}>
-                        <span style={{ fontFamily: fonts.body, fontSize: 13, color: colors.white, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.caseName}</span>
-                        <span style={{ fontFamily: fonts.body, fontSize: 13, color: `${colors.white}70` }}>{a.student}</span>
-                        <span style={{ fontFamily: fonts.mono, fontSize: 12, color: `${colors.white}50` }}>{a.due}</span>
-                        <span style={{ fontFamily: fonts.mono, fontSize: 11, fontWeight: 600, color: statusColor }}>{a.status}</span>
+                        <span style={{ fontFamily: fonts.body, fontSize: 14, color: colors.white, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.caseName}</span>
+                        <span style={{ fontFamily: fonts.body, fontSize: 14, color: `${colors.white}70` }}>{a.student}</span>
+                        <span style={{ fontFamily: fonts.mono, fontSize: 13, color: `${colors.white}60` }}>{a.due}</span>
+                        <span style={{ fontFamily: fonts.mono, fontSize: 12, fontWeight: 600, color: statusColor }}>{a.status}</span>
                       </div>
                     );
                   })}
@@ -261,11 +261,11 @@ export const Scene3_Assignment: React.FC = () => {
               {studentGridIn > 0 && (
                 <div style={{ opacity: studentGridIn, display: "flex", flexDirection: "column", flex: 1, position: existingFadeOut > 0 ? "absolute" as const : "relative" as const, inset: existingFadeOut > 0 ? "14px 16px" : undefined }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                    <div style={{ fontFamily: fonts.heading, fontSize: 15, fontWeight: 700, color: colors.oasis, letterSpacing: 1 }}>
+                    <div style={{ fontFamily: fonts.heading, fontSize: 16, fontWeight: 700, color: colors.oasis, letterSpacing: 1 }}>
                       Select Students
                     </div>
                     <div style={{
-                      fontFamily: fonts.mono, fontSize: 12, color: colors.oasis,
+                      fontFamily: fonts.mono, fontSize: 13, color: colors.oasis,
                       background: `${colors.oasis}12`, padding: "3px 10px", borderRadius: 4,
                     }}>
                       {postAssign > 0.5 ? "8 / 8 assigned" : `${Math.round(interpolate(frame, [270, 335], [0, 8], clamp))} / 8 selected`}
@@ -296,10 +296,10 @@ export const Scene3_Assignment: React.FC = () => {
                             {(checked > 0.5 || assigned) && "\u2713"}
                           </div>
                           <div>
-                            <div style={{ fontFamily: fonts.body, fontSize: 14, fontWeight: 600, color: colors.white }}>
+                            <div style={{ fontFamily: fonts.body, fontSize: 15, fontWeight: 600, color: colors.white }}>
                               {s.name}
                             </div>
-                            <div style={{ fontFamily: fonts.mono, fontSize: 11, color: assigned ? colors.vitalsNormal : `${colors.white}40` }}>
+                            <div style={{ fontFamily: fonts.mono, fontSize: 12, color: assigned ? colors.vitalsNormal : `${colors.white}50` }}>
                               {assigned ? `${s.assigned + 1} cases` : `${s.assigned} cases`}
                             </div>
                           </div>
@@ -311,14 +311,14 @@ export const Scene3_Assignment: React.FC = () => {
                   {/* Select All / Deselect bar */}
                   <div style={{ marginTop: "auto", paddingTop: 8, display: "flex", gap: 8 }}>
                     <div style={{
-                      fontFamily: fonts.body, fontSize: 12, fontWeight: 600,
+                      fontFamily: fonts.body, fontSize: 13, fontWeight: 600,
                       color: colors.oasis, background: `${colors.oasis}12`,
                       padding: "4px 12px", borderRadius: 4, flex: 1, textAlign: "center" as const,
                     }}>
                       Select All
                     </div>
                     <div style={{
-                      fontFamily: fonts.body, fontSize: 12,
+                      fontFamily: fonts.body, fontSize: 13,
                       color: `${colors.white}40`, background: `${colors.white}06`,
                       padding: "4px 12px", borderRadius: 4, flex: 1, textAlign: "center" as const,
                     }}>
@@ -334,7 +334,7 @@ export const Scene3_Assignment: React.FC = () => {
               {/* ── View 1: Class Summary (before Assign Cases click) ── */}
               {existingFadeOut > 0 && (
                 <div style={{ opacity: existingFadeOut, display: "flex", flexDirection: "column", flex: 1 }}>
-                  <div style={{ fontFamily: fonts.heading, fontSize: 15, fontWeight: 700, color: colors.oasis, marginBottom: 10, letterSpacing: 1 }}>
+                  <div style={{ fontFamily: fonts.heading, fontSize: 16, fontWeight: 700, color: colors.oasis, marginBottom: 10, letterSpacing: 1 }}>
                     Class Overview
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 10, opacity: rightContent }}>
@@ -346,17 +346,17 @@ export const Scene3_Assignment: React.FC = () => {
                       { label: "Not Started", value: "3", color: `${colors.white}50` },
                     ].map((stat) => (
                       <div key={stat.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0", borderBottom: `1px solid ${colors.white}06` }}>
-                        <span style={{ fontFamily: fonts.body, fontSize: 14, color: `${colors.white}70` }}>{stat.label}</span>
-                        <span style={{ fontFamily: fonts.mono, fontSize: 16, fontWeight: 700, color: stat.color }}>{stat.value}</span>
+                        <span style={{ fontFamily: fonts.body, fontSize: 15, color: `${colors.white}70` }}>{stat.label}</span>
+                        <span style={{ fontFamily: fonts.mono, fontSize: 17, fontWeight: 700, color: stat.color }}>{stat.value}</span>
                       </div>
                     ))}
                   </div>
                   {/* Available cases preview */}
                   <div style={{ marginTop: "auto", paddingTop: 10, borderTop: `1px solid ${colors.white}08` }}>
-                    <div style={{ fontFamily: fonts.mono, fontSize: 11, color: `${colors.white}40`, marginBottom: 6, letterSpacing: 1, textTransform: "uppercase" as const }}>
+                    <div style={{ fontFamily: fonts.mono, fontSize: 12, color: `${colors.white}50`, marginBottom: 6, letterSpacing: 1, textTransform: "uppercase" as const }}>
                       Available Cases
                     </div>
-                    <div style={{ fontFamily: fonts.mono, fontSize: 13, color: `${colors.white}60` }}>
+                    <div style={{ fontFamily: fonts.mono, fontSize: 14, color: `${colors.white}70` }}>
                       {assignmentCases.length} cases in library
                     </div>
                   </div>
@@ -366,7 +366,7 @@ export const Scene3_Assignment: React.FC = () => {
               {/* ── View 2: Case Selection + Config (after Assign Cases click) ── */}
               {rightCaseMode > 0 && (
                 <div style={{ opacity: rightCaseMode, display: "flex", flexDirection: "column", flex: 1, position: existingFadeOut > 0 ? "absolute" as const : "relative" as const, inset: existingFadeOut > 0 ? "14px 16px" : undefined }}>
-                  <div style={{ fontFamily: fonts.heading, fontSize: 15, fontWeight: 700, color: colors.oasis, marginBottom: 10, letterSpacing: 1 }}>
+                  <div style={{ fontFamily: fonts.heading, fontSize: 16, fontWeight: 700, color: colors.oasis, marginBottom: 10, letterSpacing: 1 }}>
                     {configAppear > 0.5 ? "Assignment Config" : "Select Case"}
                   </div>
 
@@ -386,17 +386,17 @@ export const Scene3_Assignment: React.FC = () => {
                             opacity: isSelected ? 1 : interpolate(caseSelect, [0, 1], [1, 0.4]),
                           }}
                         >
-                          <div style={{ fontFamily: fonts.body, fontSize: 15, fontWeight: 600, color: colors.white, marginBottom: 4 }}>
+                          <div style={{ fontFamily: fonts.body, fontSize: 16, fontWeight: 600, color: colors.white, marginBottom: 4 }}>
                             {c.title}
                           </div>
                           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                            <span style={{ fontFamily: fonts.mono, fontSize: 12, color: colors.oasis, background: `${colors.oasis}12`, padding: "2px 6px", borderRadius: 3 }}>
+                            <span style={{ fontFamily: fonts.mono, fontSize: 13, color: colors.oasis, background: `${colors.oasis}12`, padding: "2px 7px", borderRadius: 3 }}>
                               {c.tag}
                             </span>
-                            <span style={{ fontFamily: fonts.mono, fontSize: 12, color: `${colors.white}40` }}>
+                            <span style={{ fontFamily: fonts.mono, fontSize: 13, color: `${colors.white}50` }}>
                               {c.sections} sections
                             </span>
-                            <span style={{ fontFamily: fonts.mono, fontSize: 12, color: `${colors.white}40`, marginLeft: "auto" }}>
+                            <span style={{ fontFamily: fonts.mono, fontSize: 13, color: `${colors.white}50`, marginLeft: "auto" }}>
                               {c.assigned} assigned
                             </span>
                           </div>
@@ -408,13 +408,13 @@ export const Scene3_Assignment: React.FC = () => {
                   {/* Config section — appears after case selected */}
                   <div style={{ marginTop: 12, opacity: configAppear, display: "flex", flexDirection: "column", gap: 10 }}>
                     <div style={{ borderTop: `1px solid ${colors.white}10`, paddingTop: 10 }}>
-                      <div style={{ fontFamily: fonts.mono, fontSize: 12, color: `${colors.white}50`, marginBottom: 4 }}>Due Date</div>
-                      <div style={{ fontFamily: fonts.mono, fontSize: 15, color: colors.white, background: `${colors.white}06`, padding: "8px 12px", borderRadius: 6 }}>
+                      <div style={{ fontFamily: fonts.mono, fontSize: 13, color: `${colors.white}60`, marginBottom: 4 }}>Due Date</div>
+                      <div style={{ fontFamily: fonts.mono, fontSize: 16, color: colors.white, background: `${colors.white}06`, padding: "8px 12px", borderRadius: 6 }}>
                         Mar 22, 2026
                       </div>
                     </div>
                     <div>
-                      <div style={{ fontFamily: fonts.mono, fontSize: 12, color: `${colors.white}50`, marginBottom: 4 }}>Students Selected</div>
+                      <div style={{ fontFamily: fonts.mono, fontSize: 13, color: `${colors.white}60`, marginBottom: 4 }}>Students Selected</div>
                       <div style={{ fontFamily: fonts.mono, fontSize: 28, fontWeight: 700, color: colors.oasis }}>
                         {Math.round(interpolate(frame, [330, 380], [0, 8], clamp))}
                       </div>
@@ -425,7 +425,7 @@ export const Scene3_Assignment: React.FC = () => {
                   <div style={{ marginTop: "auto", paddingTop: 10 }}>
                     <div
                       style={{
-                        fontFamily: fonts.heading, fontSize: 15, fontWeight: 700,
+                        fontFamily: fonts.heading, fontSize: 16, fontWeight: 700,
                         color: postAssign > 0.5 ? colors.vitalsNormal : colors.white,
                         background: postAssign > 0.5 ? `${colors.vitalsNormal}20` : colors.oasis,
                         padding: "10px 16px", borderRadius: 8, textAlign: "center" as const,
@@ -448,7 +448,7 @@ export const Scene3_Assignment: React.FC = () => {
               pointerEvents: "none", zIndex: 20,
             }}>
               <div style={{
-                fontFamily: fonts.heading, fontSize: 36, fontWeight: 700,
+                fontFamily: fonts.heading, fontSize: 42, fontWeight: 700,
                 color: colors.vitalsNormal, textShadow: `0 0 24px ${colors.vitalsNormal}50`,
                 opacity: successFlash, letterSpacing: 1,
               }}>

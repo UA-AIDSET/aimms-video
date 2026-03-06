@@ -43,7 +43,7 @@ export const GlassPanel: React.FC<GlassPanelProps> = ({
   return (
     <div
       style={{
-        background: "rgba(12, 35, 75, 0.65)",
+        background: "rgba(12, 35, 75, 0.78)",
         backdropFilter: "blur(16px)",
         WebkitBackdropFilter: "blur(16px)",
         border: `1px solid ${colors.oasis}30`,

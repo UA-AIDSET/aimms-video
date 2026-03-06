@@ -49,7 +49,7 @@ export const Scene6_FlowRecap: React.FC = () => {
   const threeContent = (
     <>
       <AnimatedGrid color="#1E5288" opacity={0.06} />
-      <ParticleField count={60} color="#378DBD" speed={0.002} opacity={0.15} />
+      <ParticleField count={30} color="#378DBD" speed={0.002} opacity={0.1} />
       <GlowOrb position={[0, 0, -3]} color={colors.oasis} radius={3} baseOpacity={0.06} />
       <CameraRig positions={[
         { frame: 0, position: [0, 0, 12] }, { frame: 180, position: [0, 0, 9] },
@@ -69,10 +69,10 @@ export const Scene6_FlowRecap: React.FC = () => {
         {/* Header */}
         <AnimatedBox delay={0} direction="down">
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, marginBottom: 30 }}>
-            <span style={{ color: colors.white, fontSize: 32, fontFamily: fonts.heading, fontWeight: 700, letterSpacing: 1 }}>
+            <span style={{ color: colors.white, fontSize: 38, fontFamily: fonts.heading, fontWeight: 700, letterSpacing: 1 }}>
               The AIMMS Pipeline
             </span>
-            <span style={{ color: colors.oasis, fontSize: 15, fontFamily: fonts.body, fontWeight: 400, letterSpacing: 3, textTransform: "uppercase" }}>
+            <span style={{ color: colors.oasis, fontSize: 18, fontFamily: fonts.body, fontWeight: 400, letterSpacing: 3, textTransform: "uppercase" }}>
               End-to-End Medical Education
             </span>
           </div>
@@ -96,7 +96,7 @@ export const Scene6_FlowRecap: React.FC = () => {
                     width: 36, height: 36, borderRadius: "50%",
                     background: `${step.color}30`, border: `2px solid ${step.color}`,
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    fontFamily: fonts.mono, fontSize: 16, fontWeight: 700, color: step.color,
+                    fontFamily: fonts.mono, fontSize: 18, fontWeight: 700, color: step.color,
                     marginBottom: 10,
                   }}>
                     {i + 1}
@@ -111,10 +111,10 @@ export const Scene6_FlowRecap: React.FC = () => {
                     display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
                   }}>
                     <span style={{ fontSize: 22 }}>{stepIcons[i]}</span>
-                    <div style={{ fontFamily: fonts.heading, fontSize: 18, fontWeight: 700, color: colors.white, textAlign: "center" }}>
+                    <div style={{ fontFamily: fonts.heading, fontSize: 20, fontWeight: 700, color: colors.white, textAlign: "center" }}>
                       {step.title}
                     </div>
-                    <div style={{ fontFamily: fonts.body, fontSize: 12, color: step.color, textAlign: "center" }}>
+                    <div style={{ fontFamily: fonts.body, fontSize: 14, color: step.color, textAlign: "center" }}>
                       {step.subtitle}
                     </div>
 
@@ -244,12 +244,12 @@ export const Scene6_FlowRecap: React.FC = () => {
             }} />
 
             <AnimatedBox delay={300} direction="up">
-              <div style={{ color: colors.white, fontSize: 36, fontFamily: fonts.heading, fontWeight: 700, textAlign: "center" }}>
+              <div style={{ color: colors.white, fontSize: 42, fontFamily: fonts.heading, fontWeight: 700, textAlign: "center" }}>
                 AI Medical Mentoring System
               </div>
             </AnimatedBox>
             <AnimatedBox delay={320} direction="up">
-              <div style={{ color: colors.oasis, fontSize: 20, fontFamily: fonts.body, fontWeight: 500, textAlign: "center", letterSpacing: 2, maxWidth: 700, lineHeight: 1.5 }}>
+              <div style={{ color: colors.oasis, fontSize: 22, fontFamily: fonts.body, fontWeight: 500, textAlign: "center", letterSpacing: 2, maxWidth: 700, lineHeight: 1.5 }}>
                 Case Creator &middot; Virtual Patient &middot; AIMHEI Reports
               </div>
             </AnimatedBox>

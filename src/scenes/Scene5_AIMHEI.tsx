@@ -140,8 +140,8 @@ export const Scene5_AIMHEI: React.FC = () => {
   const threeContent = (
     <>
       <AnimatedGrid color="#4CAF50" opacity={0.06 * threeFade} />
-      {frame < 210 && <ParticleField count={300} color={colors.ecgGreen} speed={0.005} opacity={0.3} />}
-      {frame >= 210 && <ParticleField count={80} color={colors.vitalsNormal} speed={0.001} opacity={0.08} />}
+      {frame < 210 && <ParticleField count={150} color={colors.ecgGreen} speed={0.005} opacity={0.2} />}
+      {frame >= 210 && <ParticleField count={40} color={colors.vitalsNormal} speed={0.001} opacity={0.06} />}
       {frame < 240 && (
         <>
           <DataStream direction="down" position={[-4, 3, -1]} color="#4CAF50" opacity={0.35} speed={0.07} />
@@ -182,7 +182,7 @@ export const Scene5_AIMHEI: React.FC = () => {
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 20 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <PulsingDot color={colors.vitalsNormal} size={12} delay={70} />
-              <span style={{ fontFamily: fonts.heading, fontSize: 28, fontWeight: 700, color: colors.white }}>
+              <span style={{ fontFamily: fonts.heading, fontSize: 32, fontWeight: 700, color: colors.white }}>
                 Analyzing Interview Transcript
               </span>
             </div>
@@ -192,7 +192,7 @@ export const Scene5_AIMHEI: React.FC = () => {
                 background: `linear-gradient(90deg, ${colors.vitalsNormal}, ${colors.ecgGreen})`,
               }} />
             </div>
-            <span style={{ fontFamily: fonts.mono, fontSize: 16, color: `${colors.white}50` }}>
+            <span style={{ fontFamily: fonts.mono, fontSize: 18, color: `${colors.white}60` }}>
               {Math.floor(processingProgress)}% complete
             </span>
 
@@ -211,7 +211,7 @@ export const Scene5_AIMHEI: React.FC = () => {
                 ].map((line, i) => {
                   const lineOp = interpolate(frame, [95 + i * 14, 105 + i * 14], [0, 1], clamp);
                   return (
-                    <div key={i} style={{ fontFamily: fonts.mono, fontSize: 14, color: `${colors.white}70`, marginBottom: 6, opacity: lineOp }}>
+                    <div key={i} style={{ fontFamily: fonts.mono, fontSize: 15, color: `${colors.white}70`, marginBottom: 6, opacity: lineOp }}>
                       {line}
                     </div>
                   );
@@ -237,20 +237,20 @@ export const Scene5_AIMHEI: React.FC = () => {
             padding: "10px 20px", marginBottom: 10,
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-              <span style={{ fontFamily: fonts.heading, fontSize: 18, fontWeight: 700, color: colors.white }}>
+              <span style={{ fontFamily: fonts.heading, fontSize: 20, fontWeight: 700, color: colors.white }}>
                 AIMHEI Report
               </span>
-              <span style={{ fontFamily: fonts.mono, fontSize: 13, color: `${colors.white}50` }}>
+              <span style={{ fontFamily: fonts.mono, fontSize: 14, color: `${colors.white}60` }}>
                 A. Johnson — Pneumonia Case
               </span>
-              <span style={{ fontFamily: fonts.mono, fontSize: 12, color: `${colors.white}30` }}>
+              <span style={{ fontFamily: fonts.mono, fontSize: 13, color: `${colors.white}40` }}>
                 Mar 4, 2026
               </span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               {editModeOn > 0 && finalizedOn < 0.5 && (
                 <div style={{
-                  fontFamily: fonts.mono, fontSize: 12, fontWeight: 600,
+                  fontFamily: fonts.mono, fontSize: 13, fontWeight: 600,
                   color: colors.azurite, background: `${colors.azurite}20`,
                   padding: "3px 12px", borderRadius: 4,
                   opacity: editModeOn,
@@ -260,7 +260,7 @@ export const Scene5_AIMHEI: React.FC = () => {
               )}
               {finalizedOn > 0 && (
                 <div style={{
-                  fontFamily: fonts.mono, fontSize: 12, fontWeight: 700,
+                  fontFamily: fonts.mono, fontSize: 13, fontWeight: 700,
                   color: colors.vitalsNormal, background: `${colors.vitalsNormal}20`,
                   padding: "3px 12px", borderRadius: 4,
                   opacity: finalizedOn,
@@ -269,8 +269,8 @@ export const Scene5_AIMHEI: React.FC = () => {
                 </div>
               )}
               <div style={{
-                fontFamily: fonts.mono, fontSize: 13, fontWeight: 600,
-                color: colors.oasis, background: `${colors.oasis}15`,
+                  fontFamily: fonts.mono, fontSize: 14, fontWeight: 600,
+                  color: colors.oasis, background: `${colors.oasis}15`,
                 padding: "3px 12px", borderRadius: 4,
               }}>
                 Score: {scoreDisplay}%
@@ -296,13 +296,13 @@ export const Scene5_AIMHEI: React.FC = () => {
                       transform="rotate(-90 70 70)"
                     />
                   </svg>
-                  <span style={{ fontFamily: fonts.heading, fontSize: 46, fontWeight: 800, color: colors.white }}>
+                  <span style={{ fontFamily: fonts.heading, fontSize: 50, fontWeight: 800, color: colors.white }}>
                     {scoreDisplay}
                   </span>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontFamily: fonts.body, fontSize: 14, color: colors.oasis }}>Overall Score</span>
-                  <span style={{ fontFamily: fonts.mono, fontSize: 11, color: colors.vitalsNormal, background: `${colors.vitalsNormal}20`, padding: "2px 8px", borderRadius: 4 }}>
+                  <span style={{ fontFamily: fonts.body, fontSize: 15, color: colors.oasis }}>Overall Score</span>
+                  <span style={{ fontFamily: fonts.mono, fontSize: 12, color: colors.vitalsNormal, background: `${colors.vitalsNormal}20`, padding: "2px 8px", borderRadius: 4 }}>
                     Top 15%
                   </span>
                 </div>
@@ -310,14 +310,14 @@ export const Scene5_AIMHEI: React.FC = () => {
 
               {/* Competency bars */}
               <GlassPanel enterFrame={205} exitFrame={535} style={{ padding: "12px 14px", flex: 1 }}>
-                <div style={{ fontFamily: fonts.mono, fontSize: 11, color: `${colors.white}40`, marginBottom: 8, letterSpacing: 1, textTransform: "uppercase" as const }}>
+                <div style={{ fontFamily: fonts.mono, fontSize: 12, color: `${colors.white}50`, marginBottom: 8, letterSpacing: 1, textTransform: "uppercase" as const }}>
                   Competency Scores
                 </div>
                 {categories.map((cat, i) => (
                   <div key={cat.label} style={{ marginBottom: 10, opacity: interpolate(frame, [220 + i * 8, 233 + i * 8], [0, 1], clamp) }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-                      <span style={{ fontFamily: fonts.body, fontSize: 13, fontWeight: 600, color: colors.white }}>{cat.label}</span>
-                      <span style={{ fontFamily: fonts.mono, fontSize: 13, fontWeight: 700, color: skillBars[i] >= 85 ? colors.vitalsNormal : colors.oasis }}>
+                      <span style={{ fontFamily: fonts.body, fontSize: 14, fontWeight: 600, color: colors.white }}>{cat.label}</span>
+                      <span style={{ fontFamily: fonts.mono, fontSize: 14, fontWeight: 700, color: skillBars[i] >= 85 ? colors.vitalsNormal : colors.oasis }}>
                         {Math.floor(skillBars[i])}%
                       </span>
                     </div>
@@ -333,19 +333,19 @@ export const Scene5_AIMHEI: React.FC = () => {
 
               {/* Student vs Cohort */}
               <GlassPanel enterFrame={330} exitFrame={535} style={{ padding: "12px 14px" }}>
-                <div style={{ fontFamily: fonts.mono, fontSize: 11, color: `${colors.white}40`, marginBottom: 6, letterSpacing: 1, textTransform: "uppercase" as const }}>
+                <div style={{ fontFamily: fonts.mono, fontSize: 12, color: `${colors.white}50`, marginBottom: 6, letterSpacing: 1, textTransform: "uppercase" as const }}>
                   Student vs Cohort
                 </div>
                 {comparisonMetrics.map((m, i) => {
                   const mOp = interpolate(frame, [335 + i * 7, 348 + i * 7], [0, 1], clamp);
                   return (
                     <div key={m.label} style={{ display: "flex", alignItems: "center", gap: 6, padding: "3px 0", opacity: mOp }}>
-                      <span style={{ fontFamily: fonts.body, fontSize: 11, color: `${colors.white}50`, width: 80 }}>{m.label}</span>
+                      <span style={{ fontFamily: fonts.body, fontSize: 12, color: `${colors.white}60`, width: 80 }}>{m.label}</span>
                       <div style={{ flex: 1, height: 4, borderRadius: 2, background: `${colors.white}08`, position: "relative" }}>
                         <div style={{ position: "absolute", height: "100%", borderRadius: 2, background: `${colors.white}20`, width: `${m.cohort}%` }} />
                         <div style={{ position: "absolute", height: "100%", borderRadius: 2, background: colors.vitalsNormal, width: `${m.student}%`, opacity: 0.8 }} />
                       </div>
-                      <span style={{ fontFamily: fonts.mono, fontSize: 11, color: colors.vitalsNormal, width: 24, textAlign: "right" as const }}>{m.student}</span>
+                      <span style={{ fontFamily: fonts.mono, fontSize: 12, color: colors.vitalsNormal, width: 24, textAlign: "right" as const }}>{m.student}</span>
                     </div>
                   );
                 })}
@@ -361,10 +361,10 @@ export const Scene5_AIMHEI: React.FC = () => {
                   return (
                     <GlassPanel key={section.title} enterFrame={sectionEnter} exitFrame={535} style={{ padding: "8px 14px" }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                        <span style={{ fontFamily: fonts.heading, fontSize: 13, fontWeight: 700, color: colors.oasis }}>
+                        <span style={{ fontFamily: fonts.heading, fontSize: 14, fontWeight: 700, color: colors.oasis }}>
                           {section.title}
                         </span>
-                        <span style={{ fontFamily: fonts.mono, fontSize: 11, color: `${colors.white}40` }}>
+                        <span style={{ fontFamily: fonts.mono, fontSize: 12, color: `${colors.white}50` }}>
                           {section.items.filter((it) => it.output === "YES").length}/{section.items.length}
                         </span>
                       </div>
@@ -391,18 +391,18 @@ export const Scene5_AIMHEI: React.FC = () => {
                               borderRadius: showEditIndicator ? 4 : 0,
                             }}
                           >
-                            <span style={{ fontFamily: fonts.body, fontSize: 12, color: `${colors.white}80`, flex: 1 }}>
+                            <span style={{ fontFamily: fonts.body, fontSize: 13, color: `${colors.white}85`, flex: 1 }}>
                               {item.criterion}
                             </span>
                             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                               {isAggravatingFactors && editFlip > 0 && editFlip <= 0.5 && (
                                 <span style={{
-                                  fontFamily: fonts.mono, fontSize: 12, color: colors.vitalsCritical,
+                                  fontFamily: fonts.mono, fontSize: 13, color: colors.vitalsCritical,
                                   textDecoration: "line-through", opacity: 0.5,
                                 }}>NO</span>
                               )}
                               <span style={{
-                                fontFamily: fonts.mono, fontSize: 12, fontWeight: 700,
+                                fontFamily: fonts.mono, fontSize: 13, fontWeight: 700,
                                 color: displayIsYes ? colors.vitalsNormal : colors.vitalsCritical,
                                 background: displayIsYes ? `${colors.vitalsNormal}20` : `${colors.vitalsCritical}20`,
                                 padding: "2px 8px", borderRadius: 4,
@@ -410,7 +410,7 @@ export const Scene5_AIMHEI: React.FC = () => {
                                 {displayOutput}
                               </span>
                               {showEditIndicator && (
-                                <span style={{ fontFamily: fonts.mono, fontSize: 9, color: colors.azurite, opacity: 0.7 }}>edited</span>
+                                <span style={{ fontFamily: fonts.mono, fontSize: 10, color: colors.azurite, opacity: 0.7 }}>edited</span>
                               )}
                             </div>
                           </div>
@@ -426,27 +426,27 @@ export const Scene5_AIMHEI: React.FC = () => {
             <div style={{ width: 340, display: "flex", flexDirection: "column", gap: 10 }}>
               {/* Strengths */}
               <GlassPanel enterFrame={330} exitFrame={535} style={{ padding: "12px 16px" }}>
-                <div style={{ fontFamily: fonts.heading, fontSize: 14, fontWeight: 700, color: colors.vitalsNormal, marginBottom: 6 }}>
+                <div style={{ fontFamily: fonts.heading, fontSize: 15, fontWeight: 700, color: colors.vitalsNormal, marginBottom: 6 }}>
                   Strengths
                 </div>
-                <div style={{ fontFamily: fonts.body, fontSize: 13, color: `${colors.white}70`, lineHeight: 1.6 }}>
+                <div style={{ fontFamily: fonts.body, fontSize: 14, color: `${colors.white}75`, lineHeight: 1.6 }}>
                   {feedback.strengths}
                 </div>
               </GlassPanel>
 
               {/* Areas for Improvement */}
               <GlassPanel enterFrame={345} exitFrame={535} style={{ padding: "12px 16px" }}>
-                <div style={{ fontFamily: fonts.heading, fontSize: 14, fontWeight: 700, color: colors.vitalsWarning, marginBottom: 6 }}>
+                <div style={{ fontFamily: fonts.heading, fontSize: 15, fontWeight: 700, color: colors.vitalsWarning, marginBottom: 6 }}>
                   Areas for Improvement
                 </div>
-                <div style={{ fontFamily: fonts.body, fontSize: 13, color: `${colors.white}70`, lineHeight: 1.6 }}>
+                <div style={{ fontFamily: fonts.body, fontSize: 14, color: `${colors.white}75`, lineHeight: 1.6 }}>
                   {feedback.weaknesses}
                 </div>
               </GlassPanel>
 
               {/* Session Details */}
               <GlassPanel enterFrame={365} exitFrame={535} style={{ padding: "12px 16px" }}>
-                <div style={{ fontFamily: fonts.mono, fontSize: 11, color: `${colors.white}40`, marginBottom: 8, letterSpacing: 1, textTransform: "uppercase" as const }}>
+                <div style={{ fontFamily: fonts.mono, fontSize: 12, color: `${colors.white}50`, marginBottom: 8, letterSpacing: 1, textTransform: "uppercase" as const }}>
                   Session Details
                 </div>
                 {[
@@ -461,15 +461,15 @@ export const Scene5_AIMHEI: React.FC = () => {
                     borderBottom: `1px solid ${colors.white}06`,
                     opacity: interpolate(frame, [370 + i * 5, 378 + i * 5], [0, 1], clamp),
                   }}>
-                    <span style={{ fontFamily: fonts.body, fontSize: 12, color: `${colors.white}50` }}>{d.label}</span>
-                    <span style={{ fontFamily: fonts.mono, fontSize: 12, color: colors.oasis }}>{d.value}</span>
+                    <span style={{ fontFamily: fonts.body, fontSize: 13, color: `${colors.white}60` }}>{d.label}</span>
+                    <span style={{ fontFamily: fonts.mono, fontSize: 13, color: colors.oasis }}>{d.value}</span>
                   </div>
                 ))}
               </GlassPanel>
 
               {/* Faculty Actions */}
               <GlassPanel enterFrame={395} exitFrame={535} style={{ padding: "12px 16px" }}>
-                <div style={{ fontFamily: fonts.mono, fontSize: 11, color: `${colors.white}40`, marginBottom: 8, letterSpacing: 1, textTransform: "uppercase" as const }}>
+                <div style={{ fontFamily: fonts.mono, fontSize: 12, color: `${colors.white}50`, marginBottom: 8, letterSpacing: 1, textTransform: "uppercase" as const }}>
                   Faculty Actions
                 </div>
                 <div style={{
@@ -477,14 +477,14 @@ export const Scene5_AIMHEI: React.FC = () => {
                   opacity: editModeOn,
                 }}>
                   <PulsingDot color={colors.azurite} size={8} delay={400} />
-                  <span style={{ fontFamily: fonts.mono, fontSize: 12, color: colors.azurite }}>
+                  <span style={{ fontFamily: fonts.mono, fontSize: 13, color: colors.azurite }}>
                     Reviewing rubric items...
                   </span>
                 </div>
                 {/* Edit log */}
                 {editFlip > 0.5 && (
                   <div style={{
-                    fontFamily: fonts.mono, fontSize: 11, color: `${colors.white}60`,
+                    fontFamily: fonts.mono, fontSize: 12, color: `${colors.white}70`,
                     padding: "6px 8px", background: `${colors.white}06`, borderRadius: 4,
                     marginBottom: 6,
                     opacity: interpolate(frame, [430, 440], [0, 1], clamp),
@@ -494,7 +494,7 @@ export const Scene5_AIMHEI: React.FC = () => {
                 )}
                 {editConfirm > 0.5 && (
                   <div style={{
-                    fontFamily: fonts.mono, fontSize: 11, color: `${colors.white}60`,
+                    fontFamily: fonts.mono, fontSize: 12, color: `${colors.white}70`,
                     padding: "6px 8px", background: `${colors.white}06`, borderRadius: 4,
                     marginBottom: 6,
                     opacity: interpolate(frame, [455, 465], [0, 1], clamp),
@@ -505,7 +505,7 @@ export const Scene5_AIMHEI: React.FC = () => {
                 {/* Score update */}
                 {scoreAdjust > 0 && (
                   <div style={{
-                    fontFamily: fonts.mono, fontSize: 12, color: colors.vitalsNormal,
+                    fontFamily: fonts.mono, fontSize: 13, color: colors.vitalsNormal,
                     marginTop: 4,
                     opacity: interpolate(frame, [455, 465], [0, 1], clamp),
                   }}>
@@ -515,7 +515,7 @@ export const Scene5_AIMHEI: React.FC = () => {
                 {/* Finalize button */}
                 <div style={{
                   marginTop: 10,
-                  fontFamily: fonts.heading, fontSize: 13, fontWeight: 700,
+                  fontFamily: fonts.heading, fontSize: 14, fontWeight: 700,
                   textAlign: "center" as const, padding: "8px 14px", borderRadius: 6,
                   color: finalizedOn > 0.5 ? colors.vitalsNormal : colors.white,
                   background: finalizedOn > 0.5 ? `${colors.vitalsNormal}20` : colors.oasis,

@@ -1,3 +1,15 @@
+2026-03-06
+- Readability pass applied across all scenes + shared components:
+  - GlassPanel bg opacity 0.65→0.78 (better text contrast)
+  - InterstitialCard subtitle 20→24px, step pill 15→17px, higher text opacity
+  - SceneShell section badge 15→17px, padding increase
+  - All scenes: minimum font size raised ~1-3px globally (8→10, 9→11, 10→12, 11→12, 12→13, 13→14/15)
+  - All scenes: text opacity bumped (e.g. white}40→60, white}50→70) for readability
+  - Scene2_MCC: library cards reduced 12→9 (3×3 grid), card fonts +2px
+  - ParticleField counts reduced ~40-50% across all scenes, opacity lowered
+  - Scene titles/headings bumped (Scene6 pipeline 32→38, close 36→42; Scene4 header 28→32; etc.)
+  - Vitals strip in Scene4: values 16→20px, labels 10→12px, height 42→48px
+
 2026-03-05
 - ElevenLabs automation is now wired into project scripts:
   - `package.json` includes `voiceover`: `node scripts/generate-voiceover.js`

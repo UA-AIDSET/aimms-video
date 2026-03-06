@@ -97,7 +97,7 @@ export const Scene1_Intro: React.FC = () => {
   const threeContent = (
     <>
       <AnimatedGrid color="#1E5288" opacity={0.04} />
-      <ParticleField count={40} color="#378DBD" speed={0.002} opacity={0.1} />
+      <ParticleField count={25} color="#378DBD" speed={0.002} opacity={0.08} />
       <GlowOrb position={[0, 0, -6]} color={colors.oasis} radius={3} baseOpacity={0.06} />
       <CameraRig
         positions={[
@@ -403,7 +403,7 @@ export const Scene1_Intro: React.FC = () => {
             <p
               style={{
                 color: colors.oasis,
-                fontSize: 22,
+                fontSize: 26,
                 fontFamily: fonts.body,
                 fontWeight: 400,
                 letterSpacing: 6,
@@ -421,12 +421,12 @@ export const Scene1_Intro: React.FC = () => {
             <p
               style={{
                 color: `${colors.slate200}D0`,
-                fontSize: 17,
+                fontSize: 20,
                 fontFamily: fonts.body,
                 fontWeight: 400,
                 margin: "20px 0 0",
                 textAlign: "center",
-                maxWidth: 650,
+                maxWidth: 700,
                 lineHeight: 1.5,
               }}
             >
@@ -456,7 +456,7 @@ export const Scene1_Intro: React.FC = () => {
               whiteSpace: "nowrap",
               transform: `translateX(${tickerScroll}px)`,
               fontFamily: fonts.mono,
-              fontSize: 11,
+              fontSize: 12,
               color: colors.oasis,
               letterSpacing: 2,
               lineHeight: "24px",
