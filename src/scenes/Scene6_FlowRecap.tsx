@@ -38,11 +38,11 @@ export const Scene6_FlowRecap: React.FC = () => {
   const closeBracketDraw = interpolate(frame, [285, 340], [0, 1], clamp);
   const closeBracketGlow = 0.6 + 0.4 * Math.sin(frame * 0.06);
   const closeRing1Scale = interpolate(frame, [290, 380], [0, 1], clamp);
-  const closeRing1Opacity = interpolate(frame, [290, 340, 460, 510], [0, 0.25, 0.15, 0.1], clamp);
+  const closeRing1Opacity = interpolate(frame, [290, 340, 460, 720], [0, 0.25, 0.15, 0.1], clamp);
   const closeRing2Scale = interpolate(frame, [310, 400], [0, 1], clamp);
-  const closeRing2Opacity = interpolate(frame, [310, 360, 470, 510], [0, 0.2, 0.1, 0.08], clamp);
+  const closeRing2Opacity = interpolate(frame, [310, 360, 470, 720], [0, 0.2, 0.1, 0.08], clamp);
   const closeTickerOpacity = interpolate(frame, [340, 365], [0, 0.7], clamp);
-  const closeTickerScroll = interpolate(frame, [340, 510], [0, -2400], clamp);
+  const closeTickerScroll = interpolate(frame, [340, 720], [0, -2400], clamp);
   const closeSideOpacity = interpolate(frame, [320, 345], [0, 1], clamp);
   const closeSidePulse = 0.5 + 0.5 * Math.sin(frame * 0.08);
 
@@ -53,7 +53,7 @@ export const Scene6_FlowRecap: React.FC = () => {
       <GlowOrb position={[0, 0, -3]} color={colors.oasis} radius={3} baseOpacity={0.06} />
       <CameraRig positions={[
         { frame: 0, position: [0, 0, 12] }, { frame: 180, position: [0, 0, 9] },
-        { frame: 340, position: [0, 0, 9] }, { frame: 510, position: [0, 0.5, 7] },
+        { frame: 340, position: [0, 0, 9] }, { frame: 720, position: [0, 0.5, 7] },
       ]} />
     </>
   );

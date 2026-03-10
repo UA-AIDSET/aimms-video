@@ -63,7 +63,7 @@ export const Scene3_Assignment: React.FC = () => {
   const clamp = { extrapolateLeft: "clamp" as const, extrapolateRight: "clamp" as const };
 
   // Overall three-panel opacity
-  const panelOpacity = interpolate(frame, [65, 80, 470, 490], [0, 1, 1, 0], clamp);
+  const panelOpacity = interpolate(frame, [65, 80, 625, 655], [0, 1, 1, 0], clamp);
 
   // Class selection
   const classHighlight = interpolate(frame, [105, 130], [0, 1], clamp);
@@ -161,7 +161,7 @@ export const Scene3_Assignment: React.FC = () => {
           {/* Three panels */}
           <div style={{ display: "flex", gap: 12, flex: 1 }}>
             {/* ── Left Panel: Class List ── */}
-            <GlassPanel enterFrame={70} exitFrame={490} style={{ width: 260, padding: "14px 16px", display: "flex", flexDirection: "column" }}>
+            <GlassPanel enterFrame={70} exitFrame={655} style={{ width: 260, padding: "14px 16px", display: "flex", flexDirection: "column" }}>
               <div style={{ fontFamily: fonts.heading, fontSize: 16, fontWeight: 700, color: colors.oasis, marginBottom: 10, letterSpacing: 1 }}>
                 Classes
               </div>
@@ -210,7 +210,7 @@ export const Scene3_Assignment: React.FC = () => {
             </GlassPanel>
 
             {/* ── Middle Panel: Existing Assignments → Student Selection ── */}
-            <GlassPanel enterFrame={80} exitFrame={490} style={{ flex: 1, padding: "14px 16px", display: "flex", flexDirection: "column", position: "relative" }}>
+            <GlassPanel enterFrame={80} exitFrame={655} style={{ flex: 1, padding: "14px 16px", display: "flex", flexDirection: "column", position: "relative" }}>
               {/* ── View 1: Existing Assignments Table (before Assign Cases click) ── */}
               {existingFadeOut > 0 && (
                 <div style={{ opacity: existingFadeOut, display: "flex", flexDirection: "column", flex: 1 }}>
@@ -330,7 +330,7 @@ export const Scene3_Assignment: React.FC = () => {
             </GlassPanel>
 
             {/* ── Right Panel: Summary → Case Selection + Config ── */}
-            <GlassPanel enterFrame={85} exitFrame={490} style={{ width: 340, padding: "14px 16px", display: "flex", flexDirection: "column", position: "relative" }}>
+            <GlassPanel enterFrame={85} exitFrame={655} style={{ width: 340, padding: "14px 16px", display: "flex", flexDirection: "column", position: "relative" }}>
               {/* ── View 1: Class Summary (before Assign Cases click) ── */}
               {existingFadeOut > 0 && (
                 <div style={{ opacity: existingFadeOut, display: "flex", flexDirection: "column", flex: 1 }}>

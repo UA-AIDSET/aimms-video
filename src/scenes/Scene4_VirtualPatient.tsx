@@ -133,20 +133,20 @@ export const Scene4_VirtualPatient: React.FC = () => {
   const isPhase3 = frame >= 420 && frame < 780;
   const isPhase4 = frame >= 780 && frame < 930;
   const isPhase5 = frame >= 930 && frame < 1100;
-  const isPhase6 = frame >= 1100 && frame < 1370;
-  const isMainUI = frame >= 155 && frame < 1370;
+  const isPhase6 = frame >= 1100 && frame < 1740;
+  const isMainUI = frame >= 155 && frame < 1740;
 
   // ── Phase 1 ──
   const phase1Opacity = interpolate(frame, [65, 80, 130, 155], [0, 1, 1, 0], clamp);
   const selectionProgress = interpolate(frame, [110, 135], [0, 1], clamp);
 
   // ── Phase transitions ──
-  const mainUIOpacity = interpolate(frame, [155, 175, 1340, 1370], [0, 1, 1, 0], clamp);
+  const mainUIOpacity = interpolate(frame, [155, 175, 1705, 1735], [0, 1, 1, 0], clamp);
   const phase2Opacity = interpolate(frame, [155, 175, 400, 420], [0, 1, 1, 0], clamp);
   const phase3Opacity = interpolate(frame, [420, 445, 755, 780], [0, 1, 1, 0], clamp);
   const phase4Opacity = interpolate(frame, [780, 800, 905, 930], [0, 1, 1, 0], clamp);
   const phase5Opacity = interpolate(frame, [930, 948, 1075, 1100], [0, 1, 1, 0], clamp);
-  const phase6Opacity = interpolate(frame, [1100, 1120, 1340, 1370], [0, 1, 1, 0], clamp);
+  const phase6Opacity = interpolate(frame, [1100, 1120, 1705, 1735], [0, 1, 1, 0], clamp);
 
   // ── Active tab ──
   const activeTab = isPhase3 ? "Examine" : isPhase4 ? "Diagnosis" : isPhase5 ? "Assessment" : "Chat";
@@ -179,7 +179,7 @@ export const Scene4_VirtualPatient: React.FC = () => {
         { frame: 155, position: [0, 0, 9] },
         { frame: 420, position: [0, 0, 8.5] },
         { frame: 780, position: [0, 0, 9] },
-        { frame: 1400, position: [0, 0, 9.5] },
+        { frame: 1740, position: [0, 0, 9.5] },
       ]} />
     </>
   );

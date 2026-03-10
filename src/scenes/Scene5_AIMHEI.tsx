@@ -105,7 +105,7 @@ export const Scene5_AIMHEI: React.FC = () => {
 
   /* ── Phase opacities ── */
   const phase1Opacity = interpolate(frame, [65, 80, 175, 190], [0, 1, 1, 0], clamp);
-  const reportOpacity = interpolate(frame, [185, 205, 515, 535], [0, 1, 1, 0], clamp);
+  const reportOpacity = interpolate(frame, [185, 205, 695, 715], [0, 1, 1, 0], clamp);
 
   const scoreBase = Math.floor(interpolate(frame, [210, 245], [0, 87], clamp));
   const scoreAdjust = Math.floor(interpolate(frame, [435, 455], [0, 2], clamp));
@@ -155,7 +155,7 @@ export const Scene5_AIMHEI: React.FC = () => {
       <CameraRig positions={[
         { frame: 0, position: [0, 0, 10] },
         { frame: 190, position: [0, 0, 7] },
-        { frame: 540, position: [0, 0, 7] },
+        { frame: 720, position: [0, 0, 7] },
       ]} />
     </>
   );
@@ -232,7 +232,7 @@ export const Scene5_AIMHEI: React.FC = () => {
           opacity: reportOpacity, pointerEvents: "none", zIndex: 10,
         }}>
           {/* ── Report Header Bar ── */}
-          <GlassPanel enterFrame={190} exitFrame={535} style={{
+          <GlassPanel enterFrame={190} exitFrame={715} style={{
             display: "flex", alignItems: "center", justifyContent: "space-between",
             padding: "10px 20px", marginBottom: 10,
           }}>
@@ -284,7 +284,7 @@ export const Scene5_AIMHEI: React.FC = () => {
             {/* ═══ LEFT COLUMN: Score + Competencies + Comparison ═══ */}
             <div style={{ width: 280, display: "flex", flexDirection: "column", gap: 10 }}>
               {/* Score circle */}
-              <GlassPanel enterFrame={195} exitFrame={535} style={{ padding: "16px", display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
+              <GlassPanel enterFrame={195} exitFrame={715} style={{ padding: "16px", display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
                 <div style={{ position: "relative", width: 140, height: 140, display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <svg width={140} height={140} style={{ position: "absolute", top: 0, left: 0 }}>
                     <circle cx={70} cy={70} r={60} fill="none" stroke={`${colors.white}10`} strokeWidth={6} />
@@ -309,7 +309,7 @@ export const Scene5_AIMHEI: React.FC = () => {
               </GlassPanel>
 
               {/* Competency bars */}
-              <GlassPanel enterFrame={205} exitFrame={535} style={{ padding: "12px 14px", flex: 1 }}>
+              <GlassPanel enterFrame={205} exitFrame={715} style={{ padding: "12px 14px", flex: 1 }}>
                 <div style={{ fontFamily: fonts.mono, fontSize: 12, color: `${colors.white}50`, marginBottom: 8, letterSpacing: 1, textTransform: "uppercase" as const }}>
                   Competency Scores
                 </div>
@@ -332,7 +332,7 @@ export const Scene5_AIMHEI: React.FC = () => {
               </GlassPanel>
 
               {/* Student vs Cohort */}
-              <GlassPanel enterFrame={330} exitFrame={535} style={{ padding: "12px 14px" }}>
+              <GlassPanel enterFrame={330} exitFrame={715} style={{ padding: "12px 14px" }}>
                 <div style={{ fontFamily: fonts.mono, fontSize: 12, color: `${colors.white}50`, marginBottom: 6, letterSpacing: 1, textTransform: "uppercase" as const }}>
                   Student vs Cohort
                 </div>
@@ -359,7 +359,7 @@ export const Scene5_AIMHEI: React.FC = () => {
                 return rubricSections.map((section, sIdx) => {
                   const sectionEnter = 235 + sIdx * 15;
                   return (
-                    <GlassPanel key={section.title} enterFrame={sectionEnter} exitFrame={535} style={{ padding: "8px 14px" }}>
+                    <GlassPanel key={section.title} enterFrame={sectionEnter} exitFrame={715} style={{ padding: "8px 14px" }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
                         <span style={{ fontFamily: fonts.heading, fontSize: 14, fontWeight: 700, color: colors.oasis }}>
                           {section.title}
@@ -425,7 +425,7 @@ export const Scene5_AIMHEI: React.FC = () => {
             {/* ═══ RIGHT COLUMN: Feedback + Session Info + Faculty Actions ═══ */}
             <div style={{ width: 340, display: "flex", flexDirection: "column", gap: 10 }}>
               {/* Strengths */}
-              <GlassPanel enterFrame={330} exitFrame={535} style={{ padding: "12px 16px" }}>
+              <GlassPanel enterFrame={330} exitFrame={715} style={{ padding: "12px 16px" }}>
                 <div style={{ fontFamily: fonts.heading, fontSize: 15, fontWeight: 700, color: colors.vitalsNormal, marginBottom: 6 }}>
                   Strengths
                 </div>
@@ -435,7 +435,7 @@ export const Scene5_AIMHEI: React.FC = () => {
               </GlassPanel>
 
               {/* Areas for Improvement */}
-              <GlassPanel enterFrame={345} exitFrame={535} style={{ padding: "12px 16px" }}>
+              <GlassPanel enterFrame={345} exitFrame={715} style={{ padding: "12px 16px" }}>
                 <div style={{ fontFamily: fonts.heading, fontSize: 15, fontWeight: 700, color: colors.vitalsWarning, marginBottom: 6 }}>
                   Areas for Improvement
                 </div>
@@ -445,7 +445,7 @@ export const Scene5_AIMHEI: React.FC = () => {
               </GlassPanel>
 
               {/* Session Details */}
-              <GlassPanel enterFrame={365} exitFrame={535} style={{ padding: "12px 16px" }}>
+              <GlassPanel enterFrame={365} exitFrame={715} style={{ padding: "12px 16px" }}>
                 <div style={{ fontFamily: fonts.mono, fontSize: 12, color: `${colors.white}50`, marginBottom: 8, letterSpacing: 1, textTransform: "uppercase" as const }}>
                   Session Details
                 </div>
@@ -468,7 +468,7 @@ export const Scene5_AIMHEI: React.FC = () => {
               </GlassPanel>
 
               {/* Faculty Actions */}
-              <GlassPanel enterFrame={395} exitFrame={535} style={{ padding: "12px 16px" }}>
+              <GlassPanel enterFrame={395} exitFrame={715} style={{ padding: "12px 16px" }}>
                 <div style={{ fontFamily: fonts.mono, fontSize: 12, color: `${colors.white}50`, marginBottom: 8, letterSpacing: 1, textTransform: "uppercase" as const }}>
                   Faculty Actions
                 </div>

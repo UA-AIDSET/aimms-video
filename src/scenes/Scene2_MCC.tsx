@@ -106,7 +106,7 @@ export const Scene2_MCC: React.FC = () => {
   const editorOpacity = interpolate(frame, [195, 215, 480, 500], [0, 1, 1, 0], clamp);
   const phase2Opacity = interpolate(frame, [195, 215, 350, 370], [0, 1, 1, 0], clamp);
   const phase3Opacity = interpolate(frame, [350, 370, 480, 500], [0, 1, 1, 0], clamp);
-  const phase4Opacity = interpolate(frame, [490, 505, 560, 580], [0, 1, 1, 0], clamp);
+  const phase4Opacity = interpolate(frame, [490, 505, 775, 805], [0, 1, 1, 0], clamp);
 
   // ASTEC template highlight
   const astecHighlight = interpolate(frame, [110, 135], [0, 1], clamp);

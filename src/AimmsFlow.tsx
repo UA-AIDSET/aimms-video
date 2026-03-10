@@ -15,15 +15,15 @@ import { Scene6_FlowRecap } from "./scenes/Scene6_FlowRecap";
  * Voice: ElevenLabs voice tM6ZW48ZoSKdJKuhjatr
  * Model: eleven_monolingual_v1, stability 0.85, similarity_boost 0.75, style 0.0
  *
- * Scene durations (v4 — matched to audio):
- * 1. Intro/Title         — 400 frames (13.3s)  audio ~11.3s
- * 2. MCC Case Creator    — 590 frames (19.7s)  audio ~17.8s
- * 3. Faculty Assignment  — 500 frames (16.7s)  audio ~15.8s
- * 4. Virtual Patient     — 1400 frames (46.7s) audio ~43.0s
- * 5. AIMHEI Reports      — 540 frames (18.0s)  audio ~16.0s
- * 6. Flow Recap & Close  — 510 frames (17.0s)  audio ~15.1s
+ * Scene durations (v5 — slower narration pacing):
+ * 1. Intro/Title         — 540 frames (18.0s)  audio ~16s
+ * 2. MCC Case Creator    — 810 frames (27.0s)  audio ~25s
+ * 3. Faculty Assignment  — 660 frames (22.0s)  audio ~20s
+ * 4. Virtual Patient     — 1740 frames (58.0s) audio ~55s
+ * 5. AIMHEI Reports      — 720 frames (24.0s)  audio ~22s
+ * 6. Flow Recap & Close  — 720 frames (24.0s)  audio ~22s
  *
- * Total: 3940 - 75 (5 fade transitions × 15 frames) = 3865 frames (~2:09)
+ * Total: 5190 - 75 (5 fade transitions × 15 frames) = 5115 frames (~2:50)
  */
 
 const FADE_FRAMES = 15;
@@ -33,9 +33,9 @@ export const AimmsFlow: React.FC = () => {
     <AbsoluteFill style={{ backgroundColor: "#000" }}>
       <TransitionSeries>
         {/* ── Scene 1: Intro ── */}
-        <TransitionSeries.Sequence durationInFrames={400} premountFor={30}>
+        <TransitionSeries.Sequence durationInFrames={540} premountFor={30}>
           <Scene1_Intro />
-          <Sequence from={15} durationInFrames={375} layout="none">
+          <Sequence from={15} durationInFrames={520} layout="none">
             <Audio src={staticFile("audio/scene1_intro.mp3")} />
           </Sequence>
         </TransitionSeries.Sequence>
@@ -46,9 +46,9 @@ export const AimmsFlow: React.FC = () => {
         />
 
         {/* ── Scene 2: Medical Case Creator ── */}
-        <TransitionSeries.Sequence durationInFrames={590} premountFor={30}>
+        <TransitionSeries.Sequence durationInFrames={810} premountFor={30}>
           <Scene2_MCC />
-          <Sequence from={10} durationInFrames={570} layout="none">
+          <Sequence from={10} durationInFrames={795} layout="none">
             <Audio src={staticFile("audio/scene2_mcc.mp3")} />
           </Sequence>
         </TransitionSeries.Sequence>
@@ -59,9 +59,9 @@ export const AimmsFlow: React.FC = () => {
         />
 
         {/* ── Scene 3: Faculty Assignment ── */}
-        <TransitionSeries.Sequence durationInFrames={500} premountFor={30}>
+        <TransitionSeries.Sequence durationInFrames={660} premountFor={30}>
           <Scene3_Assignment />
-          <Sequence from={10} durationInFrames={480} layout="none">
+          <Sequence from={10} durationInFrames={645} layout="none">
             <Audio src={staticFile("audio/scene3_assignment.mp3")} />
           </Sequence>
         </TransitionSeries.Sequence>
@@ -72,9 +72,9 @@ export const AimmsFlow: React.FC = () => {
         />
 
         {/* ── Scene 4: Virtual Patient ── */}
-        <TransitionSeries.Sequence durationInFrames={1400} premountFor={30}>
+        <TransitionSeries.Sequence durationInFrames={1740} premountFor={30}>
           <Scene4_VirtualPatient />
-          <Sequence from={45} durationInFrames={1345} layout="none">
+          <Sequence from={45} durationInFrames={1690} layout="none">
             <Audio src={staticFile("audio/scene4_vp.mp3")} />
           </Sequence>
         </TransitionSeries.Sequence>
@@ -85,9 +85,9 @@ export const AimmsFlow: React.FC = () => {
         />
 
         {/* ── Scene 5: AIMHEI Reports ── */}
-        <TransitionSeries.Sequence durationInFrames={540} premountFor={30}>
+        <TransitionSeries.Sequence durationInFrames={720} premountFor={30}>
           <Scene5_AIMHEI />
-          <Sequence from={10} durationInFrames={520} layout="none">
+          <Sequence from={10} durationInFrames={705} layout="none">
             <Audio src={staticFile("audio/scene5_aimhei.mp3")} />
           </Sequence>
         </TransitionSeries.Sequence>
@@ -98,9 +98,9 @@ export const AimmsFlow: React.FC = () => {
         />
 
         {/* ── Scene 6: Flow Recap & Close ── */}
-        <TransitionSeries.Sequence durationInFrames={510} premountFor={30}>
+        <TransitionSeries.Sequence durationInFrames={720} premountFor={30}>
           <Scene6_FlowRecap />
-          <Sequence from={10} durationInFrames={490} layout="none">
+          <Sequence from={10} durationInFrames={705} layout="none">
             <Audio src={staticFile("audio/scene6_recap.mp3")} />
           </Sequence>
         </TransitionSeries.Sequence>

@@ -58,7 +58,7 @@ export const Scene1_Intro: React.FC = () => {
 
   // Bottom data ticker (starts at 60, scrolls continuously)
   const tickerOpacity = interpolate(frame, [60, 90], [0, 0.7], clamp);
-  const tickerScroll = interpolate(frame, [60, 400], [0, -2400], clamp);
+  const tickerScroll = interpolate(frame, [60, 540], [0, -2400], clamp);
 
   // Expanding ring behind text (frame 10-80)
   const ringScale = interpolate(frame, [10, 100], [0, 1], clamp);
@@ -67,7 +67,7 @@ export const Scene1_Intro: React.FC = () => {
   const ring2Opacity = interpolate(frame, [30, 70, 110, 150], [0, 0.2, 0.1, 0], clamp);
 
   // Fade out everything at end
-  const fadeOut = interpolate(frame, [360, 395], [1, 0], clamp);
+  const fadeOut = interpolate(frame, [500, 535], [1, 0], clamp);
 
   const cornerSize = 60;
   const cornerThickness = 2;
