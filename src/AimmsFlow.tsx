@@ -19,11 +19,11 @@ import { Scene6_FlowRecap } from "./scenes/Scene6_FlowRecap";
  * 1. Intro/Title         — 540 frames (18.0s)  audio ~16s
  * 2. MCC Case Creator    — 810 frames (27.0s)  audio ~25s
  * 3. Faculty Assignment  — 660 frames (22.0s)  audio ~20s
- * 4. Virtual Patient     — 1740 frames (58.0s) audio ~55s
+ * 4. Virtual Patient     — 1770 frames (59.0s) audio ~55s
  * 5. AIMHEI Reports      — 720 frames (24.0s)  audio ~22s
  * 6. Flow Recap & Close  — 720 frames (24.0s)  audio ~22s
  *
- * Total: 5190 - 75 (5 fade transitions × 15 frames) = 5115 frames (~2:50)
+ * Total: 5220 - 75 (5 fade transitions × 15 frames) = 5145 frames (~2:51)
  */
 
 const FADE_FRAMES = 15;
@@ -72,7 +72,7 @@ export const AimmsFlow: React.FC = () => {
         />
 
         {/* ── Scene 4: Virtual Patient ── */}
-        <TransitionSeries.Sequence durationInFrames={1740} premountFor={30}>
+        <TransitionSeries.Sequence durationInFrames={1770} premountFor={30}>
           <Scene4_VirtualPatient />
           <Sequence from={45} durationInFrames={1690} layout="none">
             <Audio src={staticFile("audio/scene4_vp.mp3")} />

@@ -128,7 +128,7 @@ export const Scene2_MCC: React.FC = () => {
   const networkOpacity = interpolate(frame, [195, 250, 480, 500], [0, 0.4, 0.4, 0], clamp);
   const networkEdgeOpacity = interpolate(frame, [195, 250, 480, 500], [0, 0.15, 0.15, 0], clamp);
 
-  // Published badge animation
+  // Finalized badge animation
   const publishFlip = interpolate(frame, [510, 525], [0, 1], clamp);
 
   // VP button glow
@@ -359,7 +359,7 @@ export const Scene2_MCC: React.FC = () => {
                   color: publishFlip > 0 ? colors.vitalsNormal : colors.vitalsWarning,
                 }}
               >
-                {publishFlip > 0.5 ? "Published" : "Draft"}
+                {publishFlip > 0.5 ? "Finalized" : "Draft"}
               </div>
             </div>
             <div style={{ display: "flex", gap: 10 }}>
@@ -712,7 +712,7 @@ export const Scene2_MCC: React.FC = () => {
       )}
 
       {/* ════════════════════════════════════════════════════════
-          Phase 4: Complete & Publish flash (490–580)
+          Phase 4: Case Finalized flash (490–580)
          ════════════════════════════════════════════════════════ */}
       {phase4Opacity > 0 && (
         <div
@@ -759,7 +759,7 @@ export const Scene2_MCC: React.FC = () => {
                   borderRadius: 6,
                 }}
               >
-                Published
+                Finalized
               </div>
               <div
                 style={{
