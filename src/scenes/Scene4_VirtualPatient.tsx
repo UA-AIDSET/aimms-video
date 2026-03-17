@@ -102,25 +102,28 @@ const patientCases = [
 const navTabs = ["Chat", "Poses", "Examine", "Diagnosis", "Tests", "Medication", "Assessment"];
 
 /**
- * Scene 4: Virtual Patient — ~1400 frames
- * Audio starts at frame 45, ~43s duration (ends ~f1335)
+ * Scene 4: Virtual Patient — 1875 frames (62.5s)
+ * Audio starts at frame 45, ~59.4s duration (ends ~f1827)
  *
- * Narration sync (new longer script):
- *   f45-165:    "Students enter the Virtual Patient..."                       → Phase 1: case selection
- *   f165-255:   "A 3D patient model with vital signs..."                      → transition to main UI
- *   f255-405:   "interviews through natural conversation..."                  → Phase 2: chat/interview
- *   f405-525:   "Then, the physical exam — stethoscope, palpation..."         → Phase 3a: instruments
- *   f525-765:   "each revealing real clinical media... mapped to the case."   → Phase 3b: media overlay
- *   f765-915:   "builds a differential diagnosis... support it."              → Phase 4: differential + tests
- *   f915-1035:  "assessment and planning... consult if needed."               → Phase 5: assessment
- *   f1035-1215: "full encounter... review. Submit."                           → Phase 6: encounter + submit
+ * All frame timings scaled ×1.38 from original 43s-audio version
+ * to match the new longer narration track.
  *
- * Phase 1 (65-155):    Case selection
- * Phase 2 (155-420):   Interview — Chat tab (patient appears ~f160)
- * Phase 3 (420-780):   Physical Exam + Media — Examine tab
- * Phase 4 (780-930):   Differential + Tests — Diagnosis tab
- * Phase 5 (930-1100):  Assessment & Plan — Assessment tab
- * Phase 6 (1100-1370): Encounter Review + Submit
+ * Narration sync (59.4s audio):
+ *   f45-200:    "Students enter the Virtual Patient..."         → Phase 1: case selection
+ *   f200-290:   "A 3D patient model with vital signs..."        → transition to main UI
+ *   f290-560:   "interviews through natural conversation..."    → Phase 2: chat/interview
+ *   f560-715:   "Then, the physical exam — stethoscope..."      → Phase 3a: instruments
+ *   f715-1045:  "each revealing real clinical media..."         → Phase 3b: media overlay
+ *   f1045-1265: "builds a differential diagnosis..."            → Phase 4: differential + tests
+ *   f1265-1460: "assessment and planning..."                    → Phase 5: assessment
+ *   f1460-1875: "full encounter... review. Submit."             → Phase 6: encounter + submit
+ *
+ * Phase 1 (70-200):    Case selection
+ * Phase 2 (200-555):   Interview — Chat tab
+ * Phase 3 (555-1045):  Physical Exam + Media — Examine tab
+ * Phase 4 (1045-1265): Differential + Tests — Diagnosis tab
+ * Phase 5 (1265-1460): Assessment & Plan — Assessment tab
+ * Phase 6 (1460-1875): Encounter Review + Submit
  */
 export const Scene4_VirtualPatient: React.FC = () => {
   const frame = useCurrentFrame();
@@ -128,46 +131,46 @@ export const Scene4_VirtualPatient: React.FC = () => {
   const clamp = { extrapolateLeft: "clamp" as const, extrapolateRight: "clamp" as const };
 
   // ── Phase flags ──
-  const isPhase1 = frame >= 65 && frame < 155;
-  const isPhase2 = frame >= 155 && frame < 420;
-  const isPhase3 = frame >= 420 && frame < 780;
-  const isPhase4 = frame >= 780 && frame < 930;
-  const isPhase5 = frame >= 930 && frame < 1100;
-  const isPhase6 = frame >= 1100 && frame < 1740;
-  const isMainUI = frame >= 155 && frame < 1740;
+  const isPhase1 = frame >= 70 && frame < 200;
+  const isPhase2 = frame >= 200 && frame < 555;
+  const isPhase3 = frame >= 555 && frame < 1045;
+  const isPhase4 = frame >= 1045 && frame < 1265;
+  const isPhase5 = frame >= 1265 && frame < 1460;
+  const isPhase6 = frame >= 1460 && frame < 1875;
+  const isMainUI = frame >= 200 && frame < 1875;
 
   // ── Phase 1 ──
-  const phase1Opacity = interpolate(frame, [65, 80, 130, 155], [0, 1, 1, 0], clamp);
-  const selectionProgress = interpolate(frame, [110, 135], [0, 1], clamp);
+  const phase1Opacity = interpolate(frame, [70, 93, 162, 197], [0, 1, 1, 0], clamp);
+  const selectionProgress = interpolate(frame, [135, 170], [0, 1], clamp);
 
   // ── Phase transitions ──
-  const mainUIOpacity = interpolate(frame, [155, 175, 1705, 1735], [0, 1, 1, 0], clamp);
-  const phase2Opacity = interpolate(frame, [155, 175, 400, 420], [0, 1, 1, 0], clamp);
-  const phase3Opacity = interpolate(frame, [420, 445, 755, 780], [0, 1, 1, 0], clamp);
-  const phase4Opacity = interpolate(frame, [780, 800, 905, 930], [0, 1, 1, 0], clamp);
-  const phase5Opacity = interpolate(frame, [930, 948, 1075, 1100], [0, 1, 1, 0], clamp);
-  const phase6Opacity = interpolate(frame, [1100, 1120, 1705, 1735], [0, 1, 1, 0], clamp);
+  const mainUIOpacity = interpolate(frame, [200, 224, 1845, 1875], [0, 1, 1, 0], clamp);
+  const phase2Opacity = interpolate(frame, [200, 224, 535, 563], [0, 1, 1, 0], clamp);
+  const phase3Opacity = interpolate(frame, [563, 597, 1025, 1059], [0, 1, 1, 0], clamp);
+  const phase4Opacity = interpolate(frame, [1059, 1087, 1235, 1265], [0, 1, 1, 0], clamp);
+  const phase5Opacity = interpolate(frame, [1265, 1291, 1432, 1460], [0, 1, 1, 0], clamp);
+  const phase6Opacity = interpolate(frame, [1460, 1490, 1845, 1875], [0, 1, 1, 0], clamp);
 
   // ── Active tab ──
   const activeTab = isPhase3 ? "Examine" : isPhase4 ? "Diagnosis" : isPhase5 ? "Assessment" : "Chat";
 
   // ── Timer ──
-  const timerSeconds = Math.floor(interpolate(frame, [155, 1370], [0, 420], clamp));
+  const timerSeconds = Math.floor(interpolate(frame, [200, 1870], [0, 420], clamp));
   const timerMin = String(Math.floor(timerSeconds / 60)).padStart(2, "0");
   const timerSec = String(timerSeconds % 60).padStart(2, "0");
 
   // ── Instrument selection (Phase 3) ──
-  const selectedInstrument = frame < 530 ? -1 : 5; // Stethoscope
+  const selectedInstrument = frame < 715 ? -1 : 5; // Stethoscope
 
   // ── Category checks (Phase 3) ──
-  const categoriesChecked = Math.floor(interpolate(frame, [500, 680], [0, 4], clamp));
+  const categoriesChecked = Math.floor(interpolate(frame, [673, 922], [0, 4], clamp));
 
   // ── Media overlay (Phase 3) ──
-  const showMediaOverlay = frame >= 620 && frame < 770;
-  const mediaOverlayOpacity = interpolate(frame, [620, 640, 745, 770], [0, 1, 1, 0], clamp);
+  const showMediaOverlay = frame >= 840 && frame < 1045;
+  const mediaOverlayOpacity = interpolate(frame, [840, 867, 1011, 1046], [0, 1, 1, 0], clamp);
 
   // ── Submit animation (Phase 6) ──
-  const submitProgress = interpolate(frame, [1300, 1330], [0, 1], clamp);
+  const submitProgress = interpolate(frame, [1778, 1818], [0, 1], clamp);
 
   const threeContent = (
     <>
@@ -176,10 +179,10 @@ export const Scene4_VirtualPatient: React.FC = () => {
       <GlowOrb position={[0, 0, -3]} color={colors.oasis} radius={2} baseOpacity={0.06} />
       <CameraRig positions={[
         { frame: 0, position: [0, 0, 10] },
-        { frame: 155, position: [0, 0, 9] },
-        { frame: 420, position: [0, 0, 8.5] },
-        { frame: 780, position: [0, 0, 9] },
-        { frame: 1740, position: [0, 0, 9.5] },
+        { frame: 200, position: [0, 0, 9] },
+        { frame: 555, position: [0, 0, 8.5] },
+        { frame: 1045, position: [0, 0, 9] },
+        { frame: 1875, position: [0, 0, 9.5] },
       ]} />
     </>
   );
@@ -203,16 +206,16 @@ export const Scene4_VirtualPatient: React.FC = () => {
           <div style={{
             fontFamily: fonts.heading, fontSize: 32, fontWeight: 700,
             color: colors.white, marginBottom: 8,
-            opacity: interpolate(frame, [70, 95], [0, 1], clamp),
+            opacity: interpolate(frame, [80, 114], [0, 1], clamp),
           }}>Select a Patient Case</div>
           <div style={{
             fontFamily: fonts.body, fontSize: 17, color: `${colors.white}70`, marginBottom: 36,
-            opacity: interpolate(frame, [80, 100], [0, 1], clamp),
+            opacity: interpolate(frame, [93, 121], [0, 1], clamp),
           }}>Choose a virtual patient to begin the encounter</div>
 
           <div style={{ display: "flex", gap: 20, flexWrap: "wrap" as const, justifyContent: "center", maxWidth: 900 }}>
             {patientCases.map((pc, i) => {
-              const cardDelay = 75 + i * 10;
+              const cardDelay = 86 + i * 14;
               const cardSpring = spring({ frame: frame - cardDelay, fps, config: { damping: 18, stiffness: 120, mass: 0.8 } });
               const cardOpacity = interpolate(cardSpring, [0, 1], [0, 1]);
               const cardScale = interpolate(cardSpring, [0, 1], [0.92, 1]);
@@ -274,7 +277,7 @@ export const Scene4_VirtualPatient: React.FC = () => {
             background: `linear-gradient(90deg, ${colors.arizonaBlue}, ${colors.midnight})`,
             borderBottom: `1px solid ${colors.white}12`,
             padding: "0 24px", flexShrink: 0,
-            opacity: interpolate(frame, [158, 175], [0, 1], clamp),
+            opacity: interpolate(frame, [201, 224], [0, 1], clamp),
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 16, flex: 1 }}>
               <span style={{ fontFamily: fonts.heading, fontSize: 20, fontWeight: 700, color: colors.white }}>
@@ -284,7 +287,7 @@ export const Scene4_VirtualPatient: React.FC = () => {
                 display: "flex", alignItems: "center", gap: 6,
                 background: `${colors.white}10`, borderRadius: 16, padding: "4px 12px",
               }}>
-                <PulsingDot color={colors.vitalsCritical} size={6} delay={165} />
+                <PulsingDot color={colors.vitalsCritical} size={6} delay={211} />
                 <span style={{ fontFamily: fonts.mono, fontSize: 14, color: colors.white }}>
                   {timerMin}:{timerSec}
                 </span>
@@ -294,7 +297,7 @@ export const Scene4_VirtualPatient: React.FC = () => {
             <div style={{ display: "flex", gap: 2 }}>
               {navTabs.map((tab, i) => {
                 const isActive = tab === activeTab;
-                const tabEnter = interpolate(frame, [163 + i * 4, 175 + i * 4], [0, 1], clamp);
+                const tabEnter = interpolate(frame, [208 + i * 6, 224 + i * 6], [0, 1], clamp);
                 return (
                   <div key={tab} style={{
                     fontFamily: fonts.heading, fontSize: 14, fontWeight: isActive ? 700 : 500,
@@ -311,15 +314,15 @@ export const Scene4_VirtualPatient: React.FC = () => {
           </div>
 
           {/* ── Vitals Strip ── */}
-          {frame >= 170 && frame < 1370 && (
+          {frame >= 218 && frame < 1850 && (
             <div style={{
               height: 48, display: "flex", alignItems: "center", justifyContent: "center", gap: 28,
               background: "rgba(12,35,75,0.6)",
               borderBottom: `1px solid ${colors.white}06`,
-              opacity: interpolate(frame, [170, 190, 1340, 1365], [0, 1, 1, 0], clamp),
+              opacity: interpolate(frame, [218, 245, 1810, 1840], [0, 1, 1, 0], clamp),
             }}>
               {vitals.map((v, i) => {
-                const vOpacity = interpolate(frame, [175 + i * 6, 190 + i * 6], [0, 1], clamp);
+                const vOpacity = interpolate(frame, [224 + i * 8, 245 + i * 8], [0, 1], clamp);
                 return (
                   <div key={v.label} style={{
                     display: "flex", alignItems: "baseline", gap: 6, opacity: vOpacity,
@@ -343,7 +346,7 @@ export const Scene4_VirtualPatient: React.FC = () => {
                 background: "rgba(12,35,75,0.5)",
                 borderRight: `1px solid ${colors.white}08`,
                 display: "flex", flexDirection: "column", gap: 8,
-                opacity: interpolate(frame, [425, 450], [0, 1], clamp),
+                opacity: interpolate(frame, [570, 604], [0, 1], clamp),
                 flexShrink: 0,
               }}>
                 <div style={{ display: "flex", gap: 4, marginBottom: 6 }}>
@@ -366,10 +369,10 @@ export const Scene4_VirtualPatient: React.FC = () => {
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
                   {instruments.map((inst, i) => {
-                    const instDelay = 450 + i * 8;
+                    const instDelay = 604 + i * 11;
                     const instOpacity = interpolate(frame, [instDelay, instDelay + 14], [0, 1], clamp);
                     const isInstSelected = i === selectedInstrument;
-                    const selectGlow = isInstSelected ? interpolate(frame, [530, 555], [0, 1], clamp) : 0;
+                    const selectGlow = isInstSelected ? interpolate(frame, [714, 748], [0, 1], clamp) : 0;
                     return (
                       <div key={inst.name} style={{
                         display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
@@ -399,7 +402,7 @@ export const Scene4_VirtualPatient: React.FC = () => {
               overflow: "hidden",
             }}>
               {/* Exam room with patient — visible during Phases 2 & 3 */}
-              {frame >= 160 && frame < 790 && (
+              {frame >= 205 && frame < 1073 && (
                 <Img
                   src={staticFile("screenshots/examroompatient.png")}
                   style={{
@@ -408,7 +411,7 @@ export const Scene4_VirtualPatient: React.FC = () => {
                     width: "100%",
                     height: "100%",
                     objectFit: "cover" as const,
-                    opacity: interpolate(frame, [160, 185, 760, 790], [0, 1, 1, 0], clamp),
+                    opacity: interpolate(frame, [205, 238, 1032, 1073], [0, 1, 1, 0], clamp),
                   }}
                 />
               )}
@@ -418,9 +421,9 @@ export const Scene4_VirtualPatient: React.FC = () => {
                 <div style={{
                   position: "absolute", top: 16, left: "50%", transform: "translateX(-50%)",
                   display: "flex", alignItems: "center", gap: 8,
-                  opacity: interpolate(frame, [185, 205], [0, 1], clamp),
+                  opacity: interpolate(frame, [238, 266], [0, 1], clamp),
                 }}>
-                  <PulsingDot color={colors.vitalsNormal} size={8} delay={190} />
+                  <PulsingDot color={colors.vitalsNormal} size={8} delay={245} />
                   <span style={{ fontFamily: fonts.mono, fontSize: 12, color: colors.vitalsNormal }}>
                     Patient Interview Active
                   </span>
@@ -489,8 +492,8 @@ export const Scene4_VirtualPatient: React.FC = () => {
                     {/* Media library tags */}
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap" as const }}>
                       {mediaLibraryItems.map((item, i) => {
-                        const tagDelay = 640 + i * 10;
-                        const tagOpacity = interpolate(frame, [tagDelay, tagDelay + 10], [0, 1], clamp);
+                        const tagDelay = 867 + i * 14;
+                        const tagOpacity = interpolate(frame, [tagDelay, tagDelay + 14], [0, 1], clamp);
                         return (
                           <div key={item.label} style={{
                             display: "flex", alignItems: "center", gap: 6,
@@ -529,8 +532,8 @@ export const Scene4_VirtualPatient: React.FC = () => {
                       Ranked by clinical likelihood
                     </div>
                     {differentials.map((dx, i) => {
-                      const dxDelay = 795 + i * 15;
-                      const dxOpacity = interpolate(frame, [dxDelay, dxDelay + 10], [0, 1], clamp);
+                      const dxDelay = 1081 + i * 21;
+                      const dxOpacity = interpolate(frame, [dxDelay, dxDelay + 14], [0, 1], clamp);
                       return (
                         <div key={dx.name} style={{
                           display: "flex", alignItems: "center", gap: 10,
@@ -563,8 +566,8 @@ export const Scene4_VirtualPatient: React.FC = () => {
                       Ordered to support diagnosis
                     </div>
                     {diagnosticTests.map((test, i) => {
-                      const testDelay = 810 + i * 12;
-                      const testOpacity = interpolate(frame, [testDelay, testDelay + 10], [0, 1], clamp);
+                      const testDelay = 1101 + i * 17;
+                      const testOpacity = interpolate(frame, [testDelay, testDelay + 14], [0, 1], clamp);
                       const sevColor = test.severity === "Critical" ? colors.vitalsCritical : colors.vitalsWarning;
                       return (
                         <div key={test.name} style={{
@@ -605,8 +608,8 @@ export const Scene4_VirtualPatient: React.FC = () => {
                       Document approach and consult orders
                     </div>
                     {assessmentItems.map((item, i) => {
-                      const apDelay = 945 + i * 12;
-                      const apOpacity = interpolate(frame, [apDelay, apDelay + 10], [0, 1], clamp);
+                      const apDelay = 1287 + i * 17;
+                      const apOpacity = interpolate(frame, [apDelay, apDelay + 14], [0, 1], clamp);
                       const isConsult = item.label === "Consult";
                       return (
                         <div key={item.label} style={{
@@ -648,8 +651,8 @@ export const Scene4_VirtualPatient: React.FC = () => {
                     </div>
 
                     {encounterSections.map((sec, i) => {
-                      const secDelay = 1120 + i * 12;
-                      const secOpacity = interpolate(frame, [secDelay, secDelay + 10], [0, 1], clamp);
+                      const secDelay = 1529 + i * 17;
+                      const secOpacity = interpolate(frame, [secDelay, secDelay + 14], [0, 1], clamp);
                       return (
                         <div key={sec.label} style={{
                           display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -677,7 +680,7 @@ export const Scene4_VirtualPatient: React.FC = () => {
                       border: `1px solid ${submitProgress > 0 ? `${colors.vitalsNormal}50` : `${colors.oasis}30`}`,
                       fontFamily: fonts.heading, fontSize: 16, fontWeight: 700,
                       color: colors.white,
-                      opacity: interpolate(frame, [1280, 1300], [0, 1], clamp),
+                      opacity: interpolate(frame, [1749, 1778], [0, 1], clamp),
                       transform: `scale(${submitProgress > 0 ? 1 + submitProgress * 0.03 : 1})`,
                       boxShadow: submitProgress > 0 ? `0 0 24px ${colors.vitalsNormal}30` : "none",
                     }}>
@@ -697,7 +700,7 @@ export const Scene4_VirtualPatient: React.FC = () => {
                 borderLeft: `1px solid ${colors.white}08`,
                 display: "flex", flexDirection: "column", gap: 10,
                 flexShrink: 0,
-                opacity: interpolate(frame, [180, 205], [0, 1], clamp),
+                opacity: interpolate(frame, [231, 266], [0, 1], clamp),
               }}>
                 {/* ── Phase 2: Chat Panel ── */}
                 {isPhase2 && (
@@ -709,13 +712,13 @@ export const Scene4_VirtualPatient: React.FC = () => {
                       <span style={{ fontFamily: fonts.heading, fontSize: 16, fontWeight: 700, color: colors.white }}>
                         Patient Interview
                       </span>
-                      <PulsingDot color={colors.oasis} size={7} delay={195} />
+                      <PulsingDot color={colors.oasis} size={7} delay={252} />
                     </div>
 
                     <div style={{ display: "flex", flexDirection: "column", gap: 10, flex: 1 }}>
                       {chatMessages.map((msg, i) => {
-                        const msgDelay = 220 + i * 35;
-                        const msgOpacity = interpolate(frame, [msgDelay, msgDelay + 16], [0, 1], clamp);
+                        const msgDelay = 287 + i * 48;
+                        const msgOpacity = interpolate(frame, [msgDelay, msgDelay + 22], [0, 1], clamp);
                         const isStudent = msg.sender === "student";
                         return (
                           <div key={i} style={{
@@ -745,7 +748,7 @@ export const Scene4_VirtualPatient: React.FC = () => {
                       padding: "9px 13px", borderRadius: 8,
                       background: `${colors.white}06`, border: `1px solid ${colors.white}10`,
                       fontFamily: fonts.body, fontSize: 13, color: `${colors.white}30`,
-                      opacity: interpolate(frame, [370, 395], [0, 1], clamp),
+                      opacity: interpolate(frame, [494, 528], [0, 1], clamp),
                     }}>Type your response...</div>
                   </div>
                 )}
@@ -764,15 +767,15 @@ export const Scene4_VirtualPatient: React.FC = () => {
                       padding: "7px 10px", borderRadius: 8,
                       background: `${colors.white}05`, border: `1px solid ${colors.white}12`,
                       fontFamily: fonts.body, fontSize: 12, color: `${colors.white}30`,
-                      opacity: interpolate(frame, [435, 455], [0, 1], clamp),
+                      opacity: interpolate(frame, [584, 611], [0, 1], clamp),
                     }}>Search categories...</div>
 
                     <div style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1, overflow: "hidden" }}>
                       {examCategories.map((cat, i) => {
-                        const catDelay = 445 + i * 8;
+                        const catDelay = 597 + i * 11;
                         const catOpacity = interpolate(frame, [catDelay, catDelay + 12], [0, 1], clamp);
                         const isChecked = i < categoriesChecked;
-                        const checkAnim = isChecked ? interpolate(frame, [510 + i * 40, 530 + i * 40], [0, 1], clamp) : 0;
+                        const checkAnim = isChecked ? interpolate(frame, [687 + i * 55, 715 + i * 55], [0, 1], clamp) : 0;
                         return (
                           <div key={cat} style={{
                             display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -800,14 +803,14 @@ export const Scene4_VirtualPatient: React.FC = () => {
                     {/* Findings */}
                     <div style={{
                       borderTop: `1px solid ${colors.white}10`, paddingTop: 8, marginTop: "auto",
-                      opacity: interpolate(frame, [560, 585], [0, 1], clamp),
+                      opacity: interpolate(frame, [755, 790], [0, 1], clamp),
                     }}>
                       <div style={{
                         fontFamily: fonts.mono, fontSize: 10, color: `${colors.white}50`,
                         letterSpacing: 1, textTransform: "uppercase" as const, marginBottom: 6,
                       }}>Findings</div>
                       {examFindings.map((ef, i) => {
-                        const fOpacity = interpolate(frame, [575 + i * 16, 591 + i * 16], [0, 1], clamp);
+                        const fOpacity = interpolate(frame, [776 + i * 22, 800 + i * 22], [0, 1], clamp);
                         return (
                           <div key={ef.tool} style={{
                             display: "flex", gap: 6, marginBottom: 6, opacity: fOpacity, alignItems: "center",
