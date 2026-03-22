@@ -1,119 +1,226 @@
 import React from "react";
-import { interpolate, useCurrentFrame } from "remotion";
+import { Easing, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { SceneShell } from "../layouts/SceneShell";
 import { ParticleField } from "../three/ParticleField";
 import { AnimatedGrid } from "../three/AnimatedGrid";
 import { GlowOrb } from "../three/GlowOrb";
 import { DataStream } from "../three/DataStream";
 import { CameraRig } from "../three/CameraRig";
-import { GlassPanel } from "../components/GlassPanel";
-import { PulsingDot } from "../components/PulsingDot";
 import { colors, fonts } from "../theme";
 
-/* ── Data ── */
-const classes = [
-  { name: "MED 501 — Clinical Skills", code: "MED501", students: 24, active: 18 },
-  { name: "MED 602 — Diagnostics", code: "MED602", students: 18, active: 12 },
-  { name: "MED 410 — Foundations", code: "MED410", students: 32, active: 24 },
+/* ══════════════════════════════════════════════════════════════════════
+   SVG ICON PRIMITIVES
+   ══════════════════════════════════════════════════════════════════════ */
+
+const PersonIcon: React.FC<{ color: string; size: number; opacity?: number }> = ({
+  color, size, opacity = 1,
+}) => {
+  const r = size * 0.28, cx = size * 0.5, headY = r;
+  const bodyTop = headY + r + size * 0.05;
+  const bodyW = size * 0.72, bodyH = size * 0.52, bodyR = bodyW / 2;
+  return (
+    <svg width={size} height={Math.round(size * 1.22)}
+      viewBox={`0 0 ${size} ${Math.round(size * 1.22)}`}
+      style={{ display: "block", flexShrink: 0, opacity }}>
+      <circle cx={cx} cy={headY} r={r} fill={color} />
+      <path
+        d={`M ${cx},${bodyTop} C ${cx - bodyR * 1.1},${bodyTop} ${cx - bodyR * 1.2},${bodyTop + bodyH * 0.5} ${cx - bodyR},${bodyTop + bodyH} L ${cx + bodyR},${bodyTop + bodyH} C ${cx + bodyR * 1.2},${bodyTop + bodyH * 0.5} ${cx + bodyR * 1.1},${bodyTop} ${cx},${bodyTop} Z`}
+        fill={color}
+      />
+    </svg>
+  );
+};
+
+const DocumentIcon: React.FC<{ color: string; size: number }> = ({ color, size }) => {
+  const w = size * 0.76, h = size, fold = size * 0.22;
+  return (
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} fill="none" style={{ display: "block" }}>
+      <path d={`M 0,0 L ${w - fold},0 L ${w},${fold} L ${w},${h} L 0,${h} Z`}
+        fill={`${color}18`} stroke={color} strokeWidth="2.5" strokeLinejoin="round" />
+      <path d={`M ${w - fold},0 L ${w - fold},${fold} L ${w},${fold}`}
+        fill="none" stroke={color} strokeWidth="1.5" strokeLinejoin="round" opacity={0.6} />
+      {[0, 1, 2].map(i => (
+        <rect key={i} x={w * 0.15} y={h * 0.35 + i * h * 0.14}
+          width={w * (0.68 - i * 0.14)} height={h * 0.06} rx={h * 0.03}
+          fill={color} opacity={1 - i * 0.2} />
+      ))}
+    </svg>
+  );
+};
+
+const GroupIcon: React.FC<{ color: string; size: number }> = ({ color, size }) => (
+  <div style={{ display: "flex", alignItems: "flex-end", gap: Math.round(size * 0.06), height: size * 1.22 }}>
+    <PersonIcon color={`${color}50`} size={Math.round(size * 0.72)} />
+    <PersonIcon color={color}        size={size} />
+    <PersonIcon color={`${color}50`} size={Math.round(size * 0.72)} />
+  </div>
+);
+
+/* ══════════════════════════════════════════════════════════════════════
+   DATA
+   ══════════════════════════════════════════════════════════════════════ */
+const CLASSES = [
+  { name: "MED 501", label: "Clinical Skills",  students: 24, color: colors.azurite },
+  { name: "MED 602", label: "Diagnostics Lab",  students: 18, color: colors.oasis   },
+  { name: "MED 410", label: "Foundations",      students: 32, color: "#a855f7"       },
 ];
 
-const students = [
-  { name: "A. Johnson", assigned: 2 },
-  { name: "B. Chen", assigned: 1 },
-  { name: "C. Reyes", assigned: 3 },
-  { name: "D. Patel", assigned: 0 },
-  { name: "E. Williams", assigned: 1 },
-  { name: "F. Garcia", assigned: 2 },
-  { name: "G. Kim", assigned: 1 },
-  { name: "H. Brown", assigned: 0 },
-];
+const ROWS = 2, COLS = 5, ICON_S = 56, ICON_GAP = 10;
+const SHOWN = ROWS * COLS; // 10 per class
 
-const assignmentCases = [
-  { title: "Pneumonia — Adult", sections: 8, tag: "Respiratory", assigned: 12 },
-  { title: "Heart Failure — Elderly", sections: 8, tag: "Cardiology", assigned: 8 },
-  { title: "Appendicitis — Peds", sections: 8, tag: "Surgery", assigned: 4 },
-];
+/* ══════════════════════════════════════════════════════════════════════
+   LAYOUT GEOMETRY (px, 1920×1080 canvas)
+   ══════════════════════════════════════════════════════════════════════ */
+const CASE_L = 110, CASE_W = 340, CASE_T = 310, CASE_H = 430;
+const CLS_L  = 620, CLS_W  = 360, CLS_H  = 148, CLS_GAP = 52;
+const CLS_TOPS = [-1, 0, 1].map(i => 535 - Math.floor(CLS_H / 2) + i * (CLS_H + CLS_GAP));
+const GRP_L   = 1100;
 
-/* ── Existing assignments for the class (shown before "Assign Cases" is clicked) ── */
-const existingAssignments = [
-  { caseName: "Heart Failure — Elderly", student: "A. Johnson", due: "Feb 15", status: "Completed" },
-  { caseName: "Heart Failure — Elderly", student: "B. Chen", due: "Feb 15", status: "Completed" },
-  { caseName: "Heart Failure — Elderly", student: "C. Reyes", due: "Feb 15", status: "In Progress" },
-  { caseName: "Appendicitis — Peds", student: "D. Patel", due: "Mar 1", status: "Completed" },
-  { caseName: "Appendicitis — Peds", student: "E. Williams", due: "Mar 1", status: "In Progress" },
-  { caseName: "Appendicitis — Peds", student: "F. Garcia", due: "Mar 1", status: "Not Started" },
-  { caseName: "Heart Failure — Elderly", student: "G. Kim", due: "Feb 15", status: "Completed" },
-  { caseName: "Heart Failure — Elderly", student: "H. Brown", due: "Feb 15", status: "In Progress" },
-];
+const CASE_RIGHT = CASE_L + CASE_W;                           // 450
+const CASE_MID_Y = CASE_T + Math.floor(CASE_H / 2);           // 525
+const SPINE_X    = 530;
+const CLS_MID_YS = CLS_TOPS.map(t => t + Math.floor(CLS_H / 2));
+const CLS_RIGHT  = CLS_L + CLS_W;                             // 980
 
-/**
- * Scene 3: Faculty Assignment — ~500 frames
- * Single persistent three-panel layout (like the real Faculty Dashboard).
- * Left: class list, Middle: student selection, Right: case selection + config.
- * Content within panels animates over time.
- *
- * 65-120:   Panels appear, class list populates
- * 120-180:  Class selected, students populate middle, cases appear right
- * 180-280:  Case selected, students get checked off
- * 280-380:  Config appears, "Assign" button activates
- * 380-485:  Success flash, status updates in panels
- */
+const L_MAIN   = SPINE_X - CASE_RIGHT;
+const L_SPINE  = CLS_MID_YS[2] - CLS_MID_YS[0];
+const L_BRANCH = CLS_L - SPINE_X;
+const GRID_W   = COLS * ICON_S + (COLS - 1) * ICON_GAP;
+const L_CG     = GRP_L - CLS_RIGHT;
+
+/* ══════════════════════════════════════════════════════════════════════
+   PHASE BOUNDARIES  (30fps · audio 21.7s starts f10 ends f662)
+
+   P1   f 65–150   CASE FOCUS   — case spotlit, classes/students hidden
+   P2   f142–268   CLASS FOCUS  — classes in, case dims, students hidden
+   P3   f260–390   STUDENT FOCUS — students in, classes dim
+   P4   f382–525   FULL VIEW    — all visible, assignment "completes"
+   P5   f518–640   CONFIRMED    — hold with badge
+   ══════════════════════════════════════════════════════════════════════ */
+const P1S = 65,  P1E = 150;
+const P2S = 142, P2E = 268;
+const P3S = 260, P3E = 390;
+const P4S = 382, P4E = 525;
+const P5S = 518, P5E = 640;
+
+/* ══════════════════════════════════════════════════════════════════════
+   COMPONENT
+   ══════════════════════════════════════════════════════════════════════ */
 export const Scene3_Assignment: React.FC = () => {
   const frame = useCurrentFrame();
-  const clamp = { extrapolateLeft: "clamp" as const, extrapolateRight: "clamp" as const };
+  const { fps } = useVideoConfig();
+  const clamp  = { extrapolateLeft: "clamp" as const, extrapolateRight: "clamp" as const };
+  const easeIO = { easing: Easing.inOut(Easing.ease), ...clamp };
 
-  // Overall three-panel opacity
-  const panelOpacity = interpolate(frame, [65, 80, 625, 655], [0, 1, 1, 0], clamp);
+  /* ── Overall wrapper fade ── */
+  const wrapOp = interpolate(frame, [P1S, P1S + 18, P5E, P5E + 18], [0, 1, 1, 0], clamp);
 
-  // Class selection
-  const classHighlight = interpolate(frame, [105, 130], [0, 1], clamp);
-
-  // Existing assignments table content (shown initially)
-  const existingTableContent = interpolate(frame, [95, 115], [0, 1], clamp);
-
-  // "Assign Cases" button click moment (~180)
-  const assignButtonClick = interpolate(frame, [175, 185], [0, 1], clamp);
-
-  // After button click: existing assignments fade out, student grid fades in
-  const existingFadeOut = interpolate(frame, [180, 200], [1, 0], clamp);
-  const studentGridIn = interpolate(frame, [200, 225], [0, 1], clamp);
-
-  // Right panel: initially shows summary, switches to case selection after click
-  const rightContent = interpolate(frame, [95, 115], [0, 1], clamp);
-  const rightCaseMode = interpolate(frame, [200, 225], [0, 1], clamp);
-
-  // Case selection highlight
-  const caseSelect = interpolate(frame, [240, 265], [0, 1], clamp);
-
-  // Student checkmarks (staggered, after case is selected)
-  const studentChecks = students.map((_, i) =>
-    interpolate(frame, [270 + i * 8, 282 + i * 8], [0, 1], clamp),
+  /* ────────────────────────────────────────────────────────────────────
+     SPOTLIGHT SYSTEM — column-level opacity
+     Each column is fully lit when narration refers to it, dimmed otherwise.
+     ──────────────────────────────────────────────────────────────────── */
+  // CASE column: bright P1, dim P2+P3, restore P4+
+  const caseColOp = interpolate(frame,
+    [P1S,     P1S+20, P1E,    P1E+20, P4S,   P4S+22, P5E],
+    [0,       1,      1,      0.32,   0.32,  1,      1],
+    clamp
   );
 
-  // Config panel appearance
-  const configAppear = interpolate(frame, [330, 355], [0, 1], clamp);
+  // CLASSES column: invisible P1, bright P2, dim P3, restore P4+
+  const classColOp = interpolate(frame,
+    [P2S,     P2S+22, P3S,    P3S+22, P4S,   P4S+22, P5E],
+    [0,       1,      1,      0.34,   0.34,  1,      1],
+    clamp
+  );
 
-  // Assign button ready
-  const assignReady = interpolate(frame, [360, 380], [0, 1], clamp);
+  // STUDENTS column: invisible P1+P2, bright P3, stays bright P4+
+  const studentColOp = interpolate(frame,
+    [P3S, P3S+22, P5E],
+    [0,   1,      1],
+    clamp
+  );
 
-  // Success state
-  const successFlash = interpolate(frame, [400, 415, 440, 455], [0, 1, 1, 0], clamp);
-  const postAssign = interpolate(frame, [415, 435], [0, 1], clamp);
+  /* ────────────────────────────────────────────────────────────────────
+     VIEWPORT PAN — subtle translateX to keep active column visually
+     central. Scale tightens slightly during single-column focus phases.
+     ──────────────────────────────────────────────────────────────────── */
+  const viewPanX = interpolate(frame,
+    [P1S, P1S+28, P2S+22, P3S,   P3S+22, P4S,  P4S+22, P5E],
+    [60,  60,     0,      -40,   -40,    0,    0,      0],
+    easeIO
+  );
+  const viewScale = interpolate(frame,
+    [P1S, P1S+28, P2S+22, P3S,   P3S+22, P4S,  P4S+22],
+    [1,   1.05,   1.02,   1.04,  1.04,   1.0,  1.0],
+    easeIO
+  );
 
-  /* ── 3D (ambient) ── */
+  /* ── Case node spring entrance ── */
+  const caseSp    = spring({ frame: frame - P1S, fps, config: { damping: 20, stiffness: 90, mass: 1.0 } });
+  const caseScale = interpolate(caseSp, [0, 1], [0.84, 1], { extrapolateRight: "clamp" as const });
+  const caseGlow  = frame >= P1S ? 0.28 + 0.14 * Math.sin((frame - P1S) * 0.07) : 0;
+
+  /* ── Class card springs ── */
+  const classSprings = [0, 1, 2].map(i =>
+    spring({ frame: frame - (P2S + i * 22), fps, config: { damping: 22, stiffness: 108, mass: 0.88 } })
+  );
+
+  /* ── Phase A lines: case → spine → class branches ── */
+  const linesA  = interpolate(frame, [P1E - 30, P2S + 62], [0, 1], clamp);
+  const pHoriz  = Math.min(1, linesA / 0.24);
+  const pSpine  = Math.max(0, Math.min(1, (linesA - 0.20) / 0.40));
+  const pBranch = Math.max(0, Math.min(1, (linesA - 0.55) / 0.45));
+
+  // Line opacity: full when both case and classes are visible, dims with their columns
+  const lineAOp = Math.min(caseColOp, classColOp) * 2; // brightens in full view
+
+  /* ── Phase B lines: class → student grids (per class, staggered) ── */
+  const linesB = [0, 1, 2].map(i =>
+    interpolate(frame, [P3S - 14 + i * 14, P3S + 28 + i * 14], [0, 1], clamp)
+  );
+  const lineBOp = Math.min(classColOp, studentColOp) * 2;
+
+  /* ── Student icon springs: [class][studentIndex] ── */
+  const sSprings = [0, 1, 2].map(ci =>
+    Array.from({ length: SHOWN }, (_, si) =>
+      spring({
+        frame: frame - (P3S + ci * 20 + si * 5),
+        fps, config: { damping: 26, stiffness: 130, mass: 0.7 },
+      })
+    )
+  );
+
+  /* ── Column label opacities ── */
+  const caseLabelOp    = caseColOp;
+  const classLabelOp   = classColOp;
+  const studentLabelOp = studentColOp;
+
+  // Glow pulse — brief when each column first reaches full brightness
+  const caseGlowPulse    = interpolate(frame, [P1S+20,  P1S+50,  P1E-20, P1E],   [0, 1, 1, 0], clamp);
+  const classGlowPulse   = interpolate(frame, [P2S+22,  P2S+50,  P2E-20, P2E],   [0, 1, 1, 0], clamp);
+  const studentGlowPulse = interpolate(frame, [P3S+22,  P3S+50,  P3E-20, P3E],   [0, 1, 1, 0], clamp);
+
+  /* ── P4: Assignment action — each class gets "Assigned" badge ── */
+  const assignedOps = [0, 1, 2].map(i =>
+    interpolate(frame, [P4S + 15 + i * 18, P4S + 32 + i * 18], [0, 1], clamp)
+  );
+
+  /* ── P5: Confirmed caption ── */
+  const captionOp   = interpolate(frame, [P4S + 20, P4S + 42, P5E - 18, P5E], [0, 1, 1, 0], clamp);
+  const confirmedOp = interpolate(frame, [P5S, P5S + 22], [0, 1], clamp);
+
+  /* ── 3D Background ── */
   const threeContent = (
     <>
-      <AnimatedGrid color={colors.azurite} opacity={0.08} />
-      <ParticleField count={50} color={colors.oasis} speed={0.002} opacity={0.18} />
-      <GlowOrb position={[0, 0, -3]} color={colors.azurite} radius={3} baseOpacity={0.08} />
-      <DataStream direction="right" position={[-4, 0, -2]} color={colors.oasis} opacity={0.15} length={8} speed={0.04} />
-      <CameraRig
-        positions={[
-          { frame: 0, position: [0, 0, 10] },
-          { frame: 250, position: [0, 0, 9] },
-          { frame: 500, position: [0, 0, 9] },
-        ]}
-      />
+      <AnimatedGrid color={colors.azurite} opacity={0.05} />
+      <ParticleField count={32} color={colors.oasis} speed={0.0015} opacity={0.08} />
+      <GlowOrb position={[0, 0, -3]} color={colors.azurite} radius={3} baseOpacity={0.06} />
+      <DataStream direction="right" position={[-5, 0, -2]} color={colors.oasis} opacity={0.07} length={10} speed={0.03} />
+      <CameraRig positions={[
+        { frame: 0,   position: [0, 0, 10] },
+        { frame: 200, position: [0, 0, 9]  },
+        { frame: 660, position: [0, 0, 9]  },
+      ]} />
     </>
   );
 
@@ -123,341 +230,327 @@ export const Scene3_Assignment: React.FC = () => {
       sectionLabel="Assignment Pipeline"
       threeContent={threeContent}
     >
+      {/* Viewport pan + scale wrapper */}
+      <div style={{
+        position: "absolute", inset: 0,
+        opacity: wrapOp, pointerEvents: "none",
+        transform: `translateX(${viewPanX}px) scale(${viewScale})`,
+        transformOrigin: "960px 540px",
+      }}>
 
-      {/* ════════════════════════════════════════════════════════
-          Persistent Three-Panel Layout (65–490)
-         ════════════════════════════════════════════════════════ */}
-      {panelOpacity > 0 && (
-        <div
-          style={{
+        {/* ══════════════════════════════════════════════════════════
+            SVG CONNECTION LINES
+           ══════════════════════════════════════════════════════════ */}
+        <svg width={1920} height={1080} viewBox="0 0 1920 1080"
+          style={{ position: "absolute", inset: 0, zIndex: 5 }}>
+          {/* Case → spine horizontal */}
+          <path d={`M ${CASE_RIGHT},${CASE_MID_Y} H ${SPINE_X}`}
+            fill="none" stroke={`${colors.oasis}80`} strokeWidth={3}
+            strokeDasharray={L_MAIN} strokeDashoffset={L_MAIN * (1 - pHoriz)}
+            strokeLinecap="round" opacity={Math.min(lineAOp, 1)} />
+          {/* Vertical spine */}
+          <path d={`M ${SPINE_X},${CLS_MID_YS[0]} V ${CLS_MID_YS[2]}`}
+            fill="none" stroke={`${colors.oasis}35`} strokeWidth={2}
+            strokeDasharray={L_SPINE} strokeDashoffset={L_SPINE * (1 - pSpine)}
+            strokeLinecap="round" opacity={Math.min(lineAOp, 1)} />
+          {/* Branch lines: spine → classes */}
+          {[0, 1, 2].map(i => (
+            <path key={`ba-${i}`}
+              d={`M ${SPINE_X},${CLS_MID_YS[i]} H ${CLS_L}`}
+              fill="none" stroke={`${CLASSES[i].color}80`} strokeWidth={3}
+              strokeDasharray={L_BRANCH} strokeDashoffset={L_BRANCH * (1 - pBranch)}
+              strokeLinecap="round" opacity={Math.min(lineAOp, 1)} />
+          ))}
+          {/* Junction dots on spine */}
+          {[0, 1, 2].map(i => (
+            <circle key={`jd-${i}`}
+              cx={SPINE_X} cy={CLS_MID_YS[i]} r={6}
+              fill={CLASSES[i].color} opacity={pBranch * Math.min(lineAOp, 0.9)} />
+          ))}
+          {/* Class → student grid lines */}
+          {[0, 1, 2].map(i => (
+            <path key={`cg-${i}`}
+              d={`M ${CLS_RIGHT},${CLS_MID_YS[i]} H ${GRP_L}`}
+              fill="none" stroke={`${CLASSES[i].color}70`} strokeWidth={3}
+              strokeDasharray={L_CG} strokeDashoffset={L_CG * (1 - linesB[i])}
+              strokeLinecap="round" opacity={Math.min(lineBOp, 1)} />
+          ))}
+          {/* Entry dots at student grids */}
+          {[0, 1, 2].map(i => (
+            <circle key={`gd-${i}`}
+              cx={GRP_L} cy={CLS_MID_YS[i]} r={6}
+              fill={CLASSES[i].color} opacity={linesB[i] * Math.min(lineBOp, 0.9)} />
+          ))}
+        </svg>
+
+        {/* ══════════════════════════════════════════════════════════
+            COLUMN LABELS — top of each column, spotlit with column
+           ══════════════════════════════════════════════════════════ */}
+        {[
+          { label: "CASE",     cx: CASE_L + CASE_W / 2,   color: colors.arizonaRed, op: caseLabelOp,    glow: caseGlowPulse    },
+          { label: "CLASSES",  cx: CLS_L  + CLS_W  / 2,   color: colors.azurite,    op: classLabelOp,   glow: classGlowPulse   },
+          { label: "STUDENTS", cx: GRP_L  + GRID_W  / 2,  color: colors.oasis,      op: studentLabelOp, glow: studentGlowPulse },
+        ].map(col => (
+          <div key={col.label} style={{
             position: "absolute",
-            inset: 0,
-            display: "flex",
-            flexDirection: "column",
-            padding: "80px 30px 30px",
-            opacity: panelOpacity,
-            pointerEvents: "none",
-            zIndex: 10,
-          }}
-        >
-          {/* Header */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-            <div style={{ fontFamily: fonts.heading, fontSize: 24, fontWeight: 700, color: colors.white }}>
-              Faculty Dashboard — MED 501
-            </div>
+            left: col.cx - 90, top: 218,
+            width: 180, textAlign: "center" as const,
+            fontFamily: fonts.mono, fontSize: 13, fontWeight: 700,
+            color: col.color, letterSpacing: 4,
+            opacity: col.op, zIndex: 12,
+            textShadow: col.glow > 0
+              ? `0 0 20px ${col.color}${Math.round(col.glow * 75).toString(16).padStart(2, "0")}`
+              : "none",
+          }}>{col.label}</div>
+        ))}
+
+        {/* ══════════════════════════════════════════════════════════
+            LEFT — Case Node
+            Spotlit during P1. Dims to 32% opacity in P2+P3.
+           ══════════════════════════════════════════════════════════ */}
+        <div style={{
+          position: "absolute", left: CASE_L, top: CASE_T,
+          width: CASE_W, height: CASE_H,
+          opacity: caseColOp,
+          transform: `scale(${caseScale})`,
+          transformOrigin: "center center", zIndex: 10,
+        }}>
+          <div style={{
+            height: "100%",
+            background: "rgba(8, 16, 42, 0.92)",
+            backdropFilter: "blur(22px)", WebkitBackdropFilter: "blur(22px)",
+            borderRadius: 22,
+            border: `2px solid ${colors.arizonaRed}${Math.round(Math.max(caseColOp, 0.4) * 90).toString(16).padStart(2, "0")}`,
+            boxShadow: `
+              0 0 70px ${colors.arizonaRed}${Math.round(caseGlow * caseColOp * 80).toString(16).padStart(2, "0")},
+              0 12px 48px rgba(0,0,0,0.55)
+            `,
+            padding: "30px 26px",
+            display: "flex", flexDirection: "column", alignItems: "center", gap: 18,
+          }}>
+            <DocumentIcon color={colors.arizonaRed} size={120} />
             <div style={{
-              fontFamily: fonts.body, fontSize: 16, fontWeight: 600,
-              color: assignButtonClick > 0.5 ? colors.white : colors.oasis,
-              background: assignButtonClick > 0.5 ? colors.oasis : `${colors.oasis}20`,
-              padding: "6px 18px", borderRadius: 8,
-              opacity: interpolate(frame, [90, 105], [0.5, 1], clamp),
-              boxShadow: assignButtonClick > 0.3 && assignButtonClick < 0.7 ? `0 0 20px ${colors.oasis}50` : `0 0 10px ${colors.oasis}20`,
-              transform: `scale(${assignButtonClick > 0.3 && assignButtonClick < 0.7 ? 1.05 : 1})`,
+              fontFamily: fonts.heading, fontSize: 28, fontWeight: 800,
+              color: colors.white, textAlign: "center" as const, lineHeight: 1.25,
             }}>
-              {postAssign > 0.5 ? "8 Assigned" : "Assign Cases"}
+              Pneumonia<br />Case — Adult
+            </div>
+            <div style={{ height: 1, width: "80%", background: `${colors.white}10` }} />
+            <div style={{ display: "flex", gap: 22 }}>
+              {[{ v: "8", k: "Sections" }, { v: "3", k: "Classes" }, { v: "74", k: "Students" }].map(s => (
+                <div key={s.k} style={{ textAlign: "center" as const }}>
+                  <div style={{ fontFamily: fonts.mono, fontSize: 28, fontWeight: 800, color: colors.arizonaRed, lineHeight: 1 }}>{s.v}</div>
+                  <div style={{ fontFamily: fonts.body, fontSize: 12, color: `${colors.white}50`, marginTop: 3 }}>{s.k}</div>
+                </div>
+              ))}
             </div>
           </div>
+        </div>
 
-          {/* Three panels */}
-          <div style={{ display: "flex", gap: 12, flex: 1 }}>
-            {/* ── Left Panel: Class List ── */}
-            <GlassPanel enterFrame={70} exitFrame={655} style={{ width: 260, padding: "14px 16px", display: "flex", flexDirection: "column" }}>
-              <div style={{ fontFamily: fonts.heading, fontSize: 16, fontWeight: 700, color: colors.oasis, marginBottom: 10, letterSpacing: 1 }}>
-                Classes
-              </div>
-              {classes.map((cls, i) => {
-                const isActive = i === 0;
-                const clsOpacity = interpolate(frame, [75 + i * 10, 90 + i * 10], [0, 1], clamp);
-                return (
-                  <div
-                    key={cls.code}
-                    style={{
-                      padding: "10px 12px",
-                      marginBottom: 6,
-                      borderRadius: 6,
-                      opacity: clsOpacity,
-                      background: isActive ? `${colors.oasis}12` : "transparent",
-                      borderLeft: isActive
-                        ? `3px solid rgba(55,141,189,${interpolate(classHighlight, [0, 1], [0.3, 0.9])})`
-                        : "3px solid transparent",
-                    }}
-                  >
-                    <div style={{ fontFamily: fonts.body, fontSize: 15, fontWeight: isActive ? 600 : 400, color: isActive ? colors.white : `${colors.white}70` }}>
-                      {cls.name}
-                    </div>
-                    <div style={{ display: "flex", gap: 10, marginTop: 3 }}>
-                      <span style={{ fontFamily: fonts.mono, fontSize: 13, color: `${colors.white}60` }}>
-                        {cls.students} students
-                      </span>
-                      <span style={{ fontFamily: fonts.mono, fontSize: 13, color: colors.oasis }}>
-                        {cls.active} active
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-              {/* Class stats at bottom */}
-              <div style={{ marginTop: "auto", paddingTop: 10, borderTop: `1px solid ${colors.white}08` }}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                  <span style={{ fontFamily: fonts.mono, fontSize: 13, color: `${colors.white}60` }}>Total Students</span>
-                  <span style={{ fontFamily: fonts.mono, fontSize: 15, fontWeight: 700, color: colors.oasis }}>74</span>
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span style={{ fontFamily: fonts.mono, fontSize: 13, color: `${colors.white}60` }}>Active Cases</span>
-                  <span style={{ fontFamily: fonts.mono, fontSize: 15, fontWeight: 700, color: colors.vitalsNormal }}>54</span>
-                </div>
-              </div>
-            </GlassPanel>
+        {/* ══════════════════════════════════════════════════════════
+            MIDDLE — Three Class Cards
+            Spotlit during P2. Dims to 34% in P3. Restores P4+.
+           ══════════════════════════════════════════════════════════ */}
+        {CLASSES.map((cls, i) => {
+          const sp    = classSprings[i];
+          const spOp  = interpolate(sp, [0, 1], [0, 1], { extrapolateRight: "clamp" as const });
+          const spSc  = interpolate(sp, [0, 1], [0.84, 1], { extrapolateRight: "clamp" as const });
+          const assignedOp = assignedOps[i];
 
-            {/* ── Middle Panel: Existing Assignments → Student Selection ── */}
-            <GlassPanel enterFrame={80} exitFrame={655} style={{ flex: 1, padding: "14px 16px", display: "flex", flexDirection: "column", position: "relative" }}>
-              {/* ── View 1: Existing Assignments Table (before Assign Cases click) ── */}
-              {existingFadeOut > 0 && (
-                <div style={{ opacity: existingFadeOut, display: "flex", flexDirection: "column", flex: 1 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                    <div style={{ fontFamily: fonts.heading, fontSize: 16, fontWeight: 700, color: colors.oasis, letterSpacing: 1 }}>
-                      Current Assignments
-                    </div>
-                    <div style={{
-                      fontFamily: fonts.mono, fontSize: 13, color: `${colors.white}60`,
-                      background: `${colors.white}08`, padding: "3px 10px", borderRadius: 4,
-                    }}>
-                      {existingAssignments.length} active
-                    </div>
-                  </div>
-
-                  {/* Table header */}
-                  <div style={{
-                    display: "grid", gridTemplateColumns: "1fr 100px 70px 90px", gap: 8,
-                    paddingBottom: 8, marginBottom: 4,
-                    borderBottom: `1px solid ${colors.oasis}20`,
-                  }}>
-                    {["Case", "Student", "Due", "Status"].map((h) => (
-                      <span key={h} style={{ fontFamily: fonts.mono, fontSize: 12, fontWeight: 700, color: colors.oasis, letterSpacing: 1, textTransform: "uppercase" as const }}>{h}</span>
-                    ))}
-                  </div>
-
-                  {/* Table rows */}
-                  {existingAssignments.map((a, i) => {
-                    const rowOp = interpolate(frame, [100 + i * 6, 112 + i * 6], [0, 1], clamp);
-                    const statusColor = a.status === "Completed" ? colors.vitalsNormal : a.status === "In Progress" ? colors.oasis : `${colors.white}50`;
-                    return (
-                      <div key={`${a.caseName}-${a.student}`} style={{
-                        display: "grid", gridTemplateColumns: "1fr 100px 70px 90px", gap: 8,
-                        padding: "7px 0", opacity: rowOp * existingTableContent,
-                        borderBottom: i < existingAssignments.length - 1 ? `1px solid ${colors.white}06` : "none",
-                      }}>
-                        <span style={{ fontFamily: fonts.body, fontSize: 14, color: colors.white, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.caseName}</span>
-                        <span style={{ fontFamily: fonts.body, fontSize: 14, color: `${colors.white}70` }}>{a.student}</span>
-                        <span style={{ fontFamily: fonts.mono, fontSize: 13, color: `${colors.white}60` }}>{a.due}</span>
-                        <span style={{ fontFamily: fonts.mono, fontSize: 12, fontWeight: 600, color: statusColor }}>{a.status}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-
-              {/* ── View 2: Student Selection Grid (after Assign Cases click) ── */}
-              {studentGridIn > 0 && (
-                <div style={{ opacity: studentGridIn, display: "flex", flexDirection: "column", flex: 1, position: existingFadeOut > 0 ? "absolute" as const : "relative" as const, inset: existingFadeOut > 0 ? "14px 16px" : undefined }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                    <div style={{ fontFamily: fonts.heading, fontSize: 16, fontWeight: 700, color: colors.oasis, letterSpacing: 1 }}>
-                      Select Students
-                    </div>
-                    <div style={{
-                      fontFamily: fonts.mono, fontSize: 13, color: colors.oasis,
-                      background: `${colors.oasis}12`, padding: "3px 10px", borderRadius: 4,
-                    }}>
-                      {postAssign > 0.5 ? "8 / 8 assigned" : `${Math.round(interpolate(frame, [270, 335], [0, 8], clamp))} / 8 selected`}
-                    </div>
-                  </div>
-
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
-                    {students.map((s, i) => {
-                      const checked = studentChecks[i];
-                      const assigned = postAssign > 0.5;
-                      return (
-                        <div
-                          key={s.name}
-                          style={{
-                            display: "flex", alignItems: "center", gap: 8,
-                            padding: "8px 10px", borderRadius: 6,
-                            background: (checked > 0.5 || assigned) ? `${colors.oasis}10` : "transparent",
-                            border: (checked > 0.5 || assigned) ? `1px solid ${colors.oasis}30` : `1px solid ${colors.white}06`,
-                          }}
-                        >
-                          <div style={{
-                            width: 18, height: 18, borderRadius: 3, flexShrink: 0,
-                            border: (checked > 0.5 || assigned) ? `2px solid ${colors.oasis}` : `1px solid ${colors.white}25`,
-                            background: (checked > 0.5 || assigned) ? colors.oasis : "transparent",
-                            display: "flex", alignItems: "center", justifyContent: "center",
-                            fontFamily: fonts.mono, fontSize: 11, color: colors.white,
-                          }}>
-                            {(checked > 0.5 || assigned) && "\u2713"}
-                          </div>
-                          <div>
-                            <div style={{ fontFamily: fonts.body, fontSize: 15, fontWeight: 600, color: colors.white }}>
-                              {s.name}
-                            </div>
-                            <div style={{ fontFamily: fonts.mono, fontSize: 12, color: assigned ? colors.vitalsNormal : `${colors.white}50` }}>
-                              {assigned ? `${s.assigned + 1} cases` : `${s.assigned} cases`}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {/* Select All / Deselect bar */}
-                  <div style={{ marginTop: "auto", paddingTop: 8, display: "flex", gap: 8 }}>
-                    <div style={{
-                      fontFamily: fonts.body, fontSize: 13, fontWeight: 600,
-                      color: colors.oasis, background: `${colors.oasis}12`,
-                      padding: "4px 12px", borderRadius: 4, flex: 1, textAlign: "center" as const,
-                    }}>
-                      Select All
-                    </div>
-                    <div style={{
-                      fontFamily: fonts.body, fontSize: 13,
-                      color: `${colors.white}40`, background: `${colors.white}06`,
-                      padding: "4px 12px", borderRadius: 4, flex: 1, textAlign: "center" as const,
-                    }}>
-                      Deselect All
-                    </div>
-                  </div>
-                </div>
-              )}
-            </GlassPanel>
-
-            {/* ── Right Panel: Summary → Case Selection + Config ── */}
-            <GlassPanel enterFrame={85} exitFrame={655} style={{ width: 340, padding: "14px 16px", display: "flex", flexDirection: "column", position: "relative" }}>
-              {/* ── View 1: Class Summary (before Assign Cases click) ── */}
-              {existingFadeOut > 0 && (
-                <div style={{ opacity: existingFadeOut, display: "flex", flexDirection: "column", flex: 1 }}>
-                  <div style={{ fontFamily: fonts.heading, fontSize: 16, fontWeight: 700, color: colors.oasis, marginBottom: 10, letterSpacing: 1 }}>
-                    Class Overview
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 10, opacity: rightContent }}>
-                    {[
-                      { label: "Active Students", value: "18 / 24", color: colors.oasis },
-                      { label: "Cases Assigned", value: "24", color: colors.azurite },
-                      { label: "Completed", value: "14", color: colors.vitalsNormal },
-                      { label: "In Progress", value: "7", color: colors.oasis },
-                      { label: "Not Started", value: "3", color: `${colors.white}50` },
-                    ].map((stat) => (
-                      <div key={stat.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0", borderBottom: `1px solid ${colors.white}06` }}>
-                        <span style={{ fontFamily: fonts.body, fontSize: 15, color: `${colors.white}70` }}>{stat.label}</span>
-                        <span style={{ fontFamily: fonts.mono, fontSize: 17, fontWeight: 700, color: stat.color }}>{stat.value}</span>
-                      </div>
-                    ))}
-                  </div>
-                  {/* Available cases preview */}
-                  <div style={{ marginTop: "auto", paddingTop: 10, borderTop: `1px solid ${colors.white}08` }}>
-                    <div style={{ fontFamily: fonts.mono, fontSize: 12, color: `${colors.white}50`, marginBottom: 6, letterSpacing: 1, textTransform: "uppercase" as const }}>
-                      Available Cases
-                    </div>
-                    <div style={{ fontFamily: fonts.mono, fontSize: 14, color: `${colors.white}70` }}>
-                      {assignmentCases.length} cases in library
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* ── View 2: Case Selection + Config (after Assign Cases click) ── */}
-              {rightCaseMode > 0 && (
-                <div style={{ opacity: rightCaseMode, display: "flex", flexDirection: "column", flex: 1, position: existingFadeOut > 0 ? "absolute" as const : "relative" as const, inset: existingFadeOut > 0 ? "14px 16px" : undefined }}>
-                  <div style={{ fontFamily: fonts.heading, fontSize: 16, fontWeight: 700, color: colors.oasis, marginBottom: 10, letterSpacing: 1 }}>
-                    {configAppear > 0.5 ? "Assignment Config" : "Select Case"}
-                  </div>
-
-                  {/* Case cards */}
-                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                    {assignmentCases.map((c, i) => {
-                      const isSelected = i === 0;
-                      return (
-                        <div
-                          key={c.title}
-                          style={{
-                            padding: "10px 12px", borderRadius: 6,
-                            border: isSelected
-                              ? `2px solid rgba(55,141,189,${interpolate(caseSelect, [0, 1], [0.2, 0.9])})`
-                              : `1px solid ${colors.oasis}12`,
-                            background: isSelected && caseSelect > 0.5 ? `${colors.oasis}08` : "transparent",
-                            opacity: isSelected ? 1 : interpolate(caseSelect, [0, 1], [1, 0.4]),
-                          }}
-                        >
-                          <div style={{ fontFamily: fonts.body, fontSize: 16, fontWeight: 600, color: colors.white, marginBottom: 4 }}>
-                            {c.title}
-                          </div>
-                          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                            <span style={{ fontFamily: fonts.mono, fontSize: 13, color: colors.oasis, background: `${colors.oasis}12`, padding: "2px 7px", borderRadius: 3 }}>
-                              {c.tag}
-                            </span>
-                            <span style={{ fontFamily: fonts.mono, fontSize: 13, color: `${colors.white}50` }}>
-                              {c.sections} sections
-                            </span>
-                            <span style={{ fontFamily: fonts.mono, fontSize: 13, color: `${colors.white}50`, marginLeft: "auto" }}>
-                              {c.assigned} assigned
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {/* Config section — appears after case selected */}
-                  <div style={{ marginTop: 12, opacity: configAppear, display: "flex", flexDirection: "column", gap: 10 }}>
-                    <div style={{ borderTop: `1px solid ${colors.white}10`, paddingTop: 10 }}>
-                      <div style={{ fontFamily: fonts.mono, fontSize: 13, color: `${colors.white}60`, marginBottom: 4 }}>Due Date</div>
-                      <div style={{ fontFamily: fonts.mono, fontSize: 16, color: colors.white, background: `${colors.white}06`, padding: "8px 12px", borderRadius: 6 }}>
-                        Mar 22, 2026
-                      </div>
-                    </div>
-                    <div>
-                      <div style={{ fontFamily: fonts.mono, fontSize: 13, color: `${colors.white}60`, marginBottom: 4 }}>Students Selected</div>
-                      <div style={{ fontFamily: fonts.mono, fontSize: 28, fontWeight: 700, color: colors.oasis }}>
-                        {Math.round(interpolate(frame, [330, 380], [0, 8], clamp))}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Assign button — bottom of right panel */}
-                  <div style={{ marginTop: "auto", paddingTop: 10 }}>
-                    <div
-                      style={{
-                        fontFamily: fonts.heading, fontSize: 16, fontWeight: 700,
-                        color: postAssign > 0.5 ? colors.vitalsNormal : colors.white,
-                        background: postAssign > 0.5 ? `${colors.vitalsNormal}20` : colors.oasis,
-                        padding: "10px 16px", borderRadius: 8, textAlign: "center" as const,
-                        opacity: assignReady,
-                        boxShadow: assignReady > 0.8 ? `0 0 16px ${colors.oasis}30` : "none",
-                      }}
-                    >
-                      {postAssign > 0.5 ? "\u2713 8 Assignments Created" : "Assign to 8 Students"}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </GlassPanel>
-          </div>
-
-          {/* Success overlay flash */}
-          {successFlash > 0 && (
-            <div style={{
-              position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center",
-              pointerEvents: "none", zIndex: 20,
+          return (
+            <div key={cls.name} style={{
+              position: "absolute", left: CLS_L, top: CLS_TOPS[i],
+              width: CLS_W, height: CLS_H,
+              opacity: spOp * classColOp,
+              transform: `scale(${spSc})`,
+              transformOrigin: "left center", zIndex: 10,
             }}>
               <div style={{
-                fontFamily: fonts.heading, fontSize: 42, fontWeight: 700,
-                color: colors.vitalsNormal, textShadow: `0 0 24px ${colors.vitalsNormal}50`,
-                opacity: successFlash, letterSpacing: 1,
+                height: "100%",
+                background: "rgba(8, 16, 42, 0.88)",
+                backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)",
+                borderRadius: 18,
+                border: `2px solid ${cls.color}${classColOp > 0.7 ? "45" : "20"}`,
+                boxShadow: classColOp > 0.7 ? `0 6px 28px rgba(0,0,0,0.38), 0 0 24px ${cls.color}12` : "none",
+                padding: "14px 22px",
+                display: "flex", alignItems: "center", gap: 20,
+                position: "relative",
               }}>
-                8 Assignments Created
+                <GroupIcon color={cls.color} size={50} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontFamily: fonts.heading, fontSize: 26, fontWeight: 800, color: colors.white, lineHeight: 1 }}>
+                    {cls.name}
+                  </div>
+                  <div style={{ fontFamily: fonts.body, fontSize: 14, color: cls.color, marginTop: 3 }}>
+                    {cls.label}
+                  </div>
+                  <div style={{ fontFamily: fonts.mono, fontSize: 22, fontWeight: 800, color: cls.color, marginTop: 6 }}>
+                    {cls.students} students
+                  </div>
+                </div>
+
+                {/* Assigned badge — appears in P4 */}
+                {assignedOp > 0 && (
+                  <div style={{
+                    position: "absolute", top: 10, right: 14,
+                    fontFamily: fonts.mono, fontSize: 11, fontWeight: 700,
+                    color: colors.vitalsNormal, background: `${colors.vitalsNormal}18`,
+                    border: `1px solid ${colors.vitalsNormal}40`,
+                    padding: "3px 10px", borderRadius: 20,
+                    opacity: assignedOp, letterSpacing: 1,
+                  }}>
+                    ✓ Assigned
+                  </div>
+                )}
               </div>
+            </div>
+          );
+        })}
+
+        {/* ══════════════════════════════════════════════════════════
+            RIGHT — Student Icon Grids  (2 rows × 5 per class)
+            Spotlit during P3. Stays visible P4+.
+           ══════════════════════════════════════════════════════════ */}
+        {CLASSES.map((cls, ci) => {
+          const gridH  = ROWS * Math.round(ICON_S * 1.22) + (ROWS - 1) * ICON_GAP;
+          const pillH  = 36;
+          const totalH = gridH + 12 + pillH;
+          const topY   = CLS_MID_YS[ci] - Math.floor(totalH / 2);
+          const overflow = cls.students - SHOWN;
+
+          return (
+            <div key={`grp-${ci}`} style={{
+              position: "absolute", left: GRP_L, top: topY, width: GRID_W,
+              opacity: studentColOp, zIndex: 10,
+            }}>
+              {/* 2 rows × 5 icons */}
+              <div style={{ display: "flex", flexDirection: "column", gap: ICON_GAP }}>
+                {[0, 1].map(row => (
+                  <div key={row} style={{ display: "flex", gap: ICON_GAP }}>
+                    {[0, 1, 2, 3, 4].map(col => {
+                      const si = row * COLS + col;
+                      const sp = sSprings[ci][si];
+                      const op = interpolate(sp, [0, 1], [0, 1], { extrapolateRight: "clamp" as const });
+                      const sc = interpolate(sp, [0, 1], [0.35, 1], { extrapolateRight: "clamp" as const });
+                      return (
+                        <div key={si} style={{ opacity: op, transform: `scale(${sc})`, transformOrigin: "bottom center" }}>
+                          <PersonIcon color={cls.color} size={ICON_S} />
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+
+              {/* Overflow badge */}
+              {overflow > 0 && (
+                <div style={{
+                  marginTop: 12,
+                  opacity: interpolate(frame, [P3S + 30 + ci * 20, P3S + 48 + ci * 20], [0, 1], clamp),
+                }}>
+                  <div style={{
+                    display: "inline-flex", alignItems: "center",
+                    fontFamily: fonts.mono, fontSize: 14, fontWeight: 700,
+                    color: cls.color, background: `${cls.color}14`,
+                    border: `1.5px solid ${cls.color}38`,
+                    padding: "6px 18px", borderRadius: 20,
+                  }}>
+                    + {overflow} more
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+
+        {/* ══════════════════════════════════════════════════════════
+            P1 FOCUS LABEL — "One Case" callout below case node
+           ══════════════════════════════════════════════════════════ */}
+        {caseGlowPulse > 0 && (
+          <div style={{
+            position: "absolute",
+            left: CASE_L + CASE_W / 2 - 120, top: CASE_T + CASE_H + 16,
+            width: 240, textAlign: "center" as const,
+            opacity: caseGlowPulse, zIndex: 12,
+          }}>
+            <div style={{
+              fontFamily: fonts.mono, fontSize: 12, color: `${colors.arizonaRed}80`,
+              letterSpacing: 2.2, textTransform: "uppercase" as const,
+            }}>
+              Origin Case
+            </div>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════════════════
+            P2 FOCUS LABEL — "3 Classes" below classes column
+           ══════════════════════════════════════════════════════════ */}
+        {classGlowPulse > 0 && (
+          <div style={{
+            position: "absolute",
+            left: CLS_L + CLS_W / 2 - 100, top: CLS_TOPS[2] + CLS_H + 16,
+            width: 200, textAlign: "center" as const,
+            opacity: classGlowPulse, zIndex: 12,
+          }}>
+            <div style={{
+              fontFamily: fonts.mono, fontSize: 12, color: `${colors.azurite}80`,
+              letterSpacing: 2.2, textTransform: "uppercase" as const,
+            }}>
+              Assigned to 3 Classes
+            </div>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════════════════
+            P3 FOCUS LABEL — "74 Students" below students column
+           ══════════════════════════════════════════════════════════ */}
+        {studentGlowPulse > 0 && (
+          <div style={{
+            position: "absolute",
+            left: GRP_L + GRID_W / 2 - 110, top: CLS_TOPS[2] + CLS_H + 60,
+            width: 220, textAlign: "center" as const,
+            opacity: studentGlowPulse, zIndex: 12,
+          }}>
+            <div style={{
+              fontFamily: fonts.mono, fontSize: 12, color: `${colors.oasis}80`,
+              letterSpacing: 2.2, textTransform: "uppercase" as const,
+            }}>
+              74 Students Reached
+            </div>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════════════════
+            BOTTOM CAPTION
+           ══════════════════════════════════════════════════════════ */}
+        <div style={{
+          position: "absolute", left: "50%", bottom: 40,
+          transform: "translateX(-50%)",
+          textAlign: "center" as const,
+          opacity: captionOp, zIndex: 12,
+        }}>
+          {confirmedOp > 0 ? (
+            <div style={{
+              fontFamily: fonts.mono, fontSize: 13, fontWeight: 700,
+              color: colors.vitalsNormal, letterSpacing: 2,
+              textTransform: "uppercase" as const,
+              opacity: confirmedOp,
+              textShadow: `0 0 18px ${colors.vitalsNormal}55`,
+            }}>
+              Assignment Set · 74 Students · 3 Classes · Due in 7 Days
+            </div>
+          ) : (
+            <div style={{
+              fontFamily: fonts.body, fontSize: 14,
+              color: `${colors.white}38`,
+              letterSpacing: 2, textTransform: "uppercase" as const,
+            }}>
+              Scales case distribution across learners
             </div>
           )}
         </div>
-      )}
+
+      </div>
     </SceneShell>
   );
 };

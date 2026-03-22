@@ -13,14 +13,18 @@ Every scene uses a hybrid architecture: Three.js 3D environments as the primary 
 ```bash
 npm run dev      # Launch Remotion Studio (interactive preview/editor)
 npm run build    # Render final video to out/aimms-lms-flow.mp4
-npm run preview  # Quick preview in studio
+npm run preview  # Same as dev — Remotion Studio (legacy `preview` CLI removed in v4)
 ```
+
+Entry point is set in **`remotion.config.ts`** (`Config.setEntryPoint`), so you do not pass `src/index.ts` on every CLI command.
+
+**Remotion reference:** [API overview](https://www.remotion.dev/docs/api) (core `remotion` package, `@remotion/*` packages, CLI). Project-specific options: [Configuration file](https://www.remotion.dev/docs/config).
 
 No test suite or linter is configured.
 
 ## Architecture
 
-**Entry flow:** `src/index.ts` → `Root.tsx` (Composition config, 3625 frames) → `AimmsFlow.tsx` (scene orchestration)
+**Entry flow:** `src/index.ts` → `Root.tsx` (Composition config, 5250 frames) → `AimmsFlow.tsx` (scene orchestration)
 
 **AimmsFlow.tsx** uses `TransitionSeries` with 15-frame fade transitions to sequence 6 scenes, each with a synchronized voiceover audio track via `staticFile()`.
 

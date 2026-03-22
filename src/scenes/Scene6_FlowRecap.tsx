@@ -18,7 +18,7 @@ const steps = [
   { title: "Author", subtitle: "Medical Case Creator", color: colors.arizonaRed },
   { title: "Assign", subtitle: "Faculty Dashboard", color: colors.azurite },
   { title: "Simulate", subtitle: "Virtual Patient", color: colors.oasis },
-  { title: "Evaluate", subtitle: "AIMHEI Reports", color: colors.vitalsNormal },
+  { title: "Evaluate", subtitle: "AIMS Reports", color: colors.vitalsNormal },
   { title: "Report", subtitle: "Performance", color: colors.arizonaRed },
 ];
 
@@ -79,12 +79,12 @@ export const Scene6_FlowRecap: React.FC = () => {
         </AnimatedBox>
 
         {/* Pipeline: cards with connecting arrows */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", position: "relative", marginBottom: 28 }}>
           {steps.map((step, i) => {
-            const cardDelay = 20 + i * 22;
+            // Stagger each card ~40 frames apart so narration can introduce each step
+            const cardDelay = 30 + i * 40;
             const cardOp = interpolate(frame, [cardDelay, cardDelay + 22], [0, 1], clamp);
-            const arrowOp = i < steps.length - 1 ? interpolate(frame, [cardDelay + 12, cardDelay + 30], [0, 1], clamp) : 0;
-            const stepIcons = ["📝", "📤", "🩺", "📊", "📋"];
+            const arrowOp = i < steps.length - 1 ? interpolate(frame, [cardDelay + 20, cardDelay + 38], [0, 1], clamp) : 0;
             return (
               <React.Fragment key={step.title}>
                 <div style={{
@@ -102,7 +102,7 @@ export const Scene6_FlowRecap: React.FC = () => {
                     {i + 1}
                   </div>
 
-                  {/* Card */}
+                  {/* Card — no emoji, typography-only identity */}
                   <div style={{
                     width: "100%", padding: "16px 14px",
                     background: "rgba(12, 35, 75, 0.75)", backdropFilter: "blur(20px)",
@@ -110,7 +110,6 @@ export const Scene6_FlowRecap: React.FC = () => {
                     borderTop: `3px solid ${step.color}`,
                     display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
                   }}>
-                    <span style={{ fontSize: 22 }}>{stepIcons[i]}</span>
                     <div style={{ fontFamily: fonts.heading, fontSize: 20, fontWeight: 700, color: colors.white, textAlign: "center" }}>
                       {step.title}
                     </div>
@@ -184,6 +183,53 @@ export const Scene6_FlowRecap: React.FC = () => {
             );
           })}
         </div>
+        {/* Capabilities row — appears after pipeline cards (last card at f190+22=f212) */}
+        {(() => {
+          // Header fades in when narration shifts to procedures
+          const capHeaderOp = interpolate(frame, [220, 240], [0, 1], clamp);
+          // Each pill staggered 22 frames = ~0.7s so narration can name each one
+          const caps = [
+            { label: "IV / Arterial Line" },
+            { label: "Intubation" },
+            { label: "Lumbar Puncture" },
+            { label: "Suturing" },
+            { label: "Team Simulation" },
+            { label: "Debrief & IPE" },
+          ];
+          return (
+            <div style={{
+              display: "flex", flexDirection: "column", alignItems: "center", gap: 10,
+            }}>
+              <div style={{
+                fontFamily: fonts.mono, fontSize: 12, color: `${colors.oasis}70`,
+                letterSpacing: 3, textTransform: "uppercase",
+                opacity: capHeaderOp,
+              }}>
+                Simulation Capabilities
+              </div>
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" as const, justifyContent: "center" }}>
+                {caps.map((cap, i) => {
+                  // Start at f230 (after header), 22-frame stagger per pill
+                  const capDelay = 230 + i * 22;
+                  const capOp = interpolate(frame, [capDelay, capDelay + 16], [0, 1], clamp);
+                  return (
+                    <div key={cap.label} style={{
+                      padding: "5px 16px", borderRadius: 3,
+                      background: "rgba(12, 35, 75, 0.6)",
+                      border: `1px solid ${colors.oasis}22`,
+                      opacity: capOp,
+                    }}>
+                      <span style={{
+                        fontFamily: fonts.mono, fontSize: 12, fontWeight: 600,
+                        color: `${colors.white}75`, letterSpacing: 1,
+                      }}>{cap.label}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
       {/* Phase 2: Branding Close with title-slide-style animations (290-510) */}
@@ -250,7 +296,7 @@ export const Scene6_FlowRecap: React.FC = () => {
             </AnimatedBox>
             <AnimatedBox delay={320} direction="up">
               <div style={{ color: colors.oasis, fontSize: 22, fontFamily: fonts.body, fontWeight: 500, textAlign: "center", letterSpacing: 2, maxWidth: 700, lineHeight: 1.5 }}>
-                Case Creator &middot; Virtual Patient &middot; AIMHEI Reports
+                Case Creator &middot; Virtual Patient &middot; AIMS Reports
               </div>
             </AnimatedBox>
           </div>
@@ -263,7 +309,7 @@ export const Scene6_FlowRecap: React.FC = () => {
               fontFamily: fonts.mono, fontSize: 11, color: colors.oasis,
               letterSpacing: 2, lineHeight: "24px",
             }}>
-              {"AIMMS v3.2   //   MEDICAL CASE CREATOR   //   VIRTUAL PATIENT   //   AIMHEI REPORTS   //   FACULTY DASHBOARD   //   AI-POWERED CASE AUTHORING   //   ".repeat(3)}
+              {"AIMMS v3.2   //   MEDICAL CASE CREATOR   //   VIRTUAL PATIENT   //   AIMS REPORTS   //   FACULTY DASHBOARD   //   AI-POWERED CASE AUTHORING   //   PROCEDURAL TRAINING   //   TEAM SIMULATION   //   IPE   //   ".repeat(3)}
             </div>
             <div style={{ position: "absolute", inset: 0, background: `linear-gradient(90deg, ${colors.midnight}, transparent 15%, transparent 85%, ${colors.midnight})`, pointerEvents: "none" }} />
           </div>
