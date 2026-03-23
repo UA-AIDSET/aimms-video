@@ -1,5 +1,5 @@
 import React from "react";
-import { Img, interpolate, spring, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
+import { Easing, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 import { colors, fonts } from "../theme";
 import { SceneShell } from "../layouts/SceneShell";
 import { ParticleField } from "../three/ParticleField";
@@ -8,353 +8,227 @@ import { GlowOrb } from "../three/GlowOrb";
 import { CameraRig } from "../three/CameraRig";
 import { PulsingDot } from "../components/PulsingDot";
 
-/* ── Chat messages ── */
-const chatMessages = [
-  { sender: "student" as const, text: "What brings you in today?" },
-  { sender: "patient" as const, text: "I've had trouble breathing for about 3 days, and my ankles are really swollen." },
-  { sender: "student" as const, text: "Any chest pain or palpitations?" },
-  { sender: "patient" as const, text: "No chest pain, but my heart feels like it's racing sometimes." },
-];
+/* ════════════════════════════════════════════════════════════════════
+   CLINICAL DATA
+   ════════════════════════════════════════════════════════════════════ */
 
-/* ── Vitals ── */
 const vitals = [
-  { label: "HR", value: "112", unit: "bpm", color: colors.vitalsWarning },
-  { label: "BP", value: "148/92", unit: "mmHg", color: colors.vitalsWarning },
-  { label: "SpO\u2082", value: "94", unit: "%", color: colors.vitalsWarning },
-  { label: "Temp", value: "37.8", unit: "\u00B0C", color: colors.vitalsNormal },
-  { label: "RR", value: "24", unit: "/min", color: colors.vitalsWarning },
+  { label: "HR",   value: "112",    unit: "bpm",  flag: "HIGH", color: colors.vitalsWarning },
+  { label: "BP",   value: "148/92", unit: "mmHg", flag: "HIGH", color: colors.vitalsWarning },
+  { label: "SpO₂", value: "94",     unit: "%",    flag: "LOW",  color: colors.vitalsWarning },
+  { label: "Temp", value: "37.8",   unit: "°C",   flag: null,   color: colors.vitalsNormal  },
+  { label: "RR",   value: "24",     unit: "/min", flag: "HIGH", color: colors.vitalsWarning },
 ];
 
-/* ── Exam instruments ── */
-const instruments = [
-  { name: "Penlight", image: "penlight (1).png" },
-  { name: "Ophthalmoscope", image: "ophthalmoscope (1).png" },
-  { name: "Otoscope", image: "otoscope (1).png" },
-  { name: "Reflex Hammer", image: "reflex_hammer (1).png" },
-  { name: "Tuning Fork", image: "tuning_fork (1).png" },
-  { name: "Stethoscope", image: "stethicon (1).png" },
-  { name: "BP Cuff", image: "bloodpressurecuff (1).png" },
-  { name: "Dermatoscope", image: "dermatoscope (1).png" },
+const chatMessages = [
+  { from: "student", text: "What brings you in today?" },
+  { from: "patient", text: "I've had trouble breathing for about 3 days, and my ankles are really swollen." },
+  { from: "student", text: "Any chest pain or palpitations?" },
+  { from: "patient", text: "No chest pain, but my heart feels like it's racing sometimes." },
 ];
 
-/* ── Examination categories ── */
-const examCategories = [
-  "Introduction", "Vital Signs", "Skin", "Head & Face",
-  "Motor", "Facial Muscles", "Eyes", "Ears", "Hearing", "Nose",
+const examTools = [
+  { name: "Stethoscope", finding: "Bilateral crackles, S3 gallop",   type: "AUDIO", color: colors.oasis         },
+  { name: "Palpation",   finding: "2+ pitting edema, bilateral",      type: "IMAGE", color: "#06b6d4"            },
+  { name: "Percussion",  finding: "Dull bases bilaterally",           type: "AUDIO", color: colors.vitalsWarning },
 ];
 
-/* ── Exam findings with real clinical media types ── */
-const examFindings = [
-  { tool: "Stethoscope", finding: "Bilateral crackles, S3 gallop", mediaType: "audio" as const },
-  { tool: "Palpation", finding: "2+ pitting edema, bilateral", mediaType: "image" as const },
-  { tool: "Percussion", finding: "Dull bases bilaterally", mediaType: "audio" as const },
-];
-
-/* ── Media library items shown in overlay ── */
-const mediaLibraryItems = [
-  { label: "Heart Sounds", type: "Audio", color: colors.vitalsWarning },
-  { label: "Lung Auscultation", type: "Audio", color: colors.oasis },
-  { label: "Fundoscopic Exam", type: "Image", color: "#06b6d4" },
-  { label: "Skin Lesion", type: "Image", color: "#a855f7" },
-];
-
-/* ── Differential diagnoses ── */
 const differentials = [
-  { name: "Acute Decompensated Heart Failure", likelihood: "High", color: colors.vitalsCritical },
-  { name: "Pneumonia with Fluid Overload", likelihood: "Moderate", color: colors.vitalsWarning },
-  { name: "Pulmonary Embolism", likelihood: "Low", color: colors.oasis },
+  { name: "Acute Decompensated Heart Failure", likelihood: "High",     color: colors.vitalsCritical },
+  { name: "Pneumonia with Fluid Overload",     likelihood: "Moderate", color: colors.vitalsWarning  },
+  { name: "Pulmonary Embolism",                likelihood: "Low",      color: colors.oasis          },
 ];
 
-/* ── Diagnostic tests ── */
-const diagnosticTests = [
-  { name: "BNP / NT-proBNP", status: "Ordered", result: "1,840 pg/mL", severity: "Critical" },
-  { name: "Chest X-Ray", status: "Ordered", result: "Cardiomegaly, bilateral effusions", severity: "Abnormal" },
-  { name: "ECG 12-Lead", status: "Ordered", result: "LVH, sinus tachycardia", severity: "Abnormal" },
-  { name: "BMP", status: "Ordered", result: "Cr 1.8, K+ 5.1", severity: "Abnormal" },
+const diagnosticResults = [
+  { name: "BNP / NT-proBNP", result: "1,840 pg/mL",                       severity: "Critical" },
+  { name: "Chest X-Ray",     result: "Cardiomegaly, bilateral effusions",  severity: "Abnormal" },
+  { name: "ECG 12-Lead",     result: "LVH, sinus tachycardia",             severity: "Abnormal" },
+  { name: "BMP",             result: "Cr 1.8, K+ 5.1",                     severity: "Abnormal" },
 ];
 
-/* ── Assessment & Plan items ── */
 const assessmentItems = [
-  { label: "Primary Dx", value: "Acute Decompensated HF (NYHA III)" },
-  { label: "Diuresis", value: "Furosemide 40mg IV now" },
-  { label: "O\u2082 Therapy", value: "2L NC, target SpO\u2082 > 95%" },
-  { label: "Consult", value: "Cardiology — urgent" },
+  { label: "Primary Dx",  value: "Acute Decompensated HF (NYHA III)" },
+  { label: "Diuresis",    value: "Furosemide 40 mg IV now"            },
+  { label: "O₂ Therapy",  value: "2L NC, target SpO₂ > 95%"          },
+  { label: "Consult",     value: "Cardiology — urgent"                },
 ];
 
-/* ── Encounter form sections ── */
 const encounterSections = [
-  { label: "History of Present Illness", status: "Complete", items: 8 },
-  { label: "Physical Examination", status: "Complete", items: 12 },
-  { label: "Differential Diagnosis", status: "Complete", items: 3 },
-  { label: "Diagnostic Workup", status: "Complete", items: 4 },
-  { label: "Assessment & Plan", status: "Complete", items: 4 },
+  { label: "History of Present Illness", items: 8  },
+  { label: "Physical Examination",       items: 12 },
+  { label: "Differential Diagnosis",     items: 3  },
+  { label: "Diagnostic Workup",          items: 4  },
+  { label: "Assessment & Plan",          items: 4  },
 ];
 
-/* ── Patient cases ── */
-const patientCases = [
-  { name: "Maria Santos", age: "67F", cc: "Dyspnea, edema", acuity: "Urgent" },
-  { name: "James Chen", age: "45M", cc: "Chest pain", acuity: "Emergent" },
-  { name: "Sarah Williams", age: "28F", cc: "Headache, fever", acuity: "Standard" },
-  { name: "Robert Johnson", age: "72M", cc: "Confusion, falls", acuity: "Urgent" },
+const encRowColors = [
+  colors.oasis, colors.azurite, colors.vitalsCritical, "#06b6d4", colors.vitalsWarning,
 ];
 
-/* ── Nav tabs — updated to match full VP workflow ── */
-const navTabs = ["Chat", "Poses", "Examine", "Diagnosis", "Tests", "Medication", "Assessment"];
+/* ════════════════════════════════════════════════════════════════════
+   NARRATION-DRIVEN PHASE TIMING  (30fps · audio 59.4s · f45→f1827)
 
-/**
- * Scene 4: Virtual Patient — 1875 frames (62.5s)
- * Audio starts at frame 45, ~59.4s duration (ends ~f1827)
- *
- * All frame timings scaled ×1.38 from original 43s-audio version
- * to match the new longer narration track.
- *
- * Narration sync (59.4s audio):
- *   f45-200:    "Students enter the Virtual Patient..."         → Phase 1: case selection
- *   f200-290:   "A 3D patient model with vital signs..."        → transition to main UI
- *   f290-560:   "interviews through natural conversation..."    → Phase 2: chat/interview
- *   f560-715:   "Then, the physical exam — stethoscope..."      → Phase 3a: instruments
- *   f715-1045:  "each revealing real clinical media..."         → Phase 3b: media overlay
- *   f1045-1265: "builds a differential diagnosis..."            → Phase 4: differential + tests
- *   f1265-1460: "assessment and planning..."                    → Phase 5: assessment
- *   f1460-1875: "full encounter... review. Submit."             → Phase 6: encounter + submit
- *
- * Phase 1 (70-200):    Case selection
- * Phase 2 (200-555):   Interview — Chat tab
- * Phase 3 (555-1045):  Physical Exam + Media — Examine tab
- * Phase 4 (1045-1265): Differential + Tests — Diagnosis tab
- * Phase 5 (1265-1460): Assessment & Plan — Assessment tab
- * Phase 6 (1460-1875): Encounter Review + Submit
- */
+   INTRO   f  45–  90   "students open the virtual patient encounter"
+   VF      f  90– 285   "real-time vital signs" — large vitals panel
+   IN      f 280– 560   "patient interview" — chat panel
+   EX      f 558– 718   "physical exam" — 3D tool depth
+   MD      f 715–1052   "clinical media" — waveform + image
+   DX      f1048–1270   "differential diagnosis" — KEY MOMENT (hold longer)
+   AP      f1265–1460   "assessment & plan"
+   EC      f1455–1827   "encounter summary"
+   ════════════════════════════════════════════════════════════════════ */
+const INTRO_S = 45;
+const VF_S = 90,   VF_E = 285;
+const IN_S  = 280, IN_E  = 560;
+const EX_S  = 558, EX_E  = 718;
+const MD_S  = 715, MD_E  = 1052;
+const DX_S  = 1048,DX_E  = 1270;
+const AP_S  = 1265,AP_E  = 1460;
+const EC_S  = 1455,EC_E  = 1827;
+
+/* Tool activation frames within the EX phase */
+const TOOL_ACTIVATES = [EX_S, EX_S + 52, EX_S + 104] as const;
+
+/* Encounter section callout starts (2s each, non-overlapping) */
+const ENC_CALLOUT_STARTS = [
+  EC_S + 55, EC_S + 115, EC_S + 175, EC_S + 230, EC_S + 285,
+] as const;
+
+/* ════════════════════════════════════════════════════════════════════
+   COMPONENT
+   ════════════════════════════════════════════════════════════════════ */
 export const Scene4_VirtualPatient: React.FC = () => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-  const clamp = { extrapolateLeft: "clamp" as const, extrapolateRight: "clamp" as const };
+  const { fps: _fps } = useVideoConfig();
+  const clamp  = { extrapolateLeft: "clamp" as const, extrapolateRight: "clamp" as const };
+  const easeOut = { ...clamp, easing: Easing.out(Easing.ease) };
 
-  // ── Phase flags ──
-  const isPhase1 = frame >= 70 && frame < 200;
-  const isPhase2 = frame >= 200 && frame < 555;
-  const isPhase3 = frame >= 555 && frame < 1045;
-  const isPhase4 = frame >= 1045 && frame < 1265;
-  const isPhase5 = frame >= 1265 && frame < 1460;
-  const isPhase6 = frame >= 1460 && frame < 1875;
-  const isMainUI = frame >= 200 && frame < 1875;
+  /* ── Phase flags ── */
+  const isVF  = frame >= VF_S  && frame < VF_E;
+  const isIN  = frame >= IN_S  && frame < IN_E;
+  const isEX  = frame >= EX_S  && frame < EX_E;
+  const isMD  = frame >= MD_S  && frame < MD_E;
+  const isDX  = frame >= DX_S  && frame < DX_E;
+  const isAP  = frame >= AP_S  && frame < AP_E;
+  const isEC  = frame >= EC_S;
+  const isUI  = frame >= INTRO_S;
 
-  // ── Phase 1 ──
-  const phase1Opacity = interpolate(frame, [70, 93, 162, 197], [0, 1, 1, 0], clamp);
-  const selectionProgress = interpolate(frame, [135, 170], [0, 1], clamp);
+  /* ── Global UI opacity ── */
+  const uiOp = interpolate(frame, [INTRO_S, INTRO_S + 28, EC_E - 20, EC_E], [0, 1, 1, 0], clamp);
 
-  // ── Phase transitions ──
-  const mainUIOpacity = interpolate(frame, [200, 224, 1845, 1875], [0, 1, 1, 0], clamp);
-  const phase2Opacity = interpolate(frame, [200, 224, 535, 563], [0, 1, 1, 0], clamp);
-  const phase3Opacity = interpolate(frame, [563, 597, 1025, 1059], [0, 1, 1, 0], clamp);
-  const phase4Opacity = interpolate(frame, [1059, 1087, 1235, 1265], [0, 1, 1, 0], clamp);
-  const phase5Opacity = interpolate(frame, [1265, 1291, 1432, 1460], [0, 1, 1, 0], clamp);
-  const phase6Opacity = interpolate(frame, [1460, 1490, 1845, 1875], [0, 1, 1, 0], clamp);
+  /* ── Per-phase panel opacities ── */
+  const vfOp = interpolate(frame, [VF_S, VF_S+16, VF_E-14, VF_E+6], [0, 1, 1, 0], clamp);
+  const inOp = interpolate(frame, [IN_S, IN_S+16, IN_E-14, IN_E+6], [0, 1, 1, 0], clamp);
+  const exOp = interpolate(frame, [EX_S, EX_S+16, EX_E-14, EX_E+6], [0, 1, 1, 0], clamp);
+  const mdOp = interpolate(frame, [MD_S, MD_S+16, MD_E-14, MD_E+6], [0, 1, 1, 0], clamp);
+  const dxOp = interpolate(frame, [DX_S, DX_S+16, DX_E-14, DX_E+6], [0, 1, 1, 0], clamp);
+  const apOp = interpolate(frame, [AP_S, AP_S+16, AP_E-14, AP_E+6], [0, 1, 1, 0], clamp);
+  const ecOp = interpolate(frame, [EC_S, EC_S+22, EC_E-20, EC_E  ], [0, 1, 1, 0], clamp);
 
-  // ── Active tab ──
-  const activeTab = isPhase3 ? "Examine" : isPhase4 ? "Diagnosis" : isPhase5 ? "Assessment" : "Chat";
+  /* ── Per-phase entrance zoom ── */
+  const vfScale = interpolate(frame, [VF_S, VF_S+22], [0.94, 1.06], easeOut);
+  const inScale = interpolate(frame, [IN_S, IN_S+22], [0.95, 1.04], easeOut);
+  const exScale = interpolate(frame, [EX_S, EX_S+22], [0.95, 1.05], easeOut);
+  const mdScale = interpolate(frame, [MD_S, MD_S+22], [0.94, 1.06], easeOut);
+  const dxScale = interpolate(frame, [DX_S, DX_S+22], [0.93, 1.09], easeOut); // KEY MOMENT — largest zoom
+  const apScale = interpolate(frame, [AP_S, AP_S+22], [0.95, 1.05], easeOut);
+  const ecScale = interpolate(frame, [EC_S, EC_S+22], [0.95, 1.03], easeOut);
 
-  // ── Timer ──
-  const timerSeconds = Math.floor(interpolate(frame, [200, 1870], [0, 420], clamp));
-  const timerMin = String(Math.floor(timerSeconds / 60)).padStart(2, "0");
-  const timerSec = String(timerSeconds % 60).padStart(2, "0");
+  /* ── Background dim — scales with phase criticality ── */
+  const bgDimOp = (() => {
+    if (isDX) return Math.min(dxOp * 0.74, 0.74);
+    if (isMD) return Math.min(mdOp * 0.62, 0.62);
+    if (isEX) return Math.min(exOp * 0.56, 0.56);
+    if (isVF) return Math.min(vfOp * 0.52, 0.52);
+    if (isIN) return Math.min(inOp * 0.46, 0.46);
+    if (isAP) return Math.min(apOp * 0.52, 0.52);
+    if (isEC) return Math.min(ecOp * 0.40, 0.40);
+    return 0;
+  })();
 
-  // ── Instrument selection (Phase 3) ──
-  const selectedInstrument = frame < 715 ? -1 : 5; // Stethoscope
+  /* ── Nav tab ── */
+  const activeTab = (isEX || isMD) ? "Examine" : isDX ? "Diagnosis" : isAP ? "Assessment" : "Chat";
 
-  // ── Category checks (Phase 3) ──
-  const categoriesChecked = Math.floor(interpolate(frame, [673, 922], [0, 4], clamp));
+  /* ── Timer ── */
+  const timerSec    = Math.floor(interpolate(frame, [INTRO_S, EC_E], [0, 420], clamp));
+  const timerMin    = String(Math.floor(timerSec / 60)).padStart(2, "0");
+  const timerSecStr = String(timerSec % 60).padStart(2, "0");
 
-  // ── Media overlay (Phase 3) ──
-  const showMediaOverlay = frame >= 840 && frame < 1045;
-  const mediaOverlayOpacity = interpolate(frame, [840, 867, 1011, 1046], [0, 1, 1, 0], clamp);
-
-  // ── Submit animation (Phase 6) ──
-  const submitProgress = interpolate(frame, [1778, 1818], [0, 1], clamp);
-
-  // ── Vitals highlight — brief glow when strip first appears ──
-  const vitalsHighlightOp = interpolate(frame, [218, 245, 310, 350], [0, 1, 1, 0], clamp);
-  const vitalsHighlightPulse = 0.5 + 0.5 * Math.sin(frame * 0.18);
-
-  // ── AI Guidance panel — appears during Differential phase ──
-  const aiPanelOp = interpolate(frame, [1087, 1110, 1235, 1265], [0, 1, 1, 0], clamp);
-
-  // ── Top-ranked differential glow ──
-  const dxTopGlow = frame >= 1081 ? 0.4 + 0.3 * Math.sin((frame - 1081) * 0.1) : 0;
-
-  /* ─────────────────────────────────────────────────────────────
-     GUIDED FOCUS SYSTEM
-     ───────────────────────────────────────────────────────────── */
-
-  // ── Per-phase content zoom (applied individually to each content panel) ──
-  const vitalsZoom   = interpolate(frame, [218, 250, 310, 360], [1.0, 1.06, 1.06, 1.0], clamp);
-  const interviewZoom= interpolate(frame, [360, 420], [1.0, 1.03], clamp);
-  const examZoom     = interpolate(frame, [563, 610], [1.0, 1.04], clamp);
-  const mediaZoom    = interpolate(frame, [840, 875], [1.03, 1.07], clamp);
-  const dxZoom       = interpolate(frame, [1059, 1110], [1.0, 1.07], clamp);
-  const apZoom       = interpolate(frame, [1265, 1310], [1.0, 1.05], clamp);
-
-  // ── Step badge — persistent label showing current phase ──
+  /* ── Step label ── */
   const stepLabel = (() => {
-    if (!isMainUI) return "";
-    if (isPhase2 && frame < 370)       return "VITAL SIGNS";
-    if (isPhase2)                       return "PATIENT INTERVIEW";
-    if (isPhase3 && !showMediaOverlay)  return "PHYSICAL EXAM";
-    if (showMediaOverlay)               return "MEDIA PLAYBACK";
-    if (isPhase4)                       return "DIFFERENTIAL DIAGNOSIS";
-    if (isPhase5)                       return "ASSESSMENT & PLAN";
-    if (isPhase6)                       return "PATIENT ENCOUNTER";
+    if (!isUI)  return "";
+    if (isVF)   return "VITAL SIGNS";
+    if (isIN)   return "PATIENT INTERVIEW";
+    if (isEX)   return "PHYSICAL EXAM";
+    if (isMD)   return "CLINICAL MEDIA";
+    if (isDX)   return "DIFFERENTIAL DIAGNOSIS";
+    if (isAP)   return "ASSESSMENT & PLAN";
+    if (isEC)   return "PATIENT ENCOUNTER";
     return "";
   })();
-
   const stepColor = (() => {
-    if (isPhase2 && frame < 370)  return colors.vitalsWarning;
-    if (isPhase2)                  return colors.oasis;
-    if (showMediaOverlay)          return colors.vitalsWarning;
-    if (isPhase4)                  return colors.vitalsCritical;
-    if (isPhase5)                  return colors.oasis;
-    if (isPhase6)                  return colors.vitalsNormal;
-    return colors.azurite;
+    if (isVF) return colors.vitalsWarning;
+    if (isIN) return colors.oasis;
+    if (isEX) return colors.azurite;
+    if (isMD) return colors.vitalsWarning;
+    if (isDX) return colors.vitalsCritical;
+    if (isAP) return colors.oasis;
+    return colors.vitalsNormal;
   })();
+  const stepBadgeOp = isUI ? interpolate(frame, [INTRO_S, INTRO_S + 28], [0, 1], clamp) : 0;
 
-  const stepBadgeOp = isMainUI ? interpolate(frame, [200, 224], [0, 1], clamp) : 0;
+  /* ── Vitals strip accent (glows during VF phase) ── */
+  const vitalsHighlightOp = interpolate(frame, [VF_S, VF_S + 26, VF_E - 14, VF_E], [0, 1, 1, 0], clamp);
+  const vitalsPulse       = 0.5 + 0.5 * Math.sin(frame * 0.18);
 
-  // ── Phase sweep accent — thin glowing line that signals a focus change ──
-  // Appears briefly at each phase transition, then fades — no decorative icons.
-  const phaseAccentOp = (() => {
-    if (isPhase2 && frame >= 352 && frame < 430)  return interpolate(frame, [352, 368, 408, 432], [0, 1, 1, 0], clamp);
-    if (isPhase3 && frame < 660 && !showMediaOverlay)
-                                                   return interpolate(frame, [563, 580, 630, 665], [0, 1, 1, 0], clamp);
-    if (showMediaOverlay && frame < 930)           return interpolate(frame, [840, 856, 900, 935], [0, 1, 1, 0], clamp);
-    if (isPhase4 && frame < 1150)                  return interpolate(frame, [1059, 1076, 1120, 1160], [0, 1, 1, 0], clamp);
-    if (isPhase5 && frame < 1370)                  return interpolate(frame, [1265, 1282, 1335, 1372], [0, 1, 1, 0], clamp);
-    return 0;
-  })();
+  /* ── EX: active tool index (cycles through 3 tools) ── */
+  const toolActiveIdx = TOOL_ACTIVATES.reduce<number>((acc, f, i) => (frame >= f ? i : acc), -1);
 
-  // Width of the sweep line grows from 0 → 100% within the first second of each phase
-  const phaseAccentWidth = (() => {
-    if (isPhase2 && frame >= 352)   return interpolate(frame, [352, 400], [0, 1], clamp);
-    if (isPhase3 && frame >= 563)   return interpolate(frame, [563, 618], [0, 1], clamp);
-    if (showMediaOverlay)           return interpolate(frame, [840, 895], [0, 1], clamp);
-    if (isPhase4)                   return interpolate(frame, [1059, 1118], [0, 1], clamp);
-    if (isPhase5)                   return interpolate(frame, [1265, 1322], [0, 1], clamp);
-    return 0;
-  })();
+  /* ── DX: top differential glow + critical banner ── */
+  const dxTopGlow      = isDX ? 0.4 + 0.3 * Math.sin((frame - DX_S) * 0.10) : 0;
+  const dxCriticalOp   = interpolate(frame, [DX_S + 16, DX_S + 36, DX_E - 18, DX_E], [0, 1, 1, 0], clamp);
+  const dxCriticalPulse = isDX ? 0.6 + 0.4 * Math.sin((frame - DX_S) * 0.08) : 0;
+  const aiPanelOp      = interpolate(frame, [DX_S + 80, DX_S + 100, DX_E - 18, DX_E], [0, 1, 1, 0], clamp);
 
-  // ── Vitals focus panel — enlarged centered display for vitals phase ──
-  const vitalsZoomPanelOp = interpolate(frame, [218, 242, 310, 350], [0, 1, 1, 0], clamp);
-
-  // ── DX critical moment badge ──
-  const dxCriticalOp    = interpolate(frame, [1087, 1108, 1235, 1265], [0, 1, 1, 0], clamp);
-  const dxCriticalPulse = frame >= 1087 ? 0.65 + 0.35 * Math.sin((frame - 1087) * 0.10) : 0;
-
-  /* ─────────────────────────────────────────────────────────────────────
-     PHASE 6 — ENCOUNTER REVIEW OVERLAY SYSTEM
-     Three sequential, non-overlapping UI cards appear beside the form,
-     each tied to a specific narration moment.
-
-     Overlay 1 — Physical Exam Findings   f1550–1642
-     Overlay 2 — Differential & A&P       f1650–1726
-     Overlay 3 — Session Summary          f1758–1875
-     ───────────────────────────────────────────────────────────────────── */
-  const overlay1Op  = interpolate(frame, [1550, 1574, 1618, 1644], [0, 1, 1, 0], clamp);
-  const overlay2Op  = interpolate(frame, [1650, 1672, 1702, 1728], [0, 1, 1, 0], clamp);
-  const overlay3Op  = interpolate(frame, [1758, 1780, 1848, 1875], [0, 1, 1, 0], clamp);
-  // Dim the main encounter form slightly when any overlay is active
-  const enc6DimOp   = Math.max(overlay1Op, overlay2Op, overlay3Op) * 0.24;
-  // Waveform bars driven by frame so they animate
-  const wavePhase   = frame * 0.09;
-
-  /* ─────────────────────────────────────────────────────────────────────
-     PHASE 6 — 3D CALLOUT SYSTEM
-     Sequential section labels appear left of the form card, each locked
-     to one narration cue. Active section lifts forward; others dim.
-     No two callouts are active simultaneously.
-
-     callout 0 — History of Present Illness   f1533–1565
-     callout 1 — Physical Examination         f1568–1600
-     callout 2 — Differential Diagnosis       f1603–1648  ← critical
-     callout 3 — Diagnostic Workup            f1650–1685
-     callout 4 — Assessment & Plan            f1688–1735  ← critical
-     callout 5 — Complete Patient Encounter   f1738–1800  ← pull-back
-     ───────────────────────────────────────────────────────────────────── */
-  const calloutOps = [
-    interpolate(frame, [1533, 1548, 1555, 1568], [0, 1, 1, 0], clamp),  // 0 History
-    interpolate(frame, [1568, 1580, 1590, 1603], [0, 1, 1, 0], clamp),  // 1 Physical Exam
-    interpolate(frame, [1603, 1616, 1635, 1648], [0, 1, 1, 0], clamp),  // 2 Differential
-    interpolate(frame, [1650, 1662, 1674, 1685], [0, 1, 1, 0], clamp),  // 3 Workup
-    interpolate(frame, [1688, 1700, 1722, 1735], [0, 1, 1, 0], clamp),  // 4 A&P
-  ];
-  const calloutFullOp = interpolate(frame, [1738, 1752, 1788, 1800], [0, 1, 1, 0], clamp);
-
-  // Which section is currently active (-1 = none / full-view)
-  const activeCalloutIdx = calloutOps.findIndex(op => op > 0.05);
-  const hasActiveCallout = activeCalloutIdx >= 0;
-  const activeCalloutOp  = hasActiveCallout ? calloutOps[activeCalloutIdx] : 0;
-
-  // Perspective tilt (in degrees): tilts in slightly while a callout is active
-  const formTiltDeg = activeCalloutOp * 1.2;
-
-  // Callout label metadata (one per section row, matches encounterSections order)
-  const calloutLabels = [
-    { text: "Patient History",        color: colors.oasis },
-    { text: "Physical Exam",          color: colors.azurite },
-    { text: "Differential Diagnosis", color: colors.vitalsCritical },
-    { text: "Diagnostic Workup",      color: "#06b6d4" },
-    { text: "Assessment & Plan",      color: colors.vitalsWarning },
-  ] as const;
-
-  // Estimated Y position of each section row within the Phase 6 container
-  // Form card top ≈ 300px (centered in ~980px area); header block ≈ 85px; row height ≈ 40px
-  const ROW_TOP_BASE = 385;
-  const ROW_HEIGHT   = 42;
-  const calloutRowYs = calloutLabels.map((_, i) => ROW_TOP_BASE + i * ROW_HEIGHT);
-
-  /* ─────────────────────────────────────────────────────────────────────
-     PHASE 6 — CORNER PANEL SYSTEM
-     Four ambient UI-fragment panels in screen corners communicate system
-     accomplishment without cluttering the center. They are the mid-depth
-     layer (z: 5), held at 80–82% opacity for de-emphasis.
-
-     TL — Manual Documentation     f1470 → persist
-     TR — Structured Case Creation f1475 → persist
-     BL — Clinical Reasoning       f1480 → persist
-     BR — Assessment & Plan        f1485 → persist
-
-     Narration emphasis lift:
-       BL scales up slightly when DX callout is active (calloutOps[2])
-       BR scales up slightly when A&P callout is active (calloutOps[4])
-     ───────────────────────────────────────────────────────────────────── */
-  const cornerInStarts = [1470, 1475, 1480, 1485] as const;
-  const cornerOps = cornerInStarts.map(start =>
-    interpolate(frame, [start, start + 28], [0, 1], clamp)
+  /* ── EC: section entrance + callout sequence ── */
+  const encSectionOps = encounterSections.map((_, i) =>
+    interpolate(frame, [EC_S + 22 + i * 14, EC_S + 36 + i * 14], [0, 1], clamp)
   );
-  const cornerFadeOut = interpolate(frame, [1855, 1875], [1, 0], clamp);
-  const cornerOpFinals = cornerOps.map(op => op * cornerFadeOut);
-
-  // Each corner floats on a unique sine phase for organic parallax (±2.5 px Y)
-  const cornerDrifts = [0, 1.88, 3.77, 5.65].map(
-    phase => Math.sin(frame * 0.024 + phase) * 2.5
+  const encCalloutOps = ENC_CALLOUT_STARTS.map(s =>
+    interpolate(frame, [s, s + 12, s + 48, s + 62], [0, 1, 1, 0], clamp)
   );
+  const encCalloutIdx = encCalloutOps.findIndex(op => op > 0.05);
+  const submitProgress = interpolate(frame, [EC_S + 330, EC_S + 370], [0, 1], clamp);
 
-  // Narration-emphasis scale: matching corner lifts when its callout is spoken
-  const cornerBLScale = 1.0 + calloutOps[2] * 0.05;  // Clinical Reasoning ← DX callout
-  const cornerBRScale = 1.0 + calloutOps[4] * 0.05;  // Assessment & Plan  ← A&P callout
+  /* ── INTRO: patient model overview panel ── */
+  const introOp    = interpolate(frame, [INTRO_S, INTRO_S + 18, VF_S - 10, VF_S + 6], [0, 1, 1, 0], clamp);
+  const introScale = interpolate(frame, [INTRO_S, INTRO_S + 22], [0.95, 1.07], easeOut);
 
+  /* ── Faculty guidance: slides in mid-IN phase when narration references support ── */
+  const FACULTY_S     = IN_S + 150;
+  const facultyOp     = interpolate(frame, [FACULTY_S, FACULTY_S + 18, IN_E - 14, IN_E], [0, 1, 1, 0], clamp);
+  const facultySlideY = interpolate(frame, [FACULTY_S, FACULTY_S + 22], [18, 0], easeOut);
+
+  /* ── Waveform animation phase ── */
+  const wavePhase = frame * 0.09;
+
+  /* ── 3D Background ── */
   const threeContent = (
     <>
       <AnimatedGrid color={colors.azurite} opacity={0.04} waveSpeed={0.01} />
-      <ParticleField count={30} color={colors.oasis} speed={0.001} opacity={0.08} />
-      <GlowOrb position={[0, 0, -3]} color={colors.oasis} radius={2} baseOpacity={0.06} />
+      <ParticleField count={28} color={colors.oasis} speed={0.001} opacity={0.07} />
+      <GlowOrb position={[0, 0, -3]} color={colors.oasis} radius={2} baseOpacity={0.05} />
       <CameraRig positions={[
-        { frame: 0, position: [0, 0, 10] },
-        { frame: 200, position: [0, 0, 9] },
-        { frame: 555, position: [0, 0, 8.5] },
-        { frame: 1045, position: [0, 0, 9] },
+        { frame: 0,    position: [0, 0, 10]  },
+        { frame: 200,  position: [0, 0, 9.2] },
+        { frame: 1052, position: [0, 0, 9]   },
         { frame: 1875, position: [0, 0, 9.5] },
       ]} />
     </>
   );
+
+  /* ── Center Y of content area (below 100px header) ── */
+  const PANEL_TOP = 592;
 
   return (
     <SceneShell
@@ -363,90 +237,23 @@ export const Scene4_VirtualPatient: React.FC = () => {
       bgGradient={`linear-gradient(160deg, ${colors.midnight} 0%, #0a1628 50%, ${colors.arizonaBlue} 100%)`}
       threeContent={threeContent}
     >
-      {/* ══════════════════════════════════════════
-          Phase 1: Case Selection
-         ══════════════════════════════════════════ */}
-      {isPhase1 && (
-        <div style={{
-          position: "absolute", inset: 0,
-          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-          opacity: phase1Opacity, pointerEvents: "none", zIndex: 10,
-        }}>
-          <div style={{
-            fontFamily: fonts.heading, fontSize: 32, fontWeight: 700,
-            color: colors.white, marginBottom: 8,
-            opacity: interpolate(frame, [80, 114], [0, 1], clamp),
-          }}>Select a Patient Case</div>
-          <div style={{
-            fontFamily: fonts.body, fontSize: 17, color: `${colors.white}70`, marginBottom: 36,
-            opacity: interpolate(frame, [93, 121], [0, 1], clamp),
-          }}>Select a case to engage the clinical simulation</div>
 
-          <div style={{ display: "flex", gap: 20, flexWrap: "wrap" as const, justifyContent: "center", maxWidth: 900 }}>
-            {patientCases.map((pc, i) => {
-              const cardDelay = 86 + i * 14;
-              const cardSpring = spring({ frame: frame - cardDelay, fps, config: { damping: 18, stiffness: 120, mass: 0.8 } });
-              const cardOpacity = interpolate(cardSpring, [0, 1], [0, 1]);
-              const cardScale = interpolate(cardSpring, [0, 1], [0.92, 1]);
-              const isSelected = i === 0;
-              const selectedGlow = isSelected ? interpolate(selectionProgress, [0, 1], [0, 1]) : 0;
-              const unselectedFade = !isSelected ? interpolate(selectionProgress, [0, 1], [1, 0.3]) : 1;
-              const acuityColor = pc.acuity === "Emergent" ? colors.vitalsCritical : pc.acuity === "Urgent" ? colors.vitalsWarning : colors.oasis;
-
-              return (
-                <div key={i} style={{
-                  width: 195, padding: "20px 18px",
-                  background: isSelected && selectedGlow > 0
-                    ? `linear-gradient(135deg, rgba(12,35,75,0.85), rgba(30,82,136,${0.4 + selectedGlow * 0.3}))`
-                    : "rgba(12,35,75,0.7)",
-                  border: `1px solid ${isSelected && selectedGlow > 0 ? colors.oasis : `${colors.white}15`}`,
-                  borderRadius: 14,
-                  transform: `scale(${cardScale * (isSelected ? 1 + selectedGlow * 0.04 : 1)})`,
-                  opacity: cardOpacity * unselectedFade,
-                  boxShadow: isSelected && selectedGlow > 0
-                    ? `0 0 30px ${colors.oasis}30, inset 0 0 20px ${colors.oasis}08`
-                    : "none",
-                }}>
-                  <div style={{
-                    width: 48, height: 48, borderRadius: "50%", margin: "0 auto 12px",
-                    background: `linear-gradient(135deg, ${colors.azurite}, ${colors.oasis})`,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontFamily: fonts.heading, fontSize: 18, fontWeight: 700, color: colors.white,
-                  }}>{pc.name.split(" ").map(n => n[0]).join("")}</div>
-                  <div style={{ fontFamily: fonts.heading, fontSize: 16, fontWeight: 700, color: colors.white, textAlign: "center" as const }}>{pc.name}</div>
-                  <div style={{ fontFamily: fonts.mono, fontSize: 13, color: `${colors.white}60`, textAlign: "center" as const, marginTop: 4 }}>{pc.age}</div>
-                  <div style={{ fontFamily: fonts.body, fontSize: 13, color: `${colors.white}60`, textAlign: "center" as const, marginTop: 8 }}>{pc.cc}</div>
-                  <div style={{
-                    fontFamily: fonts.mono, fontSize: 11, fontWeight: 600,
-                    color: acuityColor, textAlign: "center" as const, marginTop: 10,
-                    background: `${acuityColor}15`, padding: "3px 10px", borderRadius: 4,
-                    display: "inline-block", width: "auto",
-                    marginLeft: "auto", marginRight: "auto",
-                    left: "50%", position: "relative" as const, transform: "translateX(-50%)",
-                  }}>{pc.acuity}</div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* ══════════════════════════════════════════
-          Main VP Interface (Phases 2–6)
-         ══════════════════════════════════════════ */}
-      {isMainUI && (
+      {/* ══════════════════════════════════════════════════════════════
+          PERSISTENT SHELL — top nav bar + vitals strip
+          Visible through entire scene after INTRO_S.
+         ══════════════════════════════════════════════════════════════ */}
+      {isUI && (
         <div style={{
           position: "absolute", inset: 0,
           display: "flex", flexDirection: "column",
-          opacity: mainUIOpacity, pointerEvents: "none", zIndex: 10,
+          opacity: uiOp, pointerEvents: "none", zIndex: 10,
         }}>
-          {/* ── Top Nav Bar ── */}
+          {/* Top nav bar */}
           <div style={{
             height: 52, display: "flex", alignItems: "center",
             background: `linear-gradient(90deg, ${colors.arizonaBlue}, ${colors.midnight})`,
             borderBottom: `1px solid ${colors.white}12`,
             padding: "0 24px", flexShrink: 0,
-            opacity: interpolate(frame, [201, 224], [0, 1], clamp),
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 16, flex: 1 }}>
               <span style={{ fontFamily: fonts.heading, fontSize: 20, fontWeight: 700, color: colors.white }}>
@@ -456,1282 +263,1025 @@ export const Scene4_VirtualPatient: React.FC = () => {
                 display: "flex", alignItems: "center", gap: 6,
                 background: `${colors.white}10`, borderRadius: 16, padding: "4px 12px",
               }}>
-                <PulsingDot color={colors.vitalsCritical} size={6} delay={211} />
+                <PulsingDot color={colors.vitalsCritical} size={6} delay={INTRO_S} />
                 <span style={{ fontFamily: fonts.mono, fontSize: 14, color: colors.white }}>
-                  {timerMin}:{timerSec}
+                  {timerMin}:{timerSecStr}
                 </span>
               </div>
             </div>
-
             <div style={{ display: "flex", gap: 2 }}>
-              {navTabs.map((tab, i) => {
+              {(["Chat", "Examine", "Diagnosis", "Assessment"] as const).map((tab, i) => {
                 const isActive = tab === activeTab;
-                const tabEnter = interpolate(frame, [208 + i * 6, 224 + i * 6], [0, 1], clamp);
+                const tabEnter = interpolate(frame, [INTRO_S + 8 + i * 5, INTRO_S + 22 + i * 5], [0, 1], clamp);
                 return (
                   <div key={tab} style={{
                     fontFamily: fonts.heading, fontSize: 14, fontWeight: isActive ? 700 : 500,
                     color: isActive ? colors.white : `${colors.white}50`,
                     background: isActive ? `${colors.oasis}25` : "transparent",
-                    padding: "8px 14px", borderRadius: 8,
-                    opacity: tabEnter,
-                    border: isActive ? `1px solid ${colors.oasis}40` : "1px solid transparent",
-                    transition: "all 0.3s ease",
+                    padding: "8px 16px", borderRadius: 8, opacity: tabEnter,
+                    border: isActive ? `1px solid ${colors.oasis}42` : "1px solid transparent",
                   }}>{tab}</div>
                 );
               })}
             </div>
           </div>
 
-          {/* ── Vitals Strip ── */}
-          {frame >= 218 && frame < 1850 && (
-            <div style={{
-              height: 48, display: "flex", alignItems: "center", justifyContent: "center", gap: 28,
-              background: "rgba(12,35,75,0.6)",
-              borderBottom: `1px solid ${colors.white}06`,
-              opacity: interpolate(frame, [218, 245, 1810, 1840], [0, 1, 1, 0], clamp),
-              transform: `scale(${vitalsZoom})`,
-              transformOrigin: "50% 50%",
-              boxShadow: vitalsHighlightOp > 0
-                ? `inset 0 0 0 2px ${colors.vitalsWarning}${Math.round(vitalsHighlightOp * vitalsHighlightPulse * 120).toString(16).padStart(2, "0")}, 0 0 16px ${colors.vitalsWarning}${Math.round(vitalsHighlightOp * 40).toString(16).padStart(2, "0")}`
-                : "none",
-            }}>
-              {vitalsHighlightOp > 0 && (
-                <div style={{
-                  position: "absolute", left: 16,
-                  display: "flex", alignItems: "center", gap: 6,
-                  opacity: vitalsHighlightOp,
-                }}>
-                  <div style={{
-                    fontFamily: fonts.mono, fontSize: 10, fontWeight: 700,
-                    color: colors.vitalsWarning, background: `${colors.vitalsWarning}15`,
-                    padding: "2px 10px", borderRadius: 2, letterSpacing: 2,
-                    border: `1px solid ${colors.vitalsWarning}30`,
-                  }}>ABNORMAL VITALS</div>
+          {/* Vitals strip */}
+          <div style={{
+            height: 48, display: "flex", alignItems: "center", justifyContent: "center", gap: 36,
+            background: "rgba(12,35,75,0.6)",
+            borderBottom: `1px solid ${colors.white}06`,
+            opacity: interpolate(frame, [VF_S, VF_S + 20], [0, 1], clamp),
+            boxShadow: vitalsHighlightOp > 0
+              ? `inset 0 0 0 1.5px ${colors.vitalsWarning}${Math.round(vitalsHighlightOp * vitalsPulse * 90).toString(16).padStart(2, "00")}`
+              : "none",
+            flexShrink: 0,
+          }}>
+            {vitals.map((v, i) => {
+              const vOp = interpolate(frame, [INTRO_S + 12 + i * 5, INTRO_S + 26 + i * 5], [0, 1], clamp);
+              return (
+                <div key={v.label} style={{ display: "flex", alignItems: "baseline", gap: 5, opacity: vOp }}>
+                  <span style={{ fontFamily: fonts.mono, fontSize: 12, color: `${colors.white}55` }}>{v.label}</span>
+                  <span style={{ fontFamily: fonts.mono, fontSize: 20, fontWeight: 700, color: v.color }}>{v.value}</span>
+                  <span style={{ fontFamily: fonts.mono, fontSize: 11, color: `${colors.white}40` }}>{v.unit}</span>
                 </div>
-              )}
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ── Step badge — bottom left ── */}
+      {stepBadgeOp > 0 && stepLabel && (
+        <div style={{
+          position: "absolute", bottom: 22, left: 24, zIndex: 50, pointerEvents: "none",
+          opacity: stepBadgeOp,
+        }}>
+          <div style={{
+            fontFamily: fonts.mono, fontSize: 11, fontWeight: 700,
+            color: stepColor, background: `${stepColor}18`,
+            border: `1px solid ${stepColor}48`,
+            padding: "5px 18px", borderRadius: 20,
+            letterSpacing: 2, textTransform: "uppercase" as const,
+          }}>
+            {stepLabel}
+          </div>
+        </div>
+      )}
+
+      {/* ══ BACKGROUND DIM — deepens with each focused phase ══ */}
+      {bgDimOp > 0.01 && (
+        <div style={{
+          position: "absolute", inset: 0,
+          background: "rgba(2, 6, 22, 1)",
+          opacity: bgDimOp, pointerEvents: "none", zIndex: 12,
+        }} />
+      )}
+
+      {/* ════════════════════════════════════════════════════════════════
+          INTRO PHASE — VIRTUAL PATIENT MODEL
+          Centered overview: abstract patient figure + identity card.
+          Holds until VF phase fires, then fades out cleanly.
+          Vitals strip deliberately hidden here — nothing competes.
+         ════════════════════════════════════════════════════════════════ */}
+      {introOp > 0.01 && (
+        <div style={{
+          position: "absolute", left: "50%", top: PANEL_TOP,
+          transform: `translate(-50%, -50%) scale(${introScale})`,
+          width: 860, pointerEvents: "none", zIndex: 20,
+          opacity: introOp, transformOrigin: "center center",
+        }}>
+          <div style={{
+            background: "rgba(6, 12, 36, 0.96)",
+            border: `1.5px solid ${colors.azurite}38`,
+            borderRadius: 20, padding: "36px 44px",
+            boxShadow: `0 0 90px ${colors.azurite}14, 0 28px 80px rgba(0,0,0,0.70)`,
+          }}>
+            <div style={{ display: "flex", gap: 36, alignItems: "center" }}>
+
+              {/* Abstract 3D patient figure */}
+              <div style={{
+                width: 130, height: 168, flexShrink: 0,
+                background: `linear-gradient(160deg, rgba(12,56,82,0.45), rgba(6,12,36,0.85))`,
+                border: `1px solid ${colors.azurite}32`,
+                borderRadius: 14,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                position: "relative",
+              }}>
+                <svg width={72} height={114} viewBox="0 0 72 114" style={{ overflow: "visible" }}>
+                  {/* Scan ring */}
+                  <circle cx={36} cy={20} r={22}
+                    fill="none" stroke={`${colors.oasis}20`} strokeWidth={1}
+                    strokeDasharray="5 4" />
+                  {/* Head */}
+                  <circle cx={36} cy={20} r={13}
+                    fill={`${colors.oasis}08`} stroke={`${colors.oasis}70`} strokeWidth={1.5} />
+                  {/* Torso */}
+                  <path d="M 22 34 Q 36 30 50 34 L 48 76 Q 36 80 24 76 Z"
+                    fill={`${colors.oasis}06`} stroke={`${colors.oasis}45`} strokeWidth={1.3} />
+                  {/* Arms */}
+                  <line x1={22} y1={36} x2={11} y2={64} stroke={`${colors.oasis}38`} strokeWidth={1.3} />
+                  <line x1={50} y1={36} x2={61} y2={64} stroke={`${colors.oasis}38`} strokeWidth={1.3} />
+                  {/* Legs */}
+                  <line x1={28} y1={76} x2={24} y2={112} stroke={`${colors.oasis}38`} strokeWidth={1.3} />
+                  <line x1={44} y1={76} x2={48} y2={112} stroke={`${colors.oasis}38`} strokeWidth={1.3} />
+                  {/* Heart-region highlight */}
+                  <circle cx={32} cy={48} r={4}
+                    fill="none" stroke={`${colors.vitalsCritical}60`} strokeWidth={1}
+                    strokeDasharray="3 3" />
+                </svg>
+                <div style={{
+                  position: "absolute", bottom: 10, left: "50%",
+                  transform: "translateX(-50%)",
+                  fontFamily: fonts.mono, fontSize: 7, color: `${colors.oasis}55`,
+                  letterSpacing: 1.5, whiteSpace: "nowrap",
+                }}>
+                  3D PATIENT MODEL
+                </div>
+              </div>
+
+              {/* Patient identity + case info */}
+              <div style={{ flex: 1 }}>
+                <div style={{
+                  fontFamily: fonts.mono, fontSize: 10, letterSpacing: 3.5,
+                  color: `${colors.oasis}65`, textTransform: "uppercase" as const,
+                  marginBottom: 10,
+                }}>Virtual Patient Encounter</div>
+                <div style={{
+                  fontFamily: fonts.heading, fontSize: 34, fontWeight: 800,
+                  color: colors.white, lineHeight: 1.1, marginBottom: 6,
+                }}>Maria Santos</div>
+                <div style={{
+                  fontFamily: fonts.mono, fontSize: 14, color: `${colors.white}55`,
+                  marginBottom: 20, lineHeight: 1.5,
+                }}>67F · Chief Complaint: Dyspnea × 3 days, bilateral leg edema</div>
+
+                {/* Encounter capability tags */}
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" as const, marginBottom: 20 }}>
+                  {[
+                    { label: "Interview", color: colors.oasis        },
+                    { label: "Exam",      color: colors.azurite       },
+                    { label: "Media",     color: colors.vitalsWarning },
+                    { label: "Diagnosis", color: colors.vitalsCritical},
+                  ].map(({ label, color }) => (
+                    <div key={label} style={{
+                      fontFamily: fonts.mono, fontSize: 9, fontWeight: 700,
+                      color: `${color}80`, background: `${color}0E`,
+                      border: `1px solid ${color}28`,
+                      padding: "4px 12px", borderRadius: 4, letterSpacing: 1.5,
+                    }}>{label}</div>
+                  ))}
+                </div>
+
+                {/* Simulation active indicator */}
+                <div style={{
+                  display: "flex", alignItems: "center", gap: 10,
+                  paddingTop: 14, borderTop: `1px solid ${colors.white}08`,
+                }}>
+                  <PulsingDot color={colors.vitalsCritical} size={7} delay={INTRO_S} />
+                  <span style={{
+                    fontFamily: fonts.mono, fontSize: 10, fontWeight: 700,
+                    color: colors.vitalsCritical, letterSpacing: 2,
+                  }}>SIMULATION ACTIVE</span>
+                  <span style={{
+                    fontFamily: fonts.mono, fontSize: 10,
+                    color: `${colors.white}35`, marginLeft: 8,
+                  }}>Clinical reasoning required</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════════════════════════════
+          VF PHASE — REAL-TIME VITAL SIGNS
+          Large centered panel. Vitals rendered at 68px — unmissable.
+         ════════════════════════════════════════════════════════════════ */}
+      {vfOp > 0.01 && (
+        <div style={{
+          position: "absolute", left: "50%", top: PANEL_TOP,
+          transform: `translate(-50%, -50%) scale(${vfScale})`,
+          width: 1340, pointerEvents: "none", zIndex: 20,
+          opacity: vfOp, transformOrigin: "center center",
+        }}>
+          <div style={{
+            background: "rgba(6, 12, 36, 0.95)",
+            border: `1.5px solid ${colors.vitalsWarning}38`,
+            borderRadius: 20, padding: "36px 52px",
+            boxShadow: `0 0 90px ${colors.vitalsWarning}14, 0 28px 80px rgba(0,0,0,0.65)`,
+          }}>
+            {/* Header row */}
+            <div style={{
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+              marginBottom: 30,
+            }}>
+              <div style={{
+                fontFamily: fonts.mono, fontSize: 11, fontWeight: 700,
+                color: `${colors.vitalsWarning}80`, letterSpacing: 3.5,
+                textTransform: "uppercase" as const,
+              }}>Real-Time Vital Signs</div>
+              <div style={{
+                fontFamily: fonts.mono, fontSize: 10, fontWeight: 700,
+                color: colors.vitalsWarning,
+                background: `${colors.vitalsWarning}14`,
+                border: `1px solid ${colors.vitalsWarning}42`,
+                padding: "4px 14px", borderRadius: 3, letterSpacing: 2,
+              }}>ABNORMAL VALUES DETECTED</div>
+            </div>
+
+            {/* Vitals — large readable numbers */}
+            <div style={{ display: "flex", justifyContent: "space-around", gap: 16 }}>
               {vitals.map((v, i) => {
-                const vOpacity = interpolate(frame, [224 + i * 8, 245 + i * 8], [0, 1], clamp);
+                const vOp = interpolate(frame, [VF_S + 8 + i * 8, VF_S + 24 + i * 8], [0, 1], clamp);
                 return (
                   <div key={v.label} style={{
-                    display: "flex", alignItems: "baseline", gap: 6, opacity: vOpacity,
+                    display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
+                    flex: 1, padding: "22px 14px",
+                    background: v.flag ? `${v.color}08` : "transparent",
+                    border: v.flag ? `1px solid ${v.color}22` : `1px solid ${colors.white}05`,
+                    borderRadius: 16, opacity: vOp,
                   }}>
-                    <span style={{ fontFamily: fonts.mono, fontSize: 12, color: `${colors.white}55`, letterSpacing: 0.8 }}>{v.label}</span>
-                    <span style={{ fontFamily: fonts.mono, fontSize: 20, fontWeight: 700, color: v.color }}>{v.value}</span>
-                    <span style={{ fontFamily: fonts.mono, fontSize: 11, color: `${colors.white}40` }}>{v.unit}</span>
+                    <span style={{
+                      fontFamily: fonts.mono, fontSize: 13, fontWeight: 600,
+                      color: `${colors.white}55`, letterSpacing: 2,
+                    }}>{v.label}</span>
+                    <span style={{
+                      fontFamily: fonts.mono, fontSize: 68, fontWeight: 900,
+                      color: v.color, lineHeight: 1,
+                    }}>{v.value}</span>
+                    <span style={{
+                      fontFamily: fonts.mono, fontSize: 15, color: `${colors.white}45`,
+                    }}>{v.unit}</span>
+                    {v.flag && (
+                      <span style={{
+                        fontFamily: fonts.mono, fontSize: 10, fontWeight: 800,
+                        color: v.color, background: `${v.color}18`,
+                        border: `1px solid ${v.color}38`,
+                        padding: "3px 10px", borderRadius: 4, letterSpacing: 1.5,
+                      }}>{v.flag}</span>
+                    )}
                   </div>
                 );
               })}
             </div>
-          )}
+          </div>
+        </div>
+      )}
 
-          {/* ── Step Badge — persistent chapter label, bottom-left ── */}
-          {stepBadgeOp > 0 && stepLabel && (
+      {/* ════════════════════════════════════════════════════════════════
+          IN PHASE — PATIENT INTERVIEW
+          Chat panel. Messages appear sequentially, narration-timed.
+         ════════════════════════════════════════════════════════════════ */}
+      {inOp > 0.01 && (
+        <div style={{
+          position: "absolute", left: "50%", top: PANEL_TOP,
+          transform: `translate(-50%, -50%) scale(${inScale})`,
+          width: 880, pointerEvents: "none", zIndex: 20,
+          opacity: inOp, transformOrigin: "center center",
+        }}>
+          <div style={{
+            background: "rgba(6, 12, 36, 0.94)",
+            border: `1.5px solid ${colors.oasis}28`,
+            borderRadius: 20, padding: "30px 38px",
+            boxShadow: `0 0 70px ${colors.oasis}10, 0 24px 68px rgba(0,0,0,0.60)`,
+          }}>
+            {/* Header */}
             <div style={{
-              position: "absolute", bottom: 20, left: 24,
-              display: "flex", alignItems: "center", gap: 8,
-              opacity: stepBadgeOp, zIndex: 50, pointerEvents: "none",
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+              marginBottom: 26,
             }}>
+              <div>
+                <div style={{
+                  fontFamily: fonts.mono, fontSize: 10, letterSpacing: 3.5,
+                  color: `${colors.oasis}70`, textTransform: "uppercase" as const,
+                  marginBottom: 6,
+                }}>Patient Interview</div>
+                <div style={{
+                  fontFamily: fonts.heading, fontSize: 22, fontWeight: 700, color: colors.white,
+                }}>Maria Santos — 67F</div>
+              </div>
               <div style={{
-                fontFamily: fonts.mono, fontSize: 11, fontWeight: 700,
-                color: stepColor, background: `${stepColor}18`,
-                border: `1px solid ${stepColor}40`,
-                padding: "5px 14px", borderRadius: 20,
-                letterSpacing: 2, textTransform: "uppercase" as const,
+                display: "flex", alignItems: "center", gap: 8,
+                background: `${colors.vitalsNormal}12`,
+                border: `1px solid ${colors.vitalsNormal}32`,
+                borderRadius: 8, padding: "8px 16px",
               }}>
-                {stepLabel}
+                <PulsingDot color={colors.vitalsNormal} size={7} delay={IN_S} />
+                <span style={{
+                  fontFamily: fonts.mono, fontSize: 10, fontWeight: 700,
+                  color: colors.vitalsNormal, letterSpacing: 1.5,
+                }}>INTERVIEW ACTIVE</span>
               </div>
             </div>
-          )}
 
-          {/* ── Phase Sweep Accent — thin glowing horizontal line at phase transitions ── */}
-          {phaseAccentOp > 0 && (
-            <div style={{
-              position: "absolute", left: 0, right: 0,
-              bottom: 100,
-              height: 1, zIndex: 48, pointerEvents: "none",
-              opacity: phaseAccentOp,
-              overflow: "hidden",
-            }}>
-              <div style={{
-                height: "100%",
-                width: `${phaseAccentWidth * 100}%`,
-                background: `linear-gradient(90deg, transparent, ${stepColor}90, ${stepColor}, ${stepColor}60, transparent)`,
-                boxShadow: `0 0 12px 2px ${stepColor}50`,
-              }} />
-            </div>
-          )}
-
-          {/* ── Vitals Focus Panel — enlarged vitals centered for 2s ── */}
-          {vitalsZoomPanelOp > 0 && (
-            <div style={{
-              position: "absolute", inset: 0, zIndex: 45, pointerEvents: "none",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              opacity: vitalsZoomPanelOp,
-            }}>
-              <div style={{
-                display: "flex", gap: 36, padding: "28px 48px",
-                background: "rgba(6, 12, 35, 0.94)",
-                border: `1.5px solid ${colors.vitalsWarning}35`,
-                borderRadius: 22,
-                boxShadow: `0 0 60px ${colors.vitalsWarning}18, 0 16px 60px rgba(0,0,0,0.6)`,
-              }}>
-                {vitals.map((v, i) => (
-                  <div key={v.label} style={{
-                    display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
-                    opacity: interpolate(frame, [224 + i * 6, 240 + i * 6], [0, 1], clamp),
+            {/* Chat messages */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              {chatMessages.map((msg, i) => {
+                const msgDelay = IN_S + 18 + i * 50;
+                const msgOp = interpolate(frame, [msgDelay, msgDelay + 20], [0, 1], clamp);
+                const isStudent = msg.from === "student";
+                return (
+                  <div key={i} style={{
+                    display: "flex", justifyContent: isStudent ? "flex-end" : "flex-start",
+                    opacity: msgOp,
                   }}>
-                    <span style={{
-                      fontFamily: fonts.mono, fontSize: 13, fontWeight: 600,
-                      color: `${colors.white}55`, letterSpacing: 1.5,
-                    }}>{v.label}</span>
-                    <span style={{
-                      fontFamily: fonts.mono, fontSize: 56, fontWeight: 800,
-                      color: v.color, lineHeight: 1,
-                    }}>{v.value}</span>
-                    <span style={{
-                      fontFamily: fonts.mono, fontSize: 14, color: `${colors.white}45`,
-                    }}>{v.unit}</span>
-                    {v.color === colors.vitalsWarning && (
-                      <span style={{
+                    <div style={{
+                      maxWidth: "80%", padding: "14px 20px", borderRadius: 14,
+                      background: isStudent
+                        ? `linear-gradient(135deg, ${colors.arizonaBlue}, ${colors.azurite})`
+                        : `${colors.white}10`,
+                      border: `1px solid ${isStudent ? `${colors.oasis}22` : `${colors.white}08`}`,
+                    }}>
+                      <div style={{
+                        fontFamily: fonts.mono, fontSize: 10,
+                        color: isStudent ? colors.oasis : `${colors.white}50`,
+                        letterSpacing: 1.5, marginBottom: 6,
+                        textTransform: "uppercase" as const,
+                      }}>{isStudent ? "Student" : "Patient"}</div>
+                      <div style={{
+                        fontFamily: fonts.body, fontSize: 16,
+                        color: colors.white, lineHeight: 1.5,
+                      }}>{msg.text}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Input placeholder */}
+            <div style={{
+              marginTop: 20, padding: "12px 18px", borderRadius: 10,
+              background: `${colors.white}06`, border: `1px solid ${colors.white}10`,
+              fontFamily: fonts.body, fontSize: 14, color: `${colors.white}28`,
+              opacity: interpolate(frame, [IN_S + 170, IN_S + 190], [0, 1], clamp),
+            }}>
+              Type your response...
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════════════════════════════
+          FACULTY GUIDANCE — appears mid-IN phase
+          Represents the faculty support layer: structured guidance
+          notes that faculty can push to students during the encounter.
+          Positioned below the chat panel so both are visible; the
+          guidance area has higher zIndex so it reads as "on top".
+         ════════════════════════════════════════════════════════════════ */}
+      {facultyOp > 0.01 && (
+        <div style={{
+          position: "absolute",
+          left: "50%",
+          top: 858,
+          transform: `translateX(-50%) translateY(${facultySlideY}px)`,
+          width: 880,
+          opacity: facultyOp,
+          pointerEvents: "none",
+          zIndex: 22,
+        }}>
+          <div style={{
+            background: "rgba(4, 10, 28, 0.96)",
+            border: `1px solid ${colors.azurite}35`,
+            borderRadius: 14, padding: "16px 24px",
+            boxShadow: `0 0 40px ${colors.azurite}10, 0 12px 40px rgba(0,0,0,0.55)`,
+            display: "flex", alignItems: "flex-start", gap: 20,
+          }}>
+            {/* Faculty badge */}
+            <div style={{
+              display: "flex", alignItems: "center", gap: 8, flexShrink: 0,
+              background: `${colors.azurite}10`,
+              border: `1px solid ${colors.azurite}40`,
+              borderRadius: 8, padding: "8px 14px", alignSelf: "flex-start",
+            }}>
+              <PulsingDot color={colors.azurite} size={6} delay={FACULTY_S} />
+              <span style={{
+                fontFamily: fonts.mono, fontSize: 9, fontWeight: 700,
+                color: colors.azurite, letterSpacing: 2,
+              }}>FACULTY GUIDANCE</span>
+            </div>
+
+            {/* Guidance notes — structured, clinical */}
+            <div style={{ flex: 1 }}>
+              {[
+                { note: "Ask about orthopnea: sleeping upright, pillows used at night." },
+                { note: "Inquire about prior cardiac history or previous hospitalizations." },
+              ].map((g, gi) => {
+                const noteOp = interpolate(frame,
+                  [FACULTY_S + gi * 22, FACULTY_S + gi * 22 + 18], [0, 1], clamp);
+                return (
+                  <div key={gi} style={{
+                    display: "flex", gap: 10, alignItems: "flex-start",
+                    marginBottom: gi === 0 ? 6 : 0,
+                    opacity: noteOp,
+                  }}>
+                    <div style={{
+                      width: 4, height: 4, borderRadius: "50%",
+                      background: `${colors.azurite}80`,
+                      marginTop: 7, flexShrink: 0,
+                    }} />
+                    <div style={{
+                      fontFamily: fonts.body, fontSize: 14,
+                      color: `${colors.white}70`, lineHeight: 1.5,
+                    }}>{g.note}</div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Control note */}
+            <div style={{
+              fontFamily: fonts.mono, fontSize: 9,
+              color: `${colors.white}28`, flexShrink: 0, alignSelf: "center",
+              letterSpacing: 1, lineHeight: 1.6, textAlign: "right" as const,
+            }}>
+              Faculty-controlled<br />Visible to student
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════════════════════════════
+          EX PHASE — PHYSICAL EXAM
+          3 tool cards with 3D depth. Active tool lifts forward; others
+          recede. Finding appears below the active tool.
+         ════════════════════════════════════════════════════════════════ */}
+      {exOp > 0.01 && (
+        <div style={{
+          position: "absolute", left: "50%", top: PANEL_TOP,
+          transform: `translate(-50%, -50%) scale(${exScale})`,
+          width: 980, pointerEvents: "none", zIndex: 20,
+          opacity: exOp, transformOrigin: "center center",
+        }}>
+          <div style={{
+            background: "rgba(6, 12, 36, 0.94)",
+            border: `1.5px solid ${colors.azurite}28`,
+            borderRadius: 20, padding: "30px 38px",
+            boxShadow: `0 0 70px ${colors.azurite}10, 0 24px 68px rgba(0,0,0,0.60)`,
+          }}>
+            <div style={{
+              fontFamily: fonts.mono, fontSize: 10, letterSpacing: 3.5,
+              color: `${colors.azurite}70`, textTransform: "uppercase" as const,
+              marginBottom: 6,
+            }}>Physical Examination</div>
+            <div style={{
+              fontFamily: fonts.heading, fontSize: 22, fontWeight: 700,
+              color: colors.white, marginBottom: 30,
+            }}>Maria Santos — 67F</div>
+
+            {/* Tool cards — 3D lift system */}
+            <div style={{ display: "flex", gap: 22, marginBottom: 28 }}>
+              {examTools.map((tool, i) => {
+                const isActive  = toolActiveIdx === i;
+                const wasActive = toolActiveIdx > i;
+                const toolOp    = interpolate(frame, [TOOL_ACTIVATES[i], TOOL_ACTIVATES[i] + 18], [0, 1], clamp);
+                const cardScale = isActive ? 1.10 : wasActive ? 0.93 : 0.88;
+                const cardOp    = isActive ? 1.0 : wasActive ? 0.55 : 0.35;
+                return (
+                  <div key={tool.name} style={{
+                    flex: 1, textAlign: "center" as const,
+                    padding: "26px 16px",
+                    background: isActive ? `${tool.color}14` : `${colors.white}04`,
+                    border: `1.5px solid ${isActive ? `${tool.color}62` : `${colors.white}10`}`,
+                    borderRadius: 14,
+                    opacity: toolOp * cardOp,
+                    transform: `scale(${cardScale})`,
+                    boxShadow: isActive
+                      ? `0 0 45px ${tool.color}25, 0 10px 36px rgba(0,0,0,0.50)`
+                      : "none",
+                    transformOrigin: "center center",
+                  }}>
+                    <div style={{
+                      fontFamily: fonts.heading, fontSize: 19, fontWeight: 700,
+                      color: isActive ? colors.white : `${colors.white}45`,
+                      marginBottom: 10,
+                    }}>{tool.name}</div>
+                    {isActive && (
+                      <div style={{
                         fontFamily: fonts.mono, fontSize: 10, fontWeight: 700,
-                        color: colors.vitalsWarning, background: `${colors.vitalsWarning}20`,
-                        padding: "2px 7px", borderRadius: 4, marginTop: 2, letterSpacing: 1,
-                      }}>HIGH</span>
+                        color: tool.color, letterSpacing: 2,
+                        background: `${tool.color}16`,
+                        border: `1px solid ${tool.color}35`,
+                        padding: "3px 12px", borderRadius: 3, display: "inline-block",
+                      }}>ACTIVE</div>
+                    )}
+                    {wasActive && (
+                      <div style={{
+                        fontFamily: fonts.mono, fontSize: 11, fontWeight: 700,
+                        color: colors.vitalsNormal, letterSpacing: 1,
+                      }}>✓ Complete</div>
                     )}
                   </div>
-                ))}
-              </div>
+                );
+              })}
             </div>
-          )}
 
-          {/* ── DX Critical Moment Banner — typographic only, no decorative icons ── */}
-          {dxCriticalOp > 0 && (
+            {/* Active finding — appears below active tool */}
+            {toolActiveIdx >= 0 && (
+              <div style={{
+                padding: "22px 26px",
+                background: `${examTools[toolActiveIdx].color}0C`,
+                border: `1px solid ${examTools[toolActiveIdx].color}32`,
+                borderRadius: 12,
+                opacity: interpolate(
+                  frame,
+                  [TOOL_ACTIVATES[toolActiveIdx] + 14, TOOL_ACTIVATES[toolActiveIdx] + 30],
+                  [0, 1], clamp
+                ),
+              }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <div>
+                    <div style={{
+                      fontFamily: fonts.mono, fontSize: 10, color: `${colors.white}45`,
+                      letterSpacing: 2, marginBottom: 8, textTransform: "uppercase" as const,
+                    }}>Finding</div>
+                    <div style={{
+                      fontFamily: fonts.heading, fontSize: 24, fontWeight: 700, color: colors.white,
+                    }}>
+                      {examTools[toolActiveIdx].finding}
+                    </div>
+                  </div>
+                  <div style={{
+                    fontFamily: fonts.mono, fontSize: 11, fontWeight: 700,
+                    color: examTools[toolActiveIdx].color,
+                    background: `${examTools[toolActiveIdx].color}18`,
+                    border: `1px solid ${examTools[toolActiveIdx].color}42`,
+                    padding: "5px 16px", borderRadius: 4,
+                    letterSpacing: 1.5, flexShrink: 0,
+                  }}>
+                    {examTools[toolActiveIdx].type}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════════════════════════════
+          MD PHASE — CLINICAL MEDIA
+          Two animated waveforms + image panel. All large, instantly
+          readable. Waveform bars are frame-driven (no CSS transitions).
+         ════════════════════════════════════════════════════════════════ */}
+      {mdOp > 0.01 && (
+        <div style={{
+          position: "absolute", left: "50%", top: PANEL_TOP,
+          transform: `translate(-50%, -50%) scale(${mdScale})`,
+          width: 1120, pointerEvents: "none", zIndex: 20,
+          opacity: mdOp, transformOrigin: "center center",
+        }}>
+          <div style={{
+            background: "rgba(6, 12, 36, 0.95)",
+            border: `1.5px solid ${colors.vitalsWarning}28`,
+            borderRadius: 20, padding: "32px 44px",
+            boxShadow: `0 0 90px ${colors.vitalsWarning}10, 0 28px 80px rgba(0,0,0,0.65)`,
+          }}>
             <div style={{
-              position: "absolute", top: 62, left: "50%", transform: "translateX(-50%)",
-              zIndex: 50, pointerEvents: "none", opacity: dxCriticalOp,
+              fontFamily: fonts.mono, fontSize: 11, letterSpacing: 3.5,
+              color: `${colors.vitalsWarning}70`, textTransform: "uppercase" as const,
+              marginBottom: 30,
+            }}>Clinical Examination Media</div>
+
+            {/* Heart sounds */}
+            <div style={{
+              marginBottom: 22,
+              opacity: interpolate(frame, [MD_S + 12, MD_S + 28], [0, 1], clamp),
             }}>
               <div style={{
+                display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10,
+              }}>
+                <div style={{ fontFamily: fonts.heading, fontSize: 19, fontWeight: 700, color: colors.white }}>
+                  Heart Sounds
+                </div>
+                <div style={{
+                  fontFamily: fonts.mono, fontSize: 11, fontWeight: 700,
+                  color: colors.vitalsWarning,
+                  background: `${colors.vitalsWarning}14`,
+                  border: `1px solid ${colors.vitalsWarning}38`,
+                  padding: "4px 14px", borderRadius: 3, letterSpacing: 2,
+                }}>S3 GALLOP DETECTED</div>
+              </div>
+              <div style={{
+                height: 104, borderRadius: 12,
+                background: `linear-gradient(135deg, rgba(30,60,110,0.5), rgba(12,35,75,0.7))`,
+                border: `1px solid ${colors.vitalsWarning}22`,
+                display: "flex", alignItems: "center", padding: "0 22px", gap: 14,
+              }}>
+                <div style={{
+                  fontFamily: fonts.mono, fontSize: 10, fontWeight: 700,
+                  color: `${colors.vitalsWarning}80`, letterSpacing: 1.5, flexShrink: 0,
+                }}>PLAYING</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 2, flex: 1, height: "100%", padding: "12px 0" }}>
+                  {Array.from({ length: 48 }).map((_, wi) => {
+                    const h = 10 + Math.abs(Math.sin(wi * 0.6 + wavePhase) * 38);
+                    return (
+                      <div key={wi} style={{
+                        flex: 1, maxWidth: 16, height: h, borderRadius: 2,
+                        background: wi < 30
+                          ? `${colors.vitalsWarning}${Math.round(80 + h * 1.5).toString(16).padStart(2, "00")}`
+                          : `${colors.vitalsWarning}25`,
+                      }} />
+                    );
+                  })}
+                </div>
+                <div style={{ fontFamily: fonts.mono, fontSize: 13, color: `${colors.white}50`, flexShrink: 0 }}>
+                  0:42
+                </div>
+              </div>
+            </div>
+
+            {/* Lung auscultation */}
+            <div style={{
+              marginBottom: 22,
+              opacity: interpolate(frame, [MD_S + 80, MD_S + 98], [0, 1], clamp),
+            }}>
+              <div style={{
+                display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10,
+              }}>
+                <div style={{ fontFamily: fonts.heading, fontSize: 19, fontWeight: 700, color: colors.white }}>
+                  Lung Auscultation
+                </div>
+                <div style={{
+                  fontFamily: fonts.mono, fontSize: 11, fontWeight: 700,
+                  color: colors.oasis,
+                  background: `${colors.oasis}14`,
+                  border: `1px solid ${colors.oasis}38`,
+                  padding: "4px 14px", borderRadius: 3, letterSpacing: 2,
+                }}>BILATERAL CRACKLES</div>
+              </div>
+              <div style={{
+                height: 80, borderRadius: 12,
+                background: `linear-gradient(135deg, rgba(12,56,82,0.5), rgba(12,35,75,0.7))`,
+                border: `1px solid ${colors.oasis}20`,
+                display: "flex", alignItems: "center", padding: "0 22px", gap: 14,
+              }}>
+                <div style={{
+                  fontFamily: fonts.mono, fontSize: 10, fontWeight: 700,
+                  color: `${colors.oasis}80`, letterSpacing: 1.5, flexShrink: 0,
+                }}>PLAYING</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 2, flex: 1, height: "100%", padding: "10px 0" }}>
+                  {Array.from({ length: 48 }).map((_, wi) => {
+                    const h = 6 + Math.abs(Math.sin(wi * 0.9 + wavePhase + 1.2) * 26);
+                    return (
+                      <div key={wi} style={{
+                        flex: 1, maxWidth: 16, height: h, borderRadius: 2,
+                        background: wi < 32
+                          ? `${colors.oasis}${Math.round(72 + h * 2.5).toString(16).padStart(2, "00")}`
+                          : `${colors.oasis}22`,
+                      }} />
+                    );
+                  })}
+                </div>
+                <div style={{ fontFamily: fonts.mono, fontSize: 13, color: `${colors.white}50`, flexShrink: 0 }}>
+                  1:15
+                </div>
+              </div>
+            </div>
+
+            {/* Chest X-ray image panel */}
+            <div style={{
+              padding: "20px 24px",
+              background: "rgba(0,0,0,0.30)",
+              border: `1px solid ${colors.azurite}22`,
+              borderRadius: 12,
+              display: "flex", alignItems: "center", gap: 26,
+              opacity: interpolate(frame, [MD_S + 148, MD_S + 168], [0, 1], clamp),
+            }}>
+              <div style={{
+                width: 128, height: 96, borderRadius: 8, flexShrink: 0,
+                background: "rgba(20, 35, 65, 0.85)",
+                border: `1px solid ${colors.azurite}32`,
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <div style={{
+                  fontFamily: fonts.mono, fontSize: 8, fontWeight: 700,
+                  color: `${colors.azurite}65`, letterSpacing: 2, textAlign: "center" as const,
+                }}>CHEST X-RAY</div>
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{
+                  fontFamily: fonts.heading, fontSize: 20, fontWeight: 700,
+                  color: colors.white, marginBottom: 6,
+                }}>Cardiomegaly — Bilateral Effusions</div>
+                <div style={{
+                  fontFamily: fonts.mono, fontSize: 12, color: `${colors.white}55`,
+                }}>Chest X-Ray · Radiological Imaging</div>
+              </div>
+              <div style={{
+                fontFamily: fonts.mono, fontSize: 11, fontWeight: 700,
+                color: colors.vitalsWarning,
+                background: `${colors.vitalsWarning}14`,
+                border: `1px solid ${colors.vitalsWarning}32`,
+                padding: "5px 14px", borderRadius: 4, letterSpacing: 1.5, flexShrink: 0,
+              }}>ABNORMAL</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════════════════════════════
+          DX PHASE — DIFFERENTIAL DIAGNOSIS  (KEY MOMENT)
+          Strongest dim (74%), largest zoom (1.09), longest hold.
+          "Decision Required" banner. Top DX lifts forward with glow.
+          AI guidance appears after 2.7s hold.
+         ════════════════════════════════════════════════════════════════ */}
+      {dxOp > 0.01 && (
+        <div style={{
+          position: "absolute", left: "50%", top: PANEL_TOP,
+          transform: `translate(-50%, -50%) scale(${dxScale})`,
+          width: 1060, pointerEvents: "none", zIndex: 20,
+          opacity: dxOp, transformOrigin: "center center",
+        }}>
+          {/* "Decision required" banner */}
+          {dxCriticalOp > 0 && (
+            <div style={{ textAlign: "center" as const, marginBottom: 16, opacity: dxCriticalOp }}>
+              <div style={{
+                display: "inline-block",
                 fontFamily: fonts.mono, fontSize: 11, fontWeight: 700,
                 color: colors.vitalsCritical,
                 background: `${colors.vitalsCritical}10`,
-                border: `1px solid ${colors.vitalsCritical}${Math.round(dxCriticalPulse * 65).toString(16).padStart(2, "0")}`,
-                padding: "4px 20px", borderRadius: 3,
-                letterSpacing: 2.5,
-                boxShadow: `0 0 14px ${colors.vitalsCritical}${Math.round(dxCriticalPulse * 25).toString(16).padStart(2, "0")}`,
+                border: `1px solid ${colors.vitalsCritical}${Math.round(dxCriticalPulse * 72).toString(16).padStart(2, "00")}`,
+                padding: "5px 26px", borderRadius: 3, letterSpacing: 2.5,
+                boxShadow: `0 0 18px ${colors.vitalsCritical}${Math.round(dxCriticalPulse * 30).toString(16).padStart(2, "00")}`,
               }}>
                 DIFFERENTIAL DIAGNOSIS — DECISION REQUIRED
               </div>
             </div>
           )}
 
-          {/* ── Main Content Area ── */}
-          <div style={{ flex: 1, display: "flex", position: "relative" as const, overflow: "hidden" }}>
+          <div style={{
+            background: "rgba(5, 10, 30, 0.96)",
+            border: `1.5px solid ${colors.vitalsCritical}${Math.round(dxOp * 32).toString(16).padStart(2, "00")}`,
+            borderRadius: 20, padding: "32px 42px",
+            boxShadow: `0 0 110px ${colors.vitalsCritical}12, 0 28px 80px rgba(0,0,0,0.72)`,
+          }}>
+            <div style={{ display: "flex", gap: 30 }}>
 
-            {/* ══ Left Sidebar: Instruments (Phase 3 only) ══ */}
-            {isPhase3 && (
-              <div style={{
-                width: 210, padding: "14px 12px",
-                background: "rgba(12,35,75,0.5)",
-                borderRight: `1px solid ${colors.white}08`,
-                display: "flex", flexDirection: "column", gap: 8,
-                opacity: interpolate(frame, [570, 604], [0, 1], clamp),
-                flexShrink: 0,
-              }}>
-                <div style={{ display: "flex", gap: 4, marginBottom: 6 }}>
-                  {["Front", "Back"].map((side, i) => (
-                    <div key={side} style={{
-                      flex: 1, textAlign: "center" as const,
-                      fontFamily: fonts.heading, fontSize: 13, fontWeight: i === 0 ? 700 : 500,
-                      color: i === 0 ? colors.white : `${colors.white}50`,
-                      background: i === 0 ? colors.arizonaBlue : `${colors.white}06`,
-                      padding: "6px 0", borderRadius: 6,
-                      border: `1px solid ${i === 0 ? `${colors.oasis}30` : `${colors.white}08`}`,
-                    }}>{side}</div>
-                  ))}
-                </div>
-
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <div style={{ fontFamily: fonts.heading, fontSize: 15, fontWeight: 700, color: colors.white }}>Instruments</div>
-                  <div style={{
-                    fontFamily: fonts.mono, fontSize: 10, color: colors.oasis,
-                    background: `${colors.oasis}15`, padding: "2px 7px", borderRadius: 3,
-                    opacity: interpolate(frame, [560, 580], [0, 1], clamp),
-                  }}>SELECT</div>
-                </div>
-                <div style={{ fontFamily: fonts.body, fontSize: 11, color: `${colors.white}50`, marginBottom: 4 }}>
-                  Stethoscope · Palpation · Percussion
-                </div>
-
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
-                  {instruments.map((inst, i) => {
-                    const instDelay = 604 + i * 11;
-                    const instOpacity = interpolate(frame, [instDelay, instDelay + 14], [0, 1], clamp);
-                    const isInstSelected = i === selectedInstrument;
-                    const selectGlow = isInstSelected ? interpolate(frame, [714, 748], [0, 1], clamp) : 0;
-                    return (
-                      <div key={inst.name} style={{
-                        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-                        padding: "18px 4px", borderRadius: 8,
-                        background: isInstSelected && selectGlow > 0 ? `${colors.oasis}15` : `${colors.white}05`,
-                        border: `1px solid ${isInstSelected && selectGlow > 0 ? `${colors.oasis}50` : `${colors.white}10`}`,
-                        opacity: instOpacity, gap: 4,
-                      }}>
-                        <Img
-                          src={staticFile(`screenshots/${inst.image}`)}
-                          style={{
-                            width: 32, height: 32, objectFit: "contain" as const,
-                          }}
-                        />
-                        <span style={{ fontFamily: fonts.body, fontSize: 9, color: colors.white, textAlign: "center" as const }}>{inst.name}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* ══ Center: Patient Area ══ */}
-            <div style={{
-              flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
-              position: "relative" as const,
-              overflow: "hidden",
-            }}>
-              {/* Exam room with patient — visible during Phases 2 & 3 */}
-              {frame >= 205 && frame < 1073 && (
-                <Img
-                  src={staticFile("screenshots/examroompatient.png")}
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover" as const,
-                    opacity: interpolate(frame, [205, 238, 1032, 1073], [0, 1, 1, 0], clamp),
-                  }}
-                />
-              )}
-
-              {/* Interview Active badge (Phase 2) */}
-              {isPhase2 && (
+              {/* Left: Differentials */}
+              <div style={{ flex: 1.2 }}>
                 <div style={{
-                  position: "absolute", top: 16, left: "50%", transform: "translateX(-50%)",
-                  display: "flex", alignItems: "center", gap: 8,
-                  opacity: interpolate(frame, [238, 266], [0, 1], clamp),
-                }}>
-                  <PulsingDot color={colors.vitalsNormal} size={8} delay={245} />
-                  <span style={{ fontFamily: fonts.mono, fontSize: 12, color: colors.vitalsNormal }}>
-                    Patient Interview Active
-                  </span>
-                </div>
-              )}
-
-              {/* ── Media Findings Overlay (Phase 3, mid-section) ── */}
-              {showMediaOverlay && (
+                  fontFamily: fonts.mono, fontSize: 10, letterSpacing: 3.5,
+                  color: `${colors.vitalsCritical}80`, textTransform: "uppercase" as const,
+                  marginBottom: 6,
+                }}>Ranked by Likelihood</div>
                 <div style={{
-                  position: "absolute", inset: 0,
-                  background: "rgba(0,0,0,0.82)",
-                  display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-                  opacity: mediaOverlayOpacity, zIndex: 20,
-                  borderRadius: 0,
-                  transform: `scale(${mediaZoom})`,
-                  transformOrigin: "50% 50%",
-                }}>
-                  <div style={{
-                    width: 520, background: "rgba(12,35,75,0.95)",
-                    border: `1px solid ${colors.white}15`, borderRadius: 14,
-                    padding: "24px 28px", boxShadow: `0 8px 40px rgba(0,0,0,0.5)`,
-                  }}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-                      <div>
-                        <div style={{ fontFamily: fonts.heading, fontSize: 20, fontWeight: 700, color: colors.white }}>
-                          Examination Findings
-                        </div>
-                        <div style={{ fontFamily: fonts.body, fontSize: 13, color: `${colors.white}60`, marginTop: 2 }}>
-                          Real clinical media from patient library
-                        </div>
-                      </div>
-                      <div style={{
-                        fontFamily: fonts.mono, fontSize: 20, color: `${colors.white}30`, cursor: "pointer",
-                      }}>✕</div>
-                    </div>
+                  fontFamily: fonts.heading, fontSize: 22, fontWeight: 700,
+                  color: colors.white, marginBottom: 22,
+                }}>Differential Diagnosis</div>
 
-                    {/* Audio waveform placeholder */}
-                    <div style={{
-                      height: 80, borderRadius: 10,
-                      background: `linear-gradient(135deg, rgba(30,82,136,0.4), rgba(12,35,75,0.6))`,
-                      border: `1px solid ${colors.oasis}20`,
-                      display: "flex", alignItems: "center", justifyContent: "center", gap: 12,
-                      marginBottom: 16,
-                    }}>
-                      <div style={{
-                        width: 42, height: 36, borderRadius: 4,
-                        background: `${colors.oasis}20`,
-                        border: `1px solid ${colors.oasis}40`,
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                      }}>
-                        <span style={{
-                          fontFamily: fonts.mono, fontSize: 9, fontWeight: 700,
-                          color: colors.oasis, letterSpacing: 1.5,
-                        }}>PLAY</span>
-                      </div>
-                      {/* Waveform bars */}
-                      <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
-                        {Array.from({ length: 24 }).map((_, i) => {
-                          const barHeight = 8 + Math.sin(i * 0.8 + frame * 0.1) * 18;
-                          return (
-                            <div key={i} style={{
-                              width: 3, height: barHeight, borderRadius: 2,
-                              background: `${colors.oasis}${i < 12 ? "90" : "40"}`,
-                            }} />
-                          );
-                        })}
-                      </div>
-                      <span style={{ fontFamily: fonts.mono, fontSize: 12, color: `${colors.white}60` }}>
-                        Heart Sounds — S3 Gallop
-                      </span>
-                    </div>
-
-                    {/* Media library tags */}
-                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" as const }}>
-                      {mediaLibraryItems.map((item, i) => {
-                        const tagDelay = 867 + i * 14;
-                        const tagOpacity = interpolate(frame, [tagDelay, tagDelay + 14], [0, 1], clamp);
-                        return (
-                          <div key={item.label} style={{
-                            display: "flex", alignItems: "center", gap: 8,
-                            background: `${item.color}10`, border: `1px solid ${item.color}28`,
-                            borderRadius: 4, padding: "5px 12px",
-                            opacity: tagOpacity,
-                          }}>
-                            <span style={{
-                              fontFamily: fonts.mono, fontSize: 9, fontWeight: 700,
-                              color: item.color, letterSpacing: 1.5,
-                              background: `${item.color}18`, padding: "1px 6px", borderRadius: 2,
-                            }}>{item.type.toUpperCase()}</span>
-                            <span style={{ fontFamily: fonts.body, fontSize: 12, color: `${colors.white}85` }}>{item.label}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* ── Phase 4: Differential Diagnosis + Tests ── */}
-              {isPhase4 && (
-                <div style={{
-                  position: "absolute", inset: 0,
-                  display: "flex", gap: 16, padding: 20,
-                  opacity: phase4Opacity,
-                  transform: `scale(${dxZoom})`,
-                  transformOrigin: "50% 40%",
-                }}>
-                  {/* Differential panel */}
-                  <div style={{
-                    flex: 1, background: "rgba(12,35,75,0.6)", borderRadius: 12,
-                    border: `1px solid ${colors.white}10`, padding: "18px 20px",
-                    display: "flex", flexDirection: "column",
-                  }}>
-                    <div style={{ fontFamily: fonts.heading, fontSize: 18, fontWeight: 700, color: colors.white, marginBottom: 4 }}>
-                      Differential Diagnosis
-                    </div>
-                    <div style={{ fontFamily: fonts.body, fontSize: 13, color: `${colors.white}50`, marginBottom: 14 }}>
-                      Ranked by clinical likelihood
-                    </div>
-                    {differentials.map((dx, i) => {
-                      const dxDelay = 1081 + i * 21;
-                      const dxOpacity = interpolate(frame, [dxDelay, dxDelay + 14], [0, 1], clamp);
-                      const isTopDx = i === 0;
-                      return (
-                        <div key={dx.name} style={{
-                          display: "flex", alignItems: "center", gap: 10,
-                          padding: "10px 14px", borderRadius: 8,
-                          background: isTopDx ? `${dx.color}14` : `${dx.color}08`,
-                          borderLeft: `3px solid ${dx.color}`,
-                          border: isTopDx ? `1px solid ${dx.color}${Math.round(dxTopGlow * 90).toString(16).padStart(2, "0")}` : undefined,
-                          borderLeftWidth: 3,
-                          marginBottom: 8, opacity: dxOpacity,
-                          boxShadow: isTopDx ? `0 0 12px ${dx.color}${Math.round(dxTopGlow * 50).toString(16).padStart(2, "0")}` : "none",
-                        }}>
-                          <div style={{ flex: 1 }}>
-                            <div style={{ fontFamily: fonts.body, fontSize: 15, color: colors.white, fontWeight: 600 }}>{dx.name}</div>
-                          </div>
-                          <span style={{
-                            fontFamily: fonts.mono, fontSize: 12, fontWeight: 600, color: dx.color,
-                            background: `${dx.color}15`, padding: "3px 8px", borderRadius: 4,
-                          }}>{dx.likelihood}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {/* Tests panel */}
-                  <div style={{
-                    flex: 1, background: "rgba(12,35,75,0.6)", borderRadius: 12,
-                    border: `1px solid ${colors.white}10`, padding: "18px 20px",
-                    display: "flex", flexDirection: "column",
-                  }}>
-                    <div style={{ fontFamily: fonts.heading, fontSize: 18, fontWeight: 700, color: colors.white, marginBottom: 4 }}>
-                      Diagnostic Tests
-                    </div>
-                    <div style={{ fontFamily: fonts.body, fontSize: 13, color: `${colors.white}50`, marginBottom: 14 }}>
-                      Ordered to support diagnosis
-                    </div>
-                    {diagnosticTests.map((test, i) => {
-                      const testDelay = 1101 + i * 17;
-                      const testOpacity = interpolate(frame, [testDelay, testDelay + 14], [0, 1], clamp);
-                      const sevColor = test.severity === "Critical" ? colors.vitalsCritical : colors.vitalsWarning;
-                      return (
-                        <div key={test.name} style={{
-                          padding: "8px 12px", borderRadius: 8,
-                          background: `${colors.white}04`, border: `1px solid ${colors.white}08`,
-                          marginBottom: 6, opacity: testOpacity,
-                        }}>
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                            <span style={{ fontFamily: fonts.body, fontSize: 14, fontWeight: 600, color: colors.white }}>{test.name}</span>
-                            <span style={{
-                              fontFamily: fonts.mono, fontSize: 11, fontWeight: 600, color: sevColor,
-                              background: `${sevColor}15`, padding: "2px 6px", borderRadius: 3,
-                            }}>{test.severity}</span>
-                          </div>
-                          <div style={{ fontFamily: fonts.mono, fontSize: 12, color: `${colors.white}70`, marginTop: 3 }}>{test.result}</div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* ── AI Guidance Panel (Phase 4, floats over corner) ── */}
-              {aiPanelOp > 0 && (
-                <div style={{
-                  position: "absolute", bottom: 20, right: 20,
-                  width: 270,
-                  background: "rgba(10, 22, 48, 0.92)",
-                  border: `1px solid ${colors.azurite}50`,
-                  borderRadius: 12,
-                  padding: "14px 18px",
-                  opacity: aiPanelOp,
-                  zIndex: 25,
-                  boxShadow: `0 4px 24px rgba(0,0,0,0.4), 0 0 0 1px ${colors.azurite}20`,
-                }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-                    <PulsingDot color={colors.azurite} size={7} delay={1087} />
-                    <span style={{ fontFamily: fonts.mono, fontSize: 11, fontWeight: 700, color: colors.azurite, letterSpacing: 1 }}>
-                      AI GUIDANCE
-                    </span>
-                    <span style={{
-                      fontFamily: fonts.mono, fontSize: 10, color: `${colors.white}40`,
-                      background: `${colors.white}08`, padding: "1px 7px", borderRadius: 3, marginLeft: "auto",
-                    }}>Faculty-Enabled</span>
-                  </div>
-                  {[
-                    { label: "Primary Dx", text: "Decompensated Heart Failure consistent with BNP elevation" },
-                    { label: "Suggested", text: "Add Echocardiogram to workup" },
-                    { label: "Missed", text: "Consider renal function (Cr 1.8) in diuresis dosing" },
-                  ].map((tip, i) => {
-                    const tipOp = interpolate(frame, [1097 + i * 18, 1115 + i * 18], [0, 1], clamp);
-                    return (
-                      <div key={tip.label} style={{
-                        marginBottom: 8, opacity: tipOp,
-                        paddingLeft: 8, borderLeft: `2px solid ${colors.azurite}40`,
-                      }}>
-                        <div style={{ fontFamily: fonts.mono, fontSize: 10, color: colors.azurite, marginBottom: 2 }}>{tip.label}</div>
-                        <div style={{ fontFamily: fonts.body, fontSize: 12, color: `${colors.white}75`, lineHeight: 1.4 }}>{tip.text}</div>
-                      </div>
-                    );
-                  })}
-                  <div style={{
-                    marginTop: 6, paddingTop: 8, borderTop: `1px solid ${colors.white}08`,
-                    fontFamily: fonts.mono, fontSize: 10, color: `${colors.white}30`,
-                  }}>Faculty controls when AI is visible to students</div>
-                </div>
-              )}
-
-              {/* ── Phase 5: Assessment & Plan ── */}
-              {isPhase5 && (
-                <div style={{
-                  position: "absolute", inset: 0,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  padding: 20, opacity: phase5Opacity,
-                  transform: `scale(${apZoom})`,
-                  transformOrigin: "50% 45%",
-                }}>
-                  <div style={{
-                    width: 560, background: "rgba(12,35,75,0.6)", borderRadius: 12,
-                    border: `1px solid ${colors.white}10`, padding: "22px 26px",
-                  }}>
-                    <div style={{ fontFamily: fonts.heading, fontSize: 20, fontWeight: 700, color: colors.white, marginBottom: 4 }}>
-                      Assessment & Plan
-                    </div>
-                    <div style={{ fontFamily: fonts.body, fontSize: 13, color: `${colors.white}50`, marginBottom: 16 }}>
-                      Document approach and consult orders
-                    </div>
-                    {assessmentItems.map((item, i) => {
-                      const apDelay = 1287 + i * 17;
-                      const apOpacity = interpolate(frame, [apDelay, apDelay + 14], [0, 1], clamp);
-                      const isConsult = item.label === "Consult";
-                      return (
-                        <div key={item.label} style={{
-                          display: "flex", gap: 12, marginBottom: 10,
-                          padding: "10px 14px", borderRadius: 8,
-                          background: isConsult ? `${colors.vitalsWarning}08` : `${colors.white}04`,
-                          border: `1px solid ${isConsult ? `${colors.vitalsWarning}25` : `${colors.white}08`}`,
-                          opacity: apOpacity,
-                        }}>
-                          <span style={{
-                            fontFamily: fonts.mono, fontSize: 12, fontWeight: 700,
-                            color: isConsult ? colors.vitalsWarning : colors.oasis,
-                            minWidth: 80, flexShrink: 0,
-                          }}>{item.label}</span>
-                          <span style={{ fontFamily: fonts.body, fontSize: 15, color: colors.white }}>{item.value}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* ── Phase 6: Encounter Review + Submit ── */}
-              {isPhase6 && (
-                <div style={{ position: "absolute", inset: 0, opacity: phase6Opacity }}>
-
-                  {/* ── Dim layer — appears when an overlay card is active ── */}
-                  {enc6DimOp > 0 && (
-                    <div style={{
-                      position: "absolute", inset: 0,
-                      background: `rgba(0,0,0,${enc6DimOp})`,
-                      zIndex: 1, pointerEvents: "none",
-                    }} />
-                  )}
-
-                  {/* ── Encounter form — centered, with perspective tilt during callouts ── */}
-                  <div style={{
-                    position: "absolute", inset: 0,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    padding: 20, zIndex: 2,
-                    // Perspective container: subtle depth during active callout
-                    perspective: hasActiveCallout ? "900px" : "none",
-                  }}>
-                    <div style={{
-                      width: 480, background: "rgba(12,35,75,0.6)", borderRadius: 12,
-                      border: `1px solid ${colors.white}10`, padding: "22px 26px",
-                      // Subtle 3D tilt — max 1.2° rotateX, fades with callout
-                      transform: hasActiveCallout
-                        ? `rotateX(${formTiltDeg}deg) scale(${1 - formTiltDeg * 0.003})`
+                {differentials.map((dx, i) => {
+                  const dxItemOp = interpolate(frame, [DX_S + 16 + i * 22, DX_S + 32 + i * 22], [0, 1], clamp);
+                  const isTop = i === 0;
+                  return (
+                    <div key={dx.name} style={{
+                      display: "flex", alignItems: "center",
+                      padding: isTop ? "18px 20px" : "12px 16px",
+                      borderRadius: 10, marginBottom: 10,
+                      background: isTop ? `${dx.color}14` : `${dx.color}06`,
+                      borderLeft: `4px solid ${dx.color}`,
+                      border: isTop
+                        ? `1.5px solid ${dx.color}${Math.round(dxTopGlow * 92).toString(16).padStart(2, "00")}`
+                        : `1px solid ${dx.color}16`,
+                      borderLeftWidth: 4,
+                      opacity: dxItemOp * (isTop ? 1.0 : 0.60),
+                      transform: isTop ? `scale(${1 + dxTopGlow * 0.012})` : "none",
+                      transformOrigin: "left center",
+                      boxShadow: isTop
+                        ? `0 0 22px ${dx.color}${Math.round(dxTopGlow * 58).toString(16).padStart(2, "00")}`
                         : "none",
-                      transformOrigin: "50% 50%",
                     }}>
-                      <div style={{ fontFamily: fonts.heading, fontSize: 20, fontWeight: 700, color: colors.white, marginBottom: 4 }}>
-                        Patient Encounter
+                      <div style={{ flex: 1 }}>
+                        <div style={{
+                          fontFamily: fonts.body, fontSize: isTop ? 18 : 15,
+                          color: isTop ? colors.white : `${colors.white}65`,
+                          fontWeight: isTop ? 700 : 400,
+                        }}>{dx.name}</div>
                       </div>
-                      <div style={{ fontFamily: fonts.body, fontSize: 13, color: `${colors.white}50`, marginBottom: 16 }}>
-                        Full encounter summary — ready for submission
-                      </div>
-
-                      {encounterSections.map((sec, i) => {
-                        const secDelay = 1529 + i * 17;
-                        const secOpacity = interpolate(frame, [secDelay, secDelay + 14], [0, 1], clamp);
-
-                        // 3D callout state for this row
-                        const isLiftedRow   = hasActiveCallout && activeCalloutIdx === i;
-                        const isDimmedRow   = hasActiveCallout && activeCalloutIdx !== i;
-                        const rowCalloutOp  = isLiftedRow ? calloutOps[i] : 0;
-
-                        // Legacy overlay highlights (from side overlay cards)
-                        const isLegacyHighlight =
-                          (i === 1 && overlay1Op > 0) ||
-                          ((i === 2 || i === 3) && overlay2Op > 0) ||
-                          (i === 4 && overlay2Op > 0);
-
-                        const rowColor = calloutLabels[i].color;
-
-                        return (
-                          <div key={sec.label} style={{
-                            display: "flex", alignItems: "center", justifyContent: "space-between",
-                            padding: "9px 14px", borderRadius: 6, marginBottom: 4,
-                            // Lift active row; dim others; legacy overlay highlight
-                            background: isLiftedRow
-                              ? `${rowColor}16`
-                              : isLegacyHighlight
-                                ? `${colors.oasis}12`
-                                : `${colors.white}04`,
-                            border: isLiftedRow
-                              ? `1px solid ${rowColor}${Math.round(rowCalloutOp * 80).toString(16).padStart(2, "0")}`
-                              : isLegacyHighlight
-                                ? `1px solid ${colors.oasis}30`
-                                : `1px solid transparent`,
-                            borderBottom: (!isLiftedRow && !isLegacyHighlight)
-                              ? `1px solid ${colors.white}06`
-                              : undefined,
-                            // Lift: slight upward shift + scale; others dimmed
-                            opacity: secOpacity * (isDimmedRow ? 0.45 : 1.0),
-                            transform: isLiftedRow
-                              ? `translateY(-2px) scale(1.022) translateZ(0)`
-                              : "none",
-                            transformOrigin: "50% 50%",
-                            boxShadow: isLiftedRow
-                              ? `0 4px 18px ${rowColor}25`
-                              : "none",
-                          }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                              <span style={{ fontFamily: fonts.mono, fontSize: 14, color: colors.vitalsNormal }}>✓</span>
-                              <span style={{
-                                fontFamily: fonts.body, fontSize: 15,
-                                color: isLiftedRow ? colors.white : `${colors.white}${isDimmedRow ? "70" : ""}`,
-                                fontWeight: isLiftedRow ? 600 : 400,
-                              }}>{sec.label}</span>
-                            </div>
-                            <span style={{
-                              fontFamily: fonts.mono, fontSize: 12,
-                              color: isLiftedRow ? `${rowColor}CC` : `${colors.white}50`,
-                            }}>
-                              {sec.items} items
-                            </span>
-                          </div>
-                        );
-                      })}
-
-                      {/* Submit button */}
-                      <div style={{
-                        marginTop: 18, padding: "12px 0", borderRadius: 8, textAlign: "center" as const,
-                        background: submitProgress > 0
-                          ? `linear-gradient(135deg, ${colors.vitalsNormal}, #059669)`
-                          : `linear-gradient(135deg, ${colors.arizonaBlue}, ${colors.azurite})`,
-                        border: `1px solid ${submitProgress > 0 ? `${colors.vitalsNormal}50` : `${colors.oasis}30`}`,
-                        fontFamily: fonts.heading, fontSize: 16, fontWeight: 700,
-                        color: colors.white,
-                        opacity: interpolate(frame, [1749, 1778], [0, 1], clamp),
-                        transform: `scale(${submitProgress > 0 ? 1 + submitProgress * 0.03 : 1})`,
-                        boxShadow: submitProgress > 0 ? `0 0 24px ${colors.vitalsNormal}30` : "none",
-                      }}>
-                        {submitProgress > 0.5 ? "✓ Session Submitted" : "Submit Encounter"}
-                      </div>
+                      <span style={{
+                        fontFamily: fonts.mono, fontSize: 12, fontWeight: 700,
+                        color: dx.color, background: `${dx.color}18`,
+                        padding: "4px 12px", borderRadius: 4, flexShrink: 0,
+                      }}>{dx.likelihood}</span>
                     </div>
-                  </div>
+                  );
+                })}
+              </div>
 
-                  {/* ── Callout labels + connectors — left of form card ── */}
-                  {calloutOps.map((op, i) => {
-                    if (op < 0.02) return null;
-                    const meta  = calloutLabels[i];
-                    const rowY  = calloutRowYs[i];
-                    return (
-                      <React.Fragment key={`callout-${i}`}>
-                        {/* Thin horizontal connector line: label right → form left edge */}
-                        <div style={{
-                          position: "absolute",
-                          left: 474, top: rowY + 18,
-                          width: 242, height: 1,
-                          background: `linear-gradient(90deg, transparent, ${meta.color}${Math.round(op * 55).toString(16).padStart(2, "0")}, ${meta.color}${Math.round(op * 70).toString(16).padStart(2, "0")})`,
-                          zIndex: 40, pointerEvents: "none",
-                          opacity: op,
-                        }} />
-                        {/* Endpoint dot on the form row */}
-                        <div style={{
-                          position: "absolute",
-                          left: 716, top: rowY + 15,
-                          width: 6, height: 6, borderRadius: "50%",
-                          background: meta.color,
-                          opacity: op * 0.85,
-                          zIndex: 41, pointerEvents: "none",
-                        }} />
-                        {/* Label card */}
-                        <div style={{
-                          position: "absolute",
-                          left: 250, top: rowY + 6,
-                          zIndex: 42, pointerEvents: "none",
-                          opacity: op,
-                        }}>
-                          <div style={{
-                            fontFamily: fonts.mono, fontSize: 11, fontWeight: 700,
-                            color: meta.color,
-                            background: `rgba(5, 10, 30, 0.90)`,
-                            border: `1px solid ${meta.color}${Math.round(op * 55).toString(16).padStart(2, "0")}`,
-                            padding: "5px 14px", borderRadius: 3,
-                            letterSpacing: 1.8,
-                            whiteSpace: "nowrap" as const,
-                            textTransform: "uppercase" as const,
-                          }}>
-                            {meta.text}
-                          </div>
-                        </div>
-                      </React.Fragment>
-                    );
-                  })}
+              {/* Right: Diagnostic results */}
+              <div style={{ flex: 0.85 }}>
+                <div style={{
+                  fontFamily: fonts.mono, fontSize: 10, letterSpacing: 3.5,
+                  color: `${colors.azurite}70`, textTransform: "uppercase" as const,
+                  marginBottom: 6,
+                }}>Supporting Tests</div>
+                <div style={{
+                  fontFamily: fonts.heading, fontSize: 22, fontWeight: 700,
+                  color: colors.white, marginBottom: 22,
+                }}>Diagnostic Results</div>
 
-                  {/* ── "Complete Patient Encounter" pull-back label ── */}
-                  {calloutFullOp > 0 && (
-                    <div style={{
-                      position: "absolute", left: "50%", top: 210,
-                      transform: "translateX(-50%)",
-                      zIndex: 42, pointerEvents: "none", opacity: calloutFullOp,
+                {diagnosticResults.map((t, i) => {
+                  const tOp = interpolate(frame, [DX_S + 28 + i * 18, DX_S + 44 + i * 18], [0, 1], clamp);
+                  const sevColor = t.severity === "Critical" ? colors.vitalsCritical : colors.vitalsWarning;
+                  return (
+                    <div key={t.name} style={{
+                      padding: "10px 16px", borderRadius: 8,
+                      background: `${colors.white}04`,
+                      border: `1px solid ${colors.white}08`,
+                      marginBottom: 8, opacity: tOp,
                     }}>
-                      <div style={{
-                        fontFamily: fonts.mono, fontSize: 11, fontWeight: 700,
-                        color: colors.vitalsNormal,
-                        background: "rgba(5, 10, 30, 0.90)",
-                        border: `1px solid ${colors.vitalsNormal}40`,
-                        padding: "5px 20px", borderRadius: 3,
-                        letterSpacing: 2, textTransform: "uppercase" as const,
-                        whiteSpace: "nowrap" as const,
-                      }}>
-                        Complete Patient Encounter
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 3 }}>
+                        <span style={{ fontFamily: fonts.body, fontSize: 14, fontWeight: 600, color: colors.white }}>
+                          {t.name}
+                        </span>
+                        <span style={{
+                          fontFamily: fonts.mono, fontSize: 10, fontWeight: 700, color: sevColor,
+                          background: `${sevColor}14`, padding: "2px 8px", borderRadius: 3,
+                        }}>{t.severity}</span>
                       </div>
+                      <div style={{ fontFamily: fonts.mono, fontSize: 12, color: `${colors.white}58` }}>{t.result}</div>
                     </div>
-                  )}
-
-                  {/* ════════════════════════════════════════════════
-                      OVERLAY 1 — Physical Examination Findings
-                      Appears right of form while Physical Exam row is highlighted.
-                      f1550–1642
-                     ════════════════════════════════════════════════ */}
-                  {overlay1Op > 0 && (
-                    <div style={{
-                      position: "absolute", right: 56, top: "50%",
-                      transform: "translateY(-52%)",
-                      width: 380, zIndex: 30, pointerEvents: "none",
-                      opacity: overlay1Op,
-                    }}>
-                      <div style={{
-                        background: "rgba(5, 10, 30, 0.95)",
-                        border: `1px solid ${colors.azurite}35`,
-                        borderRadius: 10,
-                        padding: "18px 22px",
-                        boxShadow: `0 12px 40px rgba(0,0,0,0.55), 0 0 0 1px ${colors.azurite}12`,
-                      }}>
-                        {/* Header */}
-                        <div style={{
-                          fontFamily: fonts.mono, fontSize: 10, fontWeight: 700,
-                          color: colors.azurite, letterSpacing: 2.5,
-                          textTransform: "uppercase" as const, marginBottom: 14,
-                        }}>Physical Examination</div>
-
-                        {/* Heart sounds waveform */}
-                        <div style={{
-                          height: 54, display: "flex", alignItems: "center", gap: 10,
-                          background: "rgba(20, 50, 100, 0.35)",
-                          border: `1px solid ${colors.oasis}18`,
-                          borderRadius: 6, padding: "0 12px",
-                          marginBottom: 14,
-                        }}>
-                          <div style={{
-                            fontFamily: fonts.mono, fontSize: 9, fontWeight: 700,
-                            color: `${colors.oasis}70`, letterSpacing: 1.5, flexShrink: 0,
-                          }}>HEART SOUNDS</div>
-                          <div style={{ display: "flex", alignItems: "center", gap: 1.5, flex: 1 }}>
-                            {Array.from({ length: 34 }).map((_, wi) => {
-                              const h = 5 + Math.abs(Math.sin(wi * 0.72 + wavePhase) * 20);
-                              return (
-                                <div key={wi} style={{
-                                  width: 2, height: h, borderRadius: 1,
-                                  background: wi < 17
-                                    ? `${colors.oasis}${Math.round(80 + h * 3).toString(16).padStart(2, "0")}`
-                                    : `${colors.oasis}30`,
-                                }} />
-                              );
-                            })}
-                          </div>
-                          <div style={{
-                            fontFamily: fonts.mono, fontSize: 9, fontWeight: 700,
-                            color: colors.vitalsWarning, letterSpacing: 1, flexShrink: 0,
-                          }}>S3 GALLOP</div>
-                        </div>
-
-                        {/* Exam findings */}
-                        {examFindings.map((ef, fi) => {
-                          const findOp = interpolate(frame, [1556 + fi * 10, 1570 + fi * 10], [0, 1], clamp);
-                          const typeColor = ef.mediaType === "audio" ? colors.vitalsWarning : "#06b6d4";
-                          return (
-                            <div key={ef.tool} style={{
-                              display: "flex", alignItems: "center", gap: 8,
-                              padding: "7px 0",
-                              borderBottom: fi < examFindings.length - 1 ? `1px solid ${colors.white}07` : "none",
-                              opacity: findOp,
-                            }}>
-                              <span style={{
-                                fontFamily: fonts.mono, fontSize: 10, fontWeight: 700,
-                                color: colors.azurite, background: `${colors.azurite}15`,
-                                padding: "1px 7px", borderRadius: 2, flexShrink: 0,
-                              }}>{ef.tool}</span>
-                              <span style={{
-                                fontFamily: fonts.body, fontSize: 13, color: `${colors.white}80`, flex: 1,
-                              }}>{ef.finding}</span>
-                              <span style={{
-                                fontFamily: fonts.mono, fontSize: 9, fontWeight: 700,
-                                color: typeColor, letterSpacing: 1, flexShrink: 0,
-                              }}>{ef.mediaType === "audio" ? "AUDIO" : "IMAGE"}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* ════════════════════════════════════════════════
-                      OVERLAY 2 — Differential Diagnosis & Assessment
-                      Appears right of form while DX + A&P rows are highlighted.
-                      f1650–1726
-                     ════════════════════════════════════════════════ */}
-                  {overlay2Op > 0 && (
-                    <div style={{
-                      position: "absolute", right: 56, top: "50%",
-                      transform: "translateY(-50%)",
-                      width: 380, zIndex: 30, pointerEvents: "none",
-                      opacity: overlay2Op,
-                    }}>
-                      <div style={{
-                        background: "rgba(5, 10, 30, 0.95)",
-                        border: `1px solid ${colors.vitalsCritical}22`,
-                        borderRadius: 10,
-                        padding: "18px 22px",
-                        boxShadow: `0 12px 40px rgba(0,0,0,0.55)`,
-                      }}>
-                        {/* Header */}
-                        <div style={{
-                          fontFamily: fonts.mono, fontSize: 10, fontWeight: 700,
-                          color: colors.vitalsCritical, letterSpacing: 2.5,
-                          textTransform: "uppercase" as const, marginBottom: 12,
-                        }}>Differential Diagnosis</div>
-
-                        {/* Differential list */}
-                        {differentials.map((dx, di) => {
-                          const dxOp = interpolate(frame, [1656 + di * 10, 1670 + di * 10], [0, 1], clamp);
-                          return (
-                            <div key={dx.name} style={{
-                              display: "flex", alignItems: "center", justifyContent: "space-between",
-                              padding: "6px 10px", borderRadius: 5, marginBottom: 5,
-                              background: di === 0 ? `${dx.color}12` : `${colors.white}03`,
-                              borderLeft: `3px solid ${dx.color}`,
-                              opacity: dxOp,
-                            }}>
-                              <span style={{
-                                fontFamily: fonts.body, fontSize: 13,
-                                color: colors.white, fontWeight: di === 0 ? 600 : 400,
-                              }}>{dx.name}</span>
-                              <span style={{
-                                fontFamily: fonts.mono, fontSize: 11, color: dx.color, marginLeft: 8, flexShrink: 0,
-                              }}>{dx.likelihood}</span>
-                            </div>
-                          );
-                        })}
-
-                        {/* Separator */}
-                        <div style={{ height: 1, background: `${colors.white}08`, margin: "12px 0" }} />
-
-                        {/* Assessment & Plan */}
-                        <div style={{
-                          fontFamily: fonts.mono, fontSize: 10, color: `${colors.white}40`,
-                          letterSpacing: 2, marginBottom: 8,
-                          textTransform: "uppercase" as const,
-                        }}>Assessment & Plan</div>
-                        {assessmentItems.map((item, ai) => {
-                          const apOp = interpolate(frame, [1688 + ai * 8, 1700 + ai * 8], [0, 1], clamp);
-                          return (
-                            <div key={item.label} style={{
-                              display: "flex", gap: 10, padding: "4px 0",
-                              borderBottom: ai < assessmentItems.length - 1 ? `1px solid ${colors.white}06` : "none",
-                              opacity: apOp,
-                            }}>
-                              <span style={{
-                                fontFamily: fonts.mono, fontSize: 11, fontWeight: 700,
-                                color: colors.oasis, minWidth: 72, flexShrink: 0,
-                              }}>{item.label}</span>
-                              <span style={{
-                                fontFamily: fonts.body, fontSize: 12, color: `${colors.white}75`, lineHeight: 1.4,
-                              }}>{item.value}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* ════════════════════════════════════════════════
-                      OVERLAY 3 — Session Summary
-                      Appears left of form with submit button, signals completion.
-                      f1758–1875
-                     ════════════════════════════════════════════════ */}
-                  {overlay3Op > 0 && (
-                    <div style={{
-                      position: "absolute", left: 56, top: "50%",
-                      transform: "translateY(-50%)",
-                      width: 340, zIndex: 30, pointerEvents: "none",
-                      opacity: overlay3Op,
-                    }}>
-                      <div style={{
-                        background: "rgba(5, 10, 30, 0.95)",
-                        border: `1px solid ${colors.vitalsNormal}28`,
-                        borderRadius: 10,
-                        padding: "18px 22px",
-                        boxShadow: `0 12px 40px rgba(0,0,0,0.55), 0 0 24px ${colors.vitalsNormal}10`,
-                      }}>
-                        {/* Header */}
-                        <div style={{
-                          fontFamily: fonts.mono, fontSize: 10, fontWeight: 700,
-                          color: colors.vitalsNormal, letterSpacing: 2.5,
-                          textTransform: "uppercase" as const, marginBottom: 14,
-                        }}>Session Summary</div>
-
-                        {/* Metrics */}
-                        {[
-                          { label: "Patient",   value: "Maria Santos — 67F" },
-                          { label: "Duration",  value: "13:47" },
-                          { label: "Sections",  value: "5 / 5 Completed" },
-                          { label: "Next Step", value: "AIMS Evaluation" },
-                        ].map((m, mi) => {
-                          const mOp = interpolate(frame, [1764 + mi * 10, 1778 + mi * 10], [0, 1], clamp);
-                          const isAccent = mi === 3;
-                          return (
-                            <div key={m.label} style={{
-                              display: "flex", justifyContent: "space-between", alignItems: "center",
-                              padding: "7px 0",
-                              borderBottom: mi < 3 ? `1px solid ${colors.white}07` : "none",
-                              opacity: mOp,
-                            }}>
-                              <span style={{
-                                fontFamily: fonts.body, fontSize: 13, color: `${colors.white}50`,
-                              }}>{m.label}</span>
-                              <span style={{
-                                fontFamily: fonts.mono, fontSize: 13,
-                                color: isAccent ? colors.vitalsNormal : colors.white,
-                                fontWeight: isAccent ? 700 : 400,
-                              }}>{m.value}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* ═══════════════════════════════════════════════════════════
-                      CORNER PANELS — Ambient depth context
-                      Mid-depth layer: z=5, 80–82% opacity.
-                      Each corner communicates one solved clinical problem.
-                      Appear as Phase 6 opens; subtle float drift throughout.
-                      ═══════════════════════════════════════════════════════════ */}
-
-                  {/* TOP LEFT — Manual Documentation (the "before" state) */}
-                  {cornerOpFinals[0] > 0.02 && (
-                    <div style={{
-                      position: "absolute", top: 28, left: 28,
-                      width: 222, zIndex: 5, pointerEvents: "none",
-                      opacity: cornerOpFinals[0] * 0.80,
-                      transform: `translateY(${(1 - cornerOps[0]) * 8 + cornerDrifts[0]}px) rotate(1.1deg)`,
-                    }}>
-                      <div style={{
-                        background: "rgba(8, 8, 20, 0.84)", borderRadius: 8,
-                        border: `1px solid ${colors.white}0A`, padding: "13px 15px",
-                        position: "relative", overflow: "hidden",
-                      }}>
-                        <div style={{
-                          fontFamily: fonts.mono, fontSize: 9, letterSpacing: 2.2,
-                          color: `${colors.white}28`, textTransform: "uppercase" as const,
-                          marginBottom: 11,
-                        }}>Manual Documentation</div>
-                        {/* Simulated unstructured note lines — irregular widths imply disorder */}
-                        {[88, 62, 80, 47, 72, 55].map((w, li) => (
-                          <div key={li} style={{
-                            height: 2, borderRadius: 1, marginBottom: 7,
-                            width: `${w}%`,
-                            background: `${colors.white}${li % 3 === 0 ? "10" : "08"}`,
-                            opacity: 1 - li * 0.08,
-                          }} />
-                        ))}
-                        {/* Fade-out gradient — signals this is being replaced */}
-                        <div style={{
-                          position: "absolute", bottom: 0, left: 0, right: 0, height: 40,
-                          background: "linear-gradient(transparent, rgba(5,5,16,0.88))",
-                          borderRadius: "0 0 8px 8px",
-                        }} />
-                      </div>
-                    </div>
-                  )}
-
-                  {/* TOP RIGHT — Structured Case Creation (the "after" state) */}
-                  {cornerOpFinals[1] > 0.02 && (
-                    <div style={{
-                      position: "absolute", top: 28, right: 28,
-                      width: 222, zIndex: 5, pointerEvents: "none",
-                      opacity: cornerOpFinals[1] * 0.82,
-                      transform: `translateY(${(1 - cornerOps[1]) * 8 + cornerDrifts[1]}px)`,
-                    }}>
-                      <div style={{
-                        background: "rgba(6, 14, 32, 0.86)", borderRadius: 8,
-                        border: `1px solid ${colors.oasis}18`, padding: "13px 15px",
-                      }}>
-                        <div style={{
-                          fontFamily: fonts.mono, fontSize: 9, letterSpacing: 2.2,
-                          color: `${colors.oasis}58`, textTransform: "uppercase" as const,
-                          marginBottom: 10,
-                        }}>Structured Case</div>
-                        {[
-                          { label: "History",  barW: "75%" },
-                          { label: "Vitals",   barW: "90%" },
-                          { label: "Findings", barW: "60%" },
-                        ].map((row, ri) => (
-                          <div key={row.label} style={{
-                            display: "flex", alignItems: "center", gap: 8,
-                            padding: "5px 0",
-                            borderBottom: ri < 2 ? `1px solid ${colors.white}06` : "none",
-                          }}>
-                            <span style={{
-                              fontFamily: fonts.mono, fontSize: 10,
-                              color: colors.vitalsNormal, opacity: 0.75,
-                            }}>✓</span>
-                            <span style={{
-                              fontFamily: fonts.body, fontSize: 12,
-                              color: `${colors.white}70`,
-                            }}>{row.label}</span>
-                            <div style={{
-                              marginLeft: "auto", height: 2, width: row.barW,
-                              maxWidth: 44, borderRadius: 1,
-                              background: `${colors.oasis}28`,
-                            }} />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* BOTTOM LEFT — Clinical Reasoning (lifts on DX narration cue) */}
-                  {cornerOpFinals[2] > 0.02 && (
-                    <div style={{
-                      position: "absolute", bottom: 28, left: 28,
-                      width: 222, zIndex: 5, pointerEvents: "none",
-                      opacity: cornerOpFinals[2] * 0.80,
-                      transform: `translateY(${-(1 - cornerOps[2]) * 8 + cornerDrifts[2]}px) scale(${cornerBLScale})`,
-                      transformOrigin: "0% 100%",
-                    }}>
-                      <div style={{
-                        background: "rgba(8, 6, 22, 0.86)", borderRadius: 8,
-                        border: `1px solid ${colors.vitalsCritical}14`, padding: "13px 15px",
-                      }}>
-                        <div style={{
-                          fontFamily: fonts.mono, fontSize: 9, letterSpacing: 2.2,
-                          color: `${colors.vitalsCritical}50`, textTransform: "uppercase" as const,
-                          marginBottom: 10,
-                        }}>Clinical Reasoning</div>
-                        {[
-                          { dx: "Heart Failure",        pct: "72%", hi: true  },
-                          { dx: "Viral Cardiomyopathy", pct: "18%", hi: false },
-                          { dx: "Pulmonary Edema",       pct: "10%", hi: false },
-                        ].map(item => (
-                          <div key={item.dx} style={{
-                            display: "flex", justifyContent: "space-between", alignItems: "center",
-                            padding: "5px 8px", marginBottom: 3, borderRadius: 4,
-                            background: item.hi ? `${colors.vitalsCritical}0E` : "transparent",
-                            border: item.hi ? `1px solid ${colors.vitalsCritical}22` : "1px solid transparent",
-                          }}>
-                            <span style={{
-                              fontFamily: fonts.body, fontSize: 11,
-                              color: item.hi ? colors.white : `${colors.white}48`,
-                              fontWeight: item.hi ? 600 : 400,
-                            }}>{item.dx}</span>
-                            <span style={{
-                              fontFamily: fonts.mono, fontSize: 10,
-                              color: item.hi ? colors.vitalsCritical : `${colors.white}30`,
-                            }}>{item.pct}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* BOTTOM RIGHT — Assessment & Plan (lifts on A&P narration cue) */}
-                  {cornerOpFinals[3] > 0.02 && (
-                    <div style={{
-                      position: "absolute", bottom: 28, right: 28,
-                      width: 222, zIndex: 5, pointerEvents: "none",
-                      opacity: cornerOpFinals[3] * 0.82,
-                      transform: `translateY(${-(1 - cornerOps[3]) * 8 + cornerDrifts[3]}px) scale(${cornerBRScale})`,
-                      transformOrigin: "100% 100%",
-                    }}>
-                      <div style={{
-                        background: "rgba(10, 9, 24, 0.86)", borderRadius: 8,
-                        border: `1px solid ${colors.vitalsWarning}16`, padding: "13px 15px",
-                      }}>
-                        <div style={{
-                          fontFamily: fonts.mono, fontSize: 9, letterSpacing: 2.2,
-                          color: `${colors.vitalsWarning}55`, textTransform: "uppercase" as const,
-                          marginBottom: 10,
-                        }}>Assessment & Plan</div>
-                        {[
-                          { k: "Diagnosis", v: "CHF — NYHA II"    },
-                          { k: "Treatment", v: "Diuretics / ACEi"  },
-                          { k: "Follow-up", v: "7 days"            },
-                        ].map((row, ri) => (
-                          <div key={row.k} style={{
-                            display: "flex", gap: 8, padding: "5px 0",
-                            borderBottom: ri < 2 ? `1px solid ${colors.white}06` : "none",
-                          }}>
-                            <span style={{
-                              fontFamily: fonts.mono, fontSize: 10, fontWeight: 700,
-                              color: `${colors.vitalsWarning}70`, minWidth: 68, flexShrink: 0,
-                            }}>{row.k}</span>
-                            <span style={{
-                              fontFamily: fonts.body, fontSize: 11, color: `${colors.white}58`,
-                            }}>{row.v}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                </div>
-              )}
+                  );
+                })}
+              </div>
             </div>
 
-            {/* ══ Right Sidebar ══ */}
-            {(isPhase2 || isPhase3) && (
+            {/* AI guidance strip */}
+            {aiPanelOp > 0 && (
               <div style={{
-                width: isPhase3 ? 260 : 360,
-                padding: "14px",
-                background: "rgba(12,35,75,0.5)",
-                borderLeft: `1px solid ${colors.white}08`,
-                display: "flex", flexDirection: "column", gap: 10,
-                flexShrink: 0,
-                opacity: interpolate(frame, [231, 266], [0, 1], clamp),
-                transform: isPhase3
-                  ? `scale(${examZoom})`
-                  : `scale(${interviewZoom})`,
-                transformOrigin: "right center",
+                marginTop: 24, paddingTop: 20,
+                borderTop: `1px solid ${colors.white}08`,
+                display: "flex", alignItems: "flex-start", gap: 16,
+                opacity: aiPanelOp,
               }}>
-                {/* ── Phase 2: Chat Panel ── */}
-                {isPhase2 && (
+                <div style={{
+                  display: "flex", alignItems: "center", gap: 7, flexShrink: 0,
+                  background: `${colors.azurite}10`,
+                  border: `1px solid ${colors.azurite}38`,
+                  borderRadius: 6, padding: "6px 12px",
+                }}>
+                  <PulsingDot color={colors.azurite} size={6} delay={DX_S + 80} />
+                  <span style={{
+                    fontFamily: fonts.mono, fontSize: 9, fontWeight: 700,
+                    color: colors.azurite, letterSpacing: 2,
+                  }}>AI GUIDANCE</span>
+                </div>
+                <div>
                   <div style={{
-                    display: "flex", flexDirection: "column", gap: 10, flex: 1,
-                    opacity: phase2Opacity,
+                    fontFamily: fonts.body, fontSize: 15, color: `${colors.white}72`, lineHeight: 1.5,
                   }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 2 }}>
-                      <span style={{ fontFamily: fonts.heading, fontSize: 16, fontWeight: 700, color: colors.white }}>
-                        Patient Interview
-                      </span>
-                      <PulsingDot color={colors.oasis} size={7} delay={252} />
-                    </div>
-
-                    <div style={{ display: "flex", flexDirection: "column", gap: 10, flex: 1 }}>
-                      {chatMessages.map((msg, i) => {
-                        const msgDelay = 287 + i * 48;
-                        const msgOpacity = interpolate(frame, [msgDelay, msgDelay + 22], [0, 1], clamp);
-                        const isStudent = msg.sender === "student";
-                        return (
-                          <div key={i} style={{
-                            display: "flex", justifyContent: isStudent ? "flex-end" : "flex-start",
-                            opacity: msgOpacity,
-                          }}>
-                            <div style={{
-                              maxWidth: "88%", padding: "9px 13px", borderRadius: 10,
-                              background: isStudent
-                                ? `linear-gradient(135deg, ${colors.arizonaBlue}, ${colors.azurite})`
-                                : `${colors.white}10`,
-                              border: `1px solid ${isStudent ? `${colors.oasis}20` : `${colors.white}08`}`,
-                              fontFamily: fonts.body, fontSize: 14, color: colors.white, lineHeight: 1.45,
-                            }}>
-                              <div style={{
-                                fontFamily: fonts.mono, fontSize: 10, color: isStudent ? colors.oasis : `${colors.white}50`,
-                                marginBottom: 3,
-                              }}>{isStudent ? "Student" : "Patient"}</div>
-                              {msg.text}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    <div style={{
-                      padding: "9px 13px", borderRadius: 8,
-                      background: `${colors.white}06`, border: `1px solid ${colors.white}10`,
-                      fontFamily: fonts.body, fontSize: 13, color: `${colors.white}30`,
-                      opacity: interpolate(frame, [494, 528], [0, 1], clamp),
-                    }}>Type your response...</div>
+                    BNP 1,840 pg/mL strongly supports decompensated heart failure.
+                    Consider adding Echocardiogram to workup.
                   </div>
-                )}
-
-                {/* ── Phase 3: Examination Categories + Findings ── */}
-                {isPhase3 && (
                   <div style={{
-                    display: "flex", flexDirection: "column", gap: 8, flex: 1,
-                    opacity: phase3Opacity,
-                  }}>
-                    <div style={{ fontFamily: fonts.heading, fontSize: 16, fontWeight: 700, color: colors.white }}>
-                      Examination Categories
-                    </div>
-
-                    <div style={{
-                      padding: "7px 10px", borderRadius: 8,
-                      background: `${colors.white}05`, border: `1px solid ${colors.white}12`,
-                      fontFamily: fonts.body, fontSize: 12, color: `${colors.white}30`,
-                      opacity: interpolate(frame, [584, 611], [0, 1], clamp),
-                    }}>Search categories...</div>
-
-                    <div style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1, overflow: "hidden" }}>
-                      {examCategories.map((cat, i) => {
-                        const catDelay = 597 + i * 11;
-                        const catOpacity = interpolate(frame, [catDelay, catDelay + 12], [0, 1], clamp);
-                        const isChecked = i < categoriesChecked;
-                        const checkAnim = isChecked ? interpolate(frame, [687 + i * 55, 715 + i * 55], [0, 1], clamp) : 0;
-                        return (
-                          <div key={cat} style={{
-                            display: "flex", alignItems: "center", justifyContent: "space-between",
-                            padding: "7px 12px", borderRadius: 5,
-                            background: isChecked && checkAnim > 0 ? `${colors.oasis}08` : `${colors.white}03`,
-                            borderBottom: `1px solid ${colors.white}05`,
-                            opacity: catOpacity,
-                          }}>
-                            <span style={{
-                              fontFamily: fonts.body, fontSize: 14,
-                              color: isChecked && checkAnim > 0 ? colors.oasis : colors.white,
-                              fontWeight: isChecked ? 600 : 400,
-                            }}>{cat}</span>
-                            <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                              {isChecked && checkAnim > 0 && (
-                                <span style={{ fontFamily: fonts.mono, fontSize: 13, color: colors.vitalsNormal, opacity: checkAnim }}>✓</span>
-                              )}
-                              <span style={{ fontFamily: fonts.body, fontSize: 14, color: `${colors.white}25` }}>›</span>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    {/* Findings */}
-                    <div style={{
-                      borderTop: `1px solid ${colors.white}10`, paddingTop: 8, marginTop: "auto",
-                      opacity: interpolate(frame, [755, 790], [0, 1], clamp),
-                    }}>
-                      <div style={{
-                        fontFamily: fonts.mono, fontSize: 10, color: `${colors.white}50`,
-                        letterSpacing: 1, textTransform: "uppercase" as const, marginBottom: 6,
-                      }}>Findings</div>
-                      {examFindings.map((ef, i) => {
-                        const fOpacity = interpolate(frame, [776 + i * 22, 800 + i * 22], [0, 1], clamp);
-                        return (
-                          <div key={ef.tool} style={{
-                            display: "flex", gap: 6, marginBottom: 6, opacity: fOpacity, alignItems: "center",
-                          }}>
-                            <span style={{
-                              fontFamily: fonts.mono, fontSize: 11, fontWeight: 600, color: colors.oasis,
-                              background: `${colors.oasis}12`, padding: "2px 6px", borderRadius: 3,
-                              whiteSpace: "nowrap" as const, flexShrink: 0,
-                            }}>{ef.tool}</span>
-                            <span style={{ fontFamily: fonts.body, fontSize: 12, color: `${colors.white}70`, lineHeight: 1.3 }}>{ef.finding}</span>
-                            <span style={{
-                              fontFamily: fonts.mono, fontSize: 9, fontWeight: 700,
-                              color: ef.mediaType === "audio" ? colors.vitalsWarning : "#06b6d4",
-                              background: `${ef.mediaType === "audio" ? colors.vitalsWarning : "#06b6d4"}15`,
-                              padding: "1px 6px", borderRadius: 2, flexShrink: 0, letterSpacing: 1,
-                            }}>{ef.mediaType === "audio" ? "AUDIO" : "IMAGE"}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
+                    fontFamily: fonts.mono, fontSize: 10, color: `${colors.white}30`, marginTop: 5,
+                  }}>Faculty-controlled · Students see guidance only when enabled</div>
+                </div>
               </div>
             )}
           </div>
         </div>
       )}
+
+      {/* ════════════════════════════════════════════════════════════════
+          AP PHASE — ASSESSMENT & PLAN
+          Clean structured documentation panel. Items appear sequentially.
+         ════════════════════════════════════════════════════════════════ */}
+      {apOp > 0.01 && (
+        <div style={{
+          position: "absolute", left: "50%", top: PANEL_TOP,
+          transform: `translate(-50%, -50%) scale(${apScale})`,
+          width: 860, pointerEvents: "none", zIndex: 20,
+          opacity: apOp, transformOrigin: "center center",
+        }}>
+          <div style={{
+            background: "rgba(6, 12, 36, 0.95)",
+            border: `1.5px solid ${colors.oasis}28`,
+            borderRadius: 20, padding: "32px 42px",
+            boxShadow: `0 0 70px ${colors.oasis}10, 0 24px 68px rgba(0,0,0,0.60)`,
+          }}>
+            <div style={{
+              fontFamily: fonts.mono, fontSize: 10, letterSpacing: 3.5,
+              color: `${colors.oasis}70`, textTransform: "uppercase" as const,
+              marginBottom: 6,
+            }}>Clinical Documentation</div>
+            <div style={{
+              fontFamily: fonts.heading, fontSize: 24, fontWeight: 700,
+              color: colors.white, marginBottom: 28,
+            }}>Assessment & Plan</div>
+
+            {assessmentItems.map((item, i) => {
+              const apItemOp = interpolate(frame, [AP_S + 16 + i * 20, AP_S + 32 + i * 20], [0, 1], clamp);
+              const isConsult = item.label === "Consult";
+              return (
+                <div key={item.label} style={{
+                  display: "flex", gap: 18, padding: "16px 20px",
+                  borderRadius: 10, marginBottom: 10,
+                  background: isConsult ? `${colors.vitalsWarning}08` : `${colors.white}04`,
+                  border: `1px solid ${isConsult ? `${colors.vitalsWarning}28` : `${colors.white}08`}`,
+                  opacity: apItemOp,
+                }}>
+                  <span style={{
+                    fontFamily: fonts.mono, fontSize: 13, fontWeight: 800,
+                    color: isConsult ? colors.vitalsWarning : colors.oasis,
+                    minWidth: 92, flexShrink: 0, lineHeight: 1.4,
+                  }}>{item.label}</span>
+                  <span style={{
+                    fontFamily: fonts.body, fontSize: 18,
+                    color: colors.white, lineHeight: 1.4,
+                  }}>{item.value}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════════════════════════════
+          EC PHASE — PATIENT ENCOUNTER SUMMARY
+          All 5 sections, each highlighted in sequence as narration
+          describes them. Submit button appears at the end.
+         ════════════════════════════════════════════════════════════════ */}
+      {ecOp > 0.01 && (
+        <div style={{
+          position: "absolute", left: "50%", top: PANEL_TOP,
+          transform: `translate(-50%, -50%) scale(${ecScale})`,
+          width: 720, pointerEvents: "none", zIndex: 20,
+          opacity: ecOp, transformOrigin: "center center",
+        }}>
+          <div style={{
+            background: "rgba(5, 10, 30, 0.96)",
+            border: `1.5px solid ${colors.vitalsNormal}28`,
+            borderRadius: 20, padding: "32px 42px",
+            boxShadow: `0 0 80px ${colors.vitalsNormal}10, 0 28px 80px rgba(0,0,0,0.65)`,
+          }}>
+            <div style={{
+              fontFamily: fonts.mono, fontSize: 10, letterSpacing: 3.5,
+              color: `${colors.vitalsNormal}70`, textTransform: "uppercase" as const,
+              marginBottom: 6,
+            }}>Case Complete</div>
+            <div style={{
+              fontFamily: fonts.heading, fontSize: 24, fontWeight: 700,
+              color: colors.white, marginBottom: 6,
+            }}>Patient Encounter Summary</div>
+            <div style={{
+              fontFamily: fonts.body, fontSize: 14, color: `${colors.white}45`,
+              marginBottom: 26,
+            }}>Maria Santos · 67F · All sections complete</div>
+
+            {encounterSections.map((sec, i) => {
+              const isLift = encCalloutIdx === i;
+              const isDim  = encCalloutIdx >= 0 && encCalloutIdx !== i;
+              const callOp = encCalloutOps[i];
+              const rowColor = encRowColors[i];
+              return (
+                <div key={sec.label} style={{
+                  display: "flex", alignItems: "center", justifyContent: "space-between",
+                  padding: "13px 18px", borderRadius: 8, marginBottom: 6,
+                  background: isLift ? `${rowColor}16` : `${colors.white}04`,
+                  border: isLift
+                    ? `1px solid ${rowColor}${Math.round(callOp * 88).toString(16).padStart(2, "00")}`
+                    : `1px solid ${colors.white}06`,
+                  opacity: encSectionOps[i] * (isDim ? 0.38 : 1.0),
+                  transform: isLift ? "translateY(-2px) scale(1.018)" : "none",
+                  transformOrigin: "50% 50%",
+                  boxShadow: isLift ? `0 4px 22px ${rowColor}22` : "none",
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <span style={{ fontFamily: fonts.mono, fontSize: 16, color: colors.vitalsNormal }}>✓</span>
+                    <span style={{
+                      fontFamily: fonts.body, fontSize: 17,
+                      color: isLift ? colors.white : `${colors.white}80`,
+                      fontWeight: isLift ? 600 : 400,
+                    }}>{sec.label}</span>
+                  </div>
+                  <span style={{
+                    fontFamily: fonts.mono, fontSize: 13,
+                    color: isLift ? `${rowColor}CC` : `${colors.white}38`,
+                  }}>{sec.items} items</span>
+                </div>
+              );
+            })}
+
+            {/* Submit button */}
+            <div style={{
+              marginTop: 24, padding: "15px 0", borderRadius: 10,
+              textAlign: "center" as const,
+              background: submitProgress > 0
+                ? `linear-gradient(135deg, ${colors.vitalsNormal}, #059669)`
+                : `linear-gradient(135deg, ${colors.arizonaBlue}, ${colors.azurite})`,
+              border: `1px solid ${submitProgress > 0 ? `${colors.vitalsNormal}55` : `${colors.oasis}32`}`,
+              fontFamily: fonts.heading, fontSize: 17, fontWeight: 700,
+              color: colors.white,
+              opacity: interpolate(frame, [EC_S + 300, EC_S + 320], [0, 1], clamp),
+              transform: submitProgress > 0 ? `scale(${1 + submitProgress * 0.025})` : "scale(1)",
+              boxShadow: submitProgress > 0 ? `0 0 32px ${colors.vitalsNormal}38` : "none",
+            }}>
+              {submitProgress > 0.5 ? "✓ Session Submitted" : "Submit Encounter"}
+            </div>
+          </div>
+        </div>
+      )}
+
     </SceneShell>
   );
 };

@@ -83,20 +83,7 @@ const PILLAR_P1_X = 240;   // final left-column x
 const PILLAR_P2_X = 750;   // center column x  (also the lone-active position)
 const PILLAR_P3_X = 1260;  // final right-column x
 
-/* Mini-visual data for each pillar */
-const CASE_FIELDS = [
-  { label: "Patient History", w: 0.85 },
-  { label: "Vital Signs",     w: 0.72 },
-  { label: "Exam Findings",   w: 0.80 },
-  { label: "Differentials",   w: 0.65 },
-];
-
-const SIM_VITALS = [
-  { k: "HR",   v: "72",     u: "bpm"  },
-  { k: "BP",   v: "118/76", u: "mmHg" },
-  { k: "SpO₂", v: "98",     u: "%"    },
-];
-
+/* Mini-visual data for Pillar 3 competency bars */
 const EVAL_COMPS = [
   { label: "Clinical Reasoning",  sc: 0.91 },
   { label: "Documentation",       sc: 0.86 },
@@ -231,6 +218,17 @@ export const Scene1_Intro: React.FC = () => {
 
   // Thin separator above pillar row
   const pillarsLineOp = interpolate(frame, [P1_ENTER - 6, P1_ENTER + 14], [0, 1], clamp);
+
+  // P1 inner: document sheets slide in sequentially, stamp appears when all assembled
+  const p1DocProg = interpolate(frame, [P1_ENTER + 8, P1_ENTER + 54], [0, 1], eIO2);
+  const p1StampOp = interpolate(frame, [P1_ENTER + 56, P1_ENTER + 70], [0, 1], eIO2);
+
+  // P2 inner: simulation scope — scan ring draws in, then pulses continuously
+  const p2ScanPulse = 0.5 + 0.5 * Math.sin(frame * 0.14);
+  const p2RingProg  = interpolate(frame, [P2_ENTER + 8, P2_ENTER + 50], [0, 1], eIO2);
+
+  // P3 inner: assessment gauge arc fills to score value (0 → 91%)
+  const p3GaugeProg = interpolate(frame, [P3_ENTER + 8, P3_ENTER + 52], [0, 0.91], eIO2);
 
   const threeContent = (
     <>
@@ -798,22 +796,57 @@ export const Scene1_Intro: React.FC = () => {
                 Building Cases
               </div>
               <div style={{ height: 1, background: `${P1_COLOR}28`, marginBottom: 13 }} />
-              <div style={{ display: "flex", flexDirection: "column" as const, gap: 9 }}>
-                {CASE_FIELDS.map((f, fi) => (
-                  <div key={fi}>
-                    <div style={{
-                      fontFamily: fonts.mono, fontSize: 9,
-                      color: `${colors.white}38`, letterSpacing: 1.5, marginBottom: 4,
+              {/* Clinical document sheets slide in sequentially and assemble into a case */}
+              <div style={{ position: "relative" as const }}>
+                {[
+                  { label: "Patient History", w1: 0.85, w2: 0.62 },
+                  { label: "Vital Signs",     w1: 0.70, w2: 0.88 },
+                  { label: "Exam Findings",   w1: 0.90, w2: 0.68 },
+                ].map((sh, si) => {
+                  const sp = Math.max(0, Math.min(1, (p1DocProg - si * 0.24) / 0.58));
+                  return (
+                    <div key={si} style={{
+                      display: "flex", alignItems: "center", gap: 9,
+                      marginBottom: si < 2 ? 4 : 0,
+                      opacity: sp,
+                      transform: `translateX(${(1 - sp) * -20}px)`,
                     }}>
-                      {f.label}
+                      <div style={{
+                        width: 2, height: 20, borderRadius: 1, flexShrink: 0,
+                        background: `${P1_COLOR}CC`,
+                      }} />
+                      <div style={{ flex: 1 }}>
+                        <div style={{
+                          fontFamily: fonts.mono, fontSize: 8,
+                          color: `${colors.white}32`, letterSpacing: 1.5, marginBottom: 3,
+                        }}>
+                          {sh.label}
+                        </div>
+                        <div style={{
+                          height: 2, background: `${P1_COLOR}55`, borderRadius: 1,
+                          marginBottom: 3, width: `${sh.w1 * 100}%`,
+                        }} />
+                        <div style={{
+                          height: 2, background: `${colors.white}14`, borderRadius: 1,
+                          width: `${sh.w2 * 100}%`,
+                        }} />
+                      </div>
                     </div>
-                    <div style={{
-                      height: 3, width: `${f.w * 100}%`,
-                      background: `linear-gradient(90deg, ${P1_COLOR}CC, ${P1_COLOR}44)`,
-                      borderRadius: 2,
-                    }} />
+                  );
+                })}
+                {p1StampOp > 0.01 && (
+                  <div style={{
+                    marginTop: 8, display: "inline-block",
+                    opacity: p1StampOp,
+                    fontFamily: fonts.mono, fontSize: 8, letterSpacing: 2,
+                    color: `${P1_COLOR}90`,
+                    border: `1px solid ${P1_COLOR}40`, borderRadius: 3,
+                    padding: "2px 8px",
+                    textTransform: "uppercase" as const,
+                  }}>
+                    CASE READY
                   </div>
-                ))}
+                )}
               </div>
             </div>
           </div>
@@ -857,47 +890,62 @@ export const Scene1_Intro: React.FC = () => {
                 Running Simulations
               </div>
               <div style={{ height: 1, background: `${P2_COLOR}28`, marginBottom: 11 }} />
-              {/* Vitals row */}
-              <div style={{ display: "flex", gap: 10, marginBottom: 11 }}>
-                {SIM_VITALS.map((v, vi) => (
-                  <div key={vi} style={{
-                    flex: 1,
-                    background: `${P2_COLOR}0E`,
-                    border: `1px solid ${P2_COLOR}22`,
-                    borderRadius: 8, padding: "7px 8px",
-                    textAlign: "center" as const,
-                  }}>
-                    <div style={{
-                      fontFamily: fonts.mono, fontSize: 8, color: `${P2_COLOR}68`,
-                      letterSpacing: 1.5, marginBottom: 3,
-                      textTransform: "uppercase" as const,
+              {/* Clinical simulation: patient scope with scan ring + live vital readouts */}
+              <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+                {/* Circular scope — abstract patient silhouette + active scan ring */}
+                <svg width={68} height={68} viewBox="0 0 68 68" style={{ flexShrink: 0, overflow: "visible" }}>
+                  {/* Monitor ring */}
+                  <circle cx={34} cy={34} r={30} fill="none" stroke={`${P2_COLOR}20`} strokeWidth={1.2} />
+                  {/* Crosshair */}
+                  <line x1={34} y1={6}  x2={34} y2={62} stroke={`${P2_COLOR}14`} strokeWidth={0.6} />
+                  <line x1={6}  y1={34} x2={62} y2={34} stroke={`${P2_COLOR}14`} strokeWidth={0.6} />
+                  {/* Patient silhouette: head */}
+                  <circle cx={34} cy={18} r={6}
+                    fill={`${P2_COLOR}08`} stroke={`${P2_COLOR}70`} strokeWidth={1.4} />
+                  {/* Patient silhouette: torso */}
+                  <path d="M 27 25 Q 34 22 41 25 L 39 50 Q 34 53 29 50 Z"
+                    fill={`${P2_COLOR}06`} stroke={`${P2_COLOR}48`} strokeWidth={1.2} />
+                  {/* Active scan ring — draws in on entry, then pulses */}
+                  <circle cx={34} cy={34} r={28}
+                    fill="none" stroke={P2_COLOR} strokeWidth={1.5}
+                    strokeDasharray={`${p2RingProg * 176} 176`}
+                    strokeLinecap="round"
+                    transform="rotate(-90 34 34)"
+                    opacity={0.44 + 0.36 * p2ScanPulse}
+                  />
+                  {/* Corner monitor brackets */}
+                  <path d="M 6 15 L 6 6 L 15 6"  fill="none" stroke={`${P2_COLOR}40`} strokeWidth={1.2} />
+                  <path d="M 53 6 L 62 6 L 62 15" fill="none" stroke={`${P2_COLOR}40`} strokeWidth={1.2} />
+                  <path d="M 6 53 L 6 62 L 15 62"  fill="none" stroke={`${P2_COLOR}40`} strokeWidth={1.2} />
+                  <path d="M 53 62 L 62 62 L 62 53" fill="none" stroke={`${P2_COLOR}40`} strokeWidth={1.2} />
+                </svg>
+                {/* Live vital readouts */}
+                <div style={{ flex: 1, display: "flex", flexDirection: "column" as const, gap: 5 }}>
+                  {[
+                    { k: "HR",   v: "74",     u: "bpm",  hi: true  },
+                    { k: "SpO₂", v: "98",     u: "%",    hi: true  },
+                    { k: "BP",   v: "122/78", u: "mmHg", hi: false },
+                  ].map((vt, vi) => (
+                    <div key={vi} style={{
+                      display: "flex", justifyContent: "space-between", alignItems: "baseline",
+                      paddingBottom: 5, borderBottom: `1px solid ${P2_COLOR}14`,
                     }}>
-                      {v.k}
+                      <span style={{ fontFamily: fonts.mono, fontSize: 8, color: `${P2_COLOR}55`, letterSpacing: 1.5 }}>
+                        {vt.k}
+                      </span>
+                      <span style={{
+                        fontFamily: fonts.heading, fontSize: 13, fontWeight: 700,
+                        color: vt.hi ? colors.white : `${colors.white}50`,
+                      }}>
+                        {vt.v}
+                      </span>
+                      <span style={{ fontFamily: fonts.mono, fontSize: 7, color: `${colors.white}28` }}>
+                        {vt.u}
+                      </span>
                     </div>
-                    <div style={{
-                      fontFamily: fonts.heading, fontSize: 15, fontWeight: 700,
-                      color: colors.white,
-                    }}>
-                      {v.v}
-                    </div>
-                    <div style={{
-                      fontFamily: fonts.mono, fontSize: 7, color: `${colors.white}32`,
-                    }}>
-                      {v.u}
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-              {/* ECG waveform */}
-              <svg width="100%" height={20} viewBox="0 0 370 20" style={{ overflow: "visible" }}>
-                <polyline
-                  fill="none"
-                  stroke={`${P2_COLOR}72`}
-                  strokeWidth={1.5}
-                  strokeLinejoin="round"
-                  points="0,10 35,10 44,2 52,18 60,10 95,10 104,2 112,18 120,10 155,10 164,2 172,18 180,10 215,10 224,2 232,18 240,10 275,10 284,2 292,18 300,10 335,10 344,2 352,18 360,10 370,10"
-                />
-              </svg>
             </div>
           </div>
         )}
@@ -940,59 +988,57 @@ export const Scene1_Intro: React.FC = () => {
                 Evaluating Students
               </div>
               <div style={{ height: 1, background: `${P3_COLOR}28`, marginBottom: 12 }} />
-              {/* Score row */}
-              <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 10 }}>
-                <div style={{
-                  fontFamily: fonts.heading, fontSize: 40, fontWeight: 900,
-                  color: P3_COLOR, lineHeight: 1,
-                }}>
-                  91
-                </div>
-                <div>
-                  <div style={{
-                    fontFamily: fonts.mono, fontSize: 9, color: `${P3_COLOR}72`,
-                    letterSpacing: 2, textTransform: "uppercase" as const,
-                  }}>
-                    Avg Score
-                  </div>
-                  <div style={{
-                    fontFamily: fonts.mono, fontSize: 9, color: `${colors.white}30`,
-                    marginTop: 3,
-                  }}>
-                    74 students
-                  </div>
-                </div>
-              </div>
-              {/* Competency bars */}
-              <div style={{ display: "flex", flexDirection: "column" as const, gap: 7 }}>
-                {EVAL_COMPS.map((c, ci) => (
-                  <div key={ci}>
-                    <div style={{
-                      display: "flex", justifyContent: "space-between",
-                      marginBottom: 3,
-                    }}>
-                      <div style={{
-                        fontFamily: fonts.mono, fontSize: 9,
-                        color: `${colors.white}38`,
-                      }}>
-                        {c.label}
+              {/* Calibrated assessment gauge — semicircular arc fills to score */}
+              <svg width="100%" height={62} viewBox="0 0 368 62" style={{ display: "block" }}>
+                {/* Endpoint tick marks */}
+                <line x1={130} y1={59} x2={122} y2={54} stroke={`${P3_COLOR}30`} strokeWidth={1.2} />
+                <line x1={238} y1={59} x2={246} y2={54} stroke={`${P3_COLOR}30`} strokeWidth={1.2} />
+                {/* Track arc (background) */}
+                <path d="M 130 59 A 54 54 0 0 0 238 59"
+                  fill="none" stroke={`${P3_COLOR}18`} strokeWidth={7} strokeLinecap="round" />
+                {/* Score fill arc — animates as pillar enters */}
+                <path d="M 130 59 A 54 54 0 0 0 238 59"
+                  fill="none" stroke={P3_COLOR} strokeWidth={7} strokeLinecap="round"
+                  strokeDasharray={`${p3GaugeProg * 169.6} 169.6`}
+                  opacity={0.88}
+                />
+                {/* Score number */}
+                <text x={184} y={46}
+                  textAnchor="middle" fontFamily={fonts.heading}
+                  fontSize={26} fontWeight={900} fill={P3_COLOR}>
+                  {Math.round(p3GaugeProg * 100)}
+                </text>
+                {/* Label */}
+                <text x={184} y={57}
+                  textAnchor="middle" fontFamily={fonts.mono}
+                  fontSize={7} fill={`${P3_COLOR}55`} letterSpacing={2}>
+                  SCORE
+                </text>
+              </svg>
+              {/* Competency dimension bars */}
+              <div style={{ display: "flex", flexDirection: "column" as const, gap: 5, marginTop: 4 }}>
+                {EVAL_COMPS.slice(0, 2).map((c, ci) => {
+                  const barFill = Math.max(0, Math.min(c.sc, (p3GaugeProg / 0.91) * c.sc));
+                  return (
+                    <div key={ci}>
+                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
+                        <div style={{ fontFamily: fonts.mono, fontSize: 8, color: `${colors.white}35` }}>
+                          {c.label}
+                        </div>
+                        <div style={{ fontFamily: fonts.mono, fontSize: 8, color: `${P3_COLOR}72` }}>
+                          {Math.round(c.sc * 100)}
+                        </div>
                       </div>
-                      <div style={{
-                        fontFamily: fonts.mono, fontSize: 9,
-                        color: `${P3_COLOR}80`,
-                      }}>
-                        {Math.round(c.sc * 100)}
+                      <div style={{ height: 2.5, background: `${P3_COLOR}16`, borderRadius: 2 }}>
+                        <div style={{
+                          height: "100%", width: `${barFill * 100}%`,
+                          background: `linear-gradient(90deg, ${P3_COLOR}CC, ${P3_COLOR}55)`,
+                          borderRadius: 2,
+                        }} />
                       </div>
                     </div>
-                    <div style={{ height: 3, background: `${P3_COLOR}16`, borderRadius: 2 }}>
-                      <div style={{
-                        height: "100%", width: `${c.sc * 100}%`,
-                        background: `linear-gradient(90deg, ${P3_COLOR}CC, ${P3_COLOR}55)`,
-                        borderRadius: 2,
-                      }} />
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
