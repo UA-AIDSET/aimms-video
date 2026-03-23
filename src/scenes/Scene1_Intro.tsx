@@ -61,6 +61,48 @@ const BG_FRAGMENTS: Array<{
   { x: 1446, y: 178,  w: 146, h: 66,  sx:  18, sy: -18, delay: 29, bars: [0.60, 0.78] },
 ];
 
+/* ══════════════════════════════════════════════════════════════════════════
+   THREE PILLARS SEQUENCE — module-level constants
+
+   Timing (30fps): pillars appear one-at-a-time after the tagline settles.
+   P1 starts centered (at P2's final column), shifts left when P2 enters.
+   P2 and P3 always appear at their final 3-column x positions.
+
+   Column math:  240 + 420 + 90 + 420 + 90 + 420 + 240 = 1920 ✓
+   ══════════════════════════════════════════════════════════════════════════ */
+const P1_ENTER    = 228;   // "Building Cases"       enters
+const P2_ENTER    = 308;   // "Running Simulations"  enters (P1 shifts left)
+const P3_ENTER    = 388;   // "Evaluating Students"  enters
+const FINAL_START = 452;   // all three equalize to full prominence
+
+const PILLAR_W = 420;      // card width  (px)
+const PILLAR_H = 210;      // card height (px)
+const PILLAR_Y = 814;      // y-top of pillar row
+
+const PILLAR_P1_X = 240;   // final left-column x
+const PILLAR_P2_X = 750;   // center column x  (also the lone-active position)
+const PILLAR_P3_X = 1260;  // final right-column x
+
+/* Mini-visual data for each pillar */
+const CASE_FIELDS = [
+  { label: "Patient History", w: 0.85 },
+  { label: "Vital Signs",     w: 0.72 },
+  { label: "Exam Findings",   w: 0.80 },
+  { label: "Differentials",   w: 0.65 },
+];
+
+const SIM_VITALS = [
+  { k: "HR",   v: "72",     u: "bpm"  },
+  { k: "BP",   v: "118/76", u: "mmHg" },
+  { k: "SpO₂", v: "98",     u: "%"    },
+];
+
+const EVAL_COMPS = [
+  { label: "Clinical Reasoning",  sc: 0.91 },
+  { label: "Documentation",       sc: 0.86 },
+  { label: "Patient Interaction", sc: 0.88 },
+];
+
 export const Scene1_Intro: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -143,6 +185,52 @@ export const Scene1_Intro: React.FC = () => {
   // Panel shared styling helpers
   const panelBorderColor = `${colors.oasis}28`;       // ~16% opacity
   const panelFill = `linear-gradient(180deg, ${colors.azurite}0D 0%, ${colors.midnight}07 60%, transparent 100%)`;
+
+  // ── THREE PILLARS ANIMATION VARIABLES ─────────────────────────────────────
+  const P1_COLOR = colors.arizonaRed;
+  const P2_COLOR = colors.oasis;
+  const P3_COLOR = colors.vitalsNormal;
+
+  const eIO2  = { ...clamp, ...easeIO };
+  const eOut2 = { ...clamp, easing: Easing.out(Easing.ease) };
+
+  // P1 "Building Cases": enters centered (PILLAR_P2_X), shifts left when P2 enters
+  const p1X     = interpolate(frame, [P2_ENTER, P2_ENTER + 26], [PILLAR_P2_X, PILLAR_P1_X], eIO2);
+  const p1Op    = interpolate(frame,
+    [P1_ENTER, P1_ENTER+14, P2_ENTER+16, P2_ENTER+30, FINAL_START, FINAL_START+16],
+    [0, 1, 1, 0.44, 0.44, 1], eIO2);
+  const p1Scale = interpolate(frame,
+    [P1_ENTER, P1_ENTER+14, P2_ENTER, P2_ENTER+26, FINAL_START, FINAL_START+16],
+    [0.92, 1.08, 1.08, 0.96, 0.96, 1.0], eIO2);
+  const p1Dy    = interpolate(frame, [P1_ENTER, P1_ENTER+14], [14, 0], eOut2);
+  const p1Glow  = interpolate(frame, [P1_ENTER+14, P2_ENTER, P2_ENTER+20], [1, 1, 0], clamp);
+
+  // P2 "Running Simulations": always at PILLAR_P2_X (center column)
+  const p2Op    = interpolate(frame,
+    [P2_ENTER, P2_ENTER+14, P3_ENTER+16, P3_ENTER+30, FINAL_START, FINAL_START+16],
+    [0, 1, 1, 0.44, 0.44, 1], eIO2);
+  const p2Scale = interpolate(frame,
+    [P2_ENTER, P2_ENTER+14, P3_ENTER, P3_ENTER+26, FINAL_START, FINAL_START+16],
+    [0.92, 1.08, 1.08, 0.96, 0.96, 1.0], eIO2);
+  const p2Dy    = interpolate(frame, [P2_ENTER, P2_ENTER+14], [14, 0], eOut2);
+  const p2Glow  = interpolate(frame, [P2_ENTER+14, P3_ENTER, P3_ENTER+20], [1, 1, 0], clamp);
+
+  // P3 "Evaluating Students": enters at right column, stays active through final
+  const p3Op    = interpolate(frame,
+    [P3_ENTER, P3_ENTER+14, FINAL_START, FINAL_START+16], [0, 1, 1, 1], eIO2);
+  const p3Scale = interpolate(frame,
+    [P3_ENTER, P3_ENTER+14, FINAL_START, FINAL_START+16], [0.92, 1.08, 1.08, 1.0], eIO2);
+  const p3Dy    = interpolate(frame, [P3_ENTER, P3_ENTER+14], [14, 0], eOut2);
+  const p3Glow  = interpolate(frame,
+    [P3_ENTER+14, FINAL_START, FINAL_START+20], [1, 1, 0.5], clamp);
+
+  // Dim the title text stack while pillars are the focal point
+  const mainDimForPillars = interpolate(frame,
+    [P1_ENTER, P1_ENTER+18, FINAL_START, FINAL_START+18],
+    [1, 0.28, 0.28, 0.42], eIO2);
+
+  // Thin separator above pillar row
+  const pillarsLineOp = interpolate(frame, [P1_ENTER - 6, P1_ENTER + 14], [0, 1], clamp);
 
   const threeContent = (
     <>
@@ -522,6 +610,7 @@ export const Scene1_Intro: React.FC = () => {
             padding: 60,
             position: "relative",
             zIndex: 2,
+            opacity: mainDimForPillars,
           }}
         >
           {/* ASTEC Logo — immediate anchor */}
@@ -651,6 +740,263 @@ export const Scene1_Intro: React.FC = () => {
             pointerEvents: "none",
           }} />
         </div>
+
+        {/* ══════════════════════════════════════════════════════════════════
+            LAYER 9 — THREE PILLARS SEQUENCE
+            Beat D: "Building Cases / Running Simulations / Evaluating Students"
+            Appears below the title stack, one pillar at a time.
+            P1 enters centered (PILLAR_P2_X), then shifts left as P2 enters.
+            P2 and P3 always appear at their final column positions.
+           ══════════════════════════════════════════════════════════════════ */}
+
+        {/* Separator — thin gradient rule above pillar row */}
+        {pillarsLineOp > 0.01 && (
+          <div style={{
+            position: "absolute", top: PILLAR_Y - 16, left: "50%",
+            transform: "translateX(-50%)",
+            width: 520, height: 1, zIndex: 4, pointerEvents: "none",
+            background: `linear-gradient(90deg, transparent, ${colors.oasis}26, transparent)`,
+            opacity: pillarsLineOp,
+          }} />
+        )}
+
+        {/* ── PILLAR 1: Building Cases ── */}
+        {p1Op > 0.01 && (
+          <div style={{
+            position: "absolute",
+            left: p1X,
+            top: PILLAR_Y,
+            width: PILLAR_W,
+            height: PILLAR_H,
+            opacity: p1Op,
+            transform: `scale(${p1Scale}) translateY(${p1Dy}px)`,
+            transformOrigin: "center top",
+            zIndex: 5, pointerEvents: "none",
+          }}>
+            <div style={{
+              height: "100%", borderRadius: 16,
+              background: "rgba(5, 10, 32, 0.92)",
+              backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)",
+              border: `1.5px solid ${P1_COLOR}${Math.round(p1Glow * 76 + 22).toString(16).padStart(2, "0")}`,
+              padding: "22px 26px",
+              boxShadow: p1Glow > 0.1
+                ? `0 0 64px ${P1_COLOR}26, 0 18px 48px rgba(0,0,0,0.52)`
+                : `0 8px 28px rgba(0,0,0,0.35)`,
+              display: "flex", flexDirection: "column" as const,
+            }}>
+              <div style={{
+                fontFamily: fonts.mono, fontSize: 10, letterSpacing: 3.5,
+                color: `${P1_COLOR}80`, textTransform: "uppercase" as const,
+                marginBottom: 7,
+              }}>
+                01
+              </div>
+              <div style={{
+                fontFamily: fonts.heading, fontSize: 22, fontWeight: 800,
+                color: colors.white, marginBottom: 14, lineHeight: 1.2,
+              }}>
+                Building Cases
+              </div>
+              <div style={{ height: 1, background: `${P1_COLOR}28`, marginBottom: 13 }} />
+              <div style={{ display: "flex", flexDirection: "column" as const, gap: 9 }}>
+                {CASE_FIELDS.map((f, fi) => (
+                  <div key={fi}>
+                    <div style={{
+                      fontFamily: fonts.mono, fontSize: 9,
+                      color: `${colors.white}38`, letterSpacing: 1.5, marginBottom: 4,
+                    }}>
+                      {f.label}
+                    </div>
+                    <div style={{
+                      height: 3, width: `${f.w * 100}%`,
+                      background: `linear-gradient(90deg, ${P1_COLOR}CC, ${P1_COLOR}44)`,
+                      borderRadius: 2,
+                    }} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── PILLAR 2: Running Simulations ── */}
+        {p2Op > 0.01 && (
+          <div style={{
+            position: "absolute",
+            left: PILLAR_P2_X,
+            top: PILLAR_Y,
+            width: PILLAR_W,
+            height: PILLAR_H,
+            opacity: p2Op,
+            transform: `scale(${p2Scale}) translateY(${p2Dy}px)`,
+            transformOrigin: "center top",
+            zIndex: 5, pointerEvents: "none",
+          }}>
+            <div style={{
+              height: "100%", borderRadius: 16,
+              background: "rgba(5, 10, 32, 0.92)",
+              backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)",
+              border: `1.5px solid ${P2_COLOR}${Math.round(p2Glow * 76 + 22).toString(16).padStart(2, "0")}`,
+              padding: "22px 26px",
+              boxShadow: p2Glow > 0.1
+                ? `0 0 64px ${P2_COLOR}26, 0 18px 48px rgba(0,0,0,0.52)`
+                : `0 8px 28px rgba(0,0,0,0.35)`,
+              display: "flex", flexDirection: "column" as const,
+            }}>
+              <div style={{
+                fontFamily: fonts.mono, fontSize: 10, letterSpacing: 3.5,
+                color: `${P2_COLOR}80`, textTransform: "uppercase" as const,
+                marginBottom: 7,
+              }}>
+                02
+              </div>
+              <div style={{
+                fontFamily: fonts.heading, fontSize: 22, fontWeight: 800,
+                color: colors.white, marginBottom: 14, lineHeight: 1.2,
+              }}>
+                Running Simulations
+              </div>
+              <div style={{ height: 1, background: `${P2_COLOR}28`, marginBottom: 11 }} />
+              {/* Vitals row */}
+              <div style={{ display: "flex", gap: 10, marginBottom: 11 }}>
+                {SIM_VITALS.map((v, vi) => (
+                  <div key={vi} style={{
+                    flex: 1,
+                    background: `${P2_COLOR}0E`,
+                    border: `1px solid ${P2_COLOR}22`,
+                    borderRadius: 8, padding: "7px 8px",
+                    textAlign: "center" as const,
+                  }}>
+                    <div style={{
+                      fontFamily: fonts.mono, fontSize: 8, color: `${P2_COLOR}68`,
+                      letterSpacing: 1.5, marginBottom: 3,
+                      textTransform: "uppercase" as const,
+                    }}>
+                      {v.k}
+                    </div>
+                    <div style={{
+                      fontFamily: fonts.heading, fontSize: 15, fontWeight: 700,
+                      color: colors.white,
+                    }}>
+                      {v.v}
+                    </div>
+                    <div style={{
+                      fontFamily: fonts.mono, fontSize: 7, color: `${colors.white}32`,
+                    }}>
+                      {v.u}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {/* ECG waveform */}
+              <svg width="100%" height={20} viewBox="0 0 370 20" style={{ overflow: "visible" }}>
+                <polyline
+                  fill="none"
+                  stroke={`${P2_COLOR}72`}
+                  strokeWidth={1.5}
+                  strokeLinejoin="round"
+                  points="0,10 35,10 44,2 52,18 60,10 95,10 104,2 112,18 120,10 155,10 164,2 172,18 180,10 215,10 224,2 232,18 240,10 275,10 284,2 292,18 300,10 335,10 344,2 352,18 360,10 370,10"
+                />
+              </svg>
+            </div>
+          </div>
+        )}
+
+        {/* ── PILLAR 3: Evaluating Students ── */}
+        {p3Op > 0.01 && (
+          <div style={{
+            position: "absolute",
+            left: PILLAR_P3_X,
+            top: PILLAR_Y,
+            width: PILLAR_W,
+            height: PILLAR_H,
+            opacity: p3Op,
+            transform: `scale(${p3Scale}) translateY(${p3Dy}px)`,
+            transformOrigin: "center top",
+            zIndex: 5, pointerEvents: "none",
+          }}>
+            <div style={{
+              height: "100%", borderRadius: 16,
+              background: "rgba(5, 10, 32, 0.92)",
+              backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)",
+              border: `1.5px solid ${P3_COLOR}${Math.round(p3Glow * 76 + 22).toString(16).padStart(2, "0")}`,
+              padding: "22px 26px",
+              boxShadow: p3Glow > 0.1
+                ? `0 0 64px ${P3_COLOR}26, 0 18px 48px rgba(0,0,0,0.52)`
+                : `0 8px 28px rgba(0,0,0,0.35)`,
+              display: "flex", flexDirection: "column" as const,
+            }}>
+              <div style={{
+                fontFamily: fonts.mono, fontSize: 10, letterSpacing: 3.5,
+                color: `${P3_COLOR}80`, textTransform: "uppercase" as const,
+                marginBottom: 7,
+              }}>
+                03
+              </div>
+              <div style={{
+                fontFamily: fonts.heading, fontSize: 22, fontWeight: 800,
+                color: colors.white, marginBottom: 14, lineHeight: 1.2,
+              }}>
+                Evaluating Students
+              </div>
+              <div style={{ height: 1, background: `${P3_COLOR}28`, marginBottom: 12 }} />
+              {/* Score row */}
+              <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 10 }}>
+                <div style={{
+                  fontFamily: fonts.heading, fontSize: 40, fontWeight: 900,
+                  color: P3_COLOR, lineHeight: 1,
+                }}>
+                  91
+                </div>
+                <div>
+                  <div style={{
+                    fontFamily: fonts.mono, fontSize: 9, color: `${P3_COLOR}72`,
+                    letterSpacing: 2, textTransform: "uppercase" as const,
+                  }}>
+                    Avg Score
+                  </div>
+                  <div style={{
+                    fontFamily: fonts.mono, fontSize: 9, color: `${colors.white}30`,
+                    marginTop: 3,
+                  }}>
+                    74 students
+                  </div>
+                </div>
+              </div>
+              {/* Competency bars */}
+              <div style={{ display: "flex", flexDirection: "column" as const, gap: 7 }}>
+                {EVAL_COMPS.map((c, ci) => (
+                  <div key={ci}>
+                    <div style={{
+                      display: "flex", justifyContent: "space-between",
+                      marginBottom: 3,
+                    }}>
+                      <div style={{
+                        fontFamily: fonts.mono, fontSize: 9,
+                        color: `${colors.white}38`,
+                      }}>
+                        {c.label}
+                      </div>
+                      <div style={{
+                        fontFamily: fonts.mono, fontSize: 9,
+                        color: `${P3_COLOR}80`,
+                      }}>
+                        {Math.round(c.sc * 100)}
+                      </div>
+                    </div>
+                    <div style={{ height: 3, background: `${P3_COLOR}16`, borderRadius: 2 }}>
+                      <div style={{
+                        height: "100%", width: `${c.sc * 100}%`,
+                        background: `linear-gradient(90deg, ${P3_COLOR}CC, ${P3_COLOR}55)`,
+                        borderRadius: 2,
+                      }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
     </SceneShell>
