@@ -348,107 +348,233 @@ export const Scene4_VirtualPatient: React.FC = () => {
         <div style={{
           position: "absolute", left: "50%", top: PANEL_TOP,
           transform: `translate(-50%, -50%) scale(${introScale})`,
-          width: 860, pointerEvents: "none", zIndex: 20,
+          width: 1300, pointerEvents: "none", zIndex: 20,
           opacity: introOp, transformOrigin: "center center",
         }}>
+          {/* ── Outer shell — same style as all phase panels ── */}
           <div style={{
-            background: "rgba(6, 12, 36, 0.96)",
-            border: `1.5px solid ${colors.azurite}38`,
-            borderRadius: 20, padding: "36px 44px",
-            boxShadow: `0 0 90px ${colors.azurite}14, 0 28px 80px rgba(0,0,0,0.70)`,
+            background: "rgba(5, 10, 30, 0.97)",
+            border: `1.5px solid ${colors.azurite}35`,
+            borderRadius: 20,
+            boxShadow: `0 0 100px ${colors.azurite}12, 0 32px 90px rgba(0,0,0,0.72)`,
+            overflow: "hidden",
           }}>
-            <div style={{ display: "flex", gap: 36, alignItems: "center" }}>
 
-              {/* Abstract 3D patient figure */}
+            {/* ── Header bar — mirrors the nav bar framing ── */}
+            <div style={{
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+              padding: "18px 36px",
+              background: `linear-gradient(90deg, rgba(12,35,75,0.9), rgba(5,10,30,0.9))`,
+              borderBottom: `1px solid ${colors.white}08`,
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+                <div>
+                  <div style={{
+                    fontFamily: fonts.mono, fontSize: 10, letterSpacing: 3,
+                    color: `${colors.azurite}70`, textTransform: "uppercase" as const,
+                    marginBottom: 4,
+                  }}>Virtual Patient Encounter</div>
+                  <div style={{
+                    fontFamily: fonts.heading, fontSize: 26, fontWeight: 800,
+                    color: colors.white, lineHeight: 1.1,
+                  }}>Maria Santos</div>
+                </div>
+                <div style={{
+                  height: 38, width: 1,
+                  background: `${colors.white}10`, flexShrink: 0,
+                }} />
+                <div style={{
+                  fontFamily: fonts.mono, fontSize: 13, color: `${colors.white}55`,
+                  lineHeight: 1.6,
+                }}>
+                  67F · Dyspnea × 3 days<br />
+                  Bilateral leg edema
+                </div>
+              </div>
               <div style={{
-                width: 130, height: 168, flexShrink: 0,
-                background: `linear-gradient(160deg, rgba(12,56,82,0.45), rgba(6,12,36,0.85))`,
-                border: `1px solid ${colors.azurite}32`,
-                borderRadius: 14,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                position: "relative",
+                display: "flex", alignItems: "center", gap: 10,
+                background: `${colors.vitalsCritical}10`,
+                border: `1px solid ${colors.vitalsCritical}40`,
+                borderRadius: 8, padding: "8px 16px",
               }}>
-                <svg width={72} height={114} viewBox="0 0 72 114" style={{ overflow: "visible" }}>
+                <PulsingDot color={colors.vitalsCritical} size={6} delay={INTRO_S} />
+                <span style={{
+                  fontFamily: fonts.mono, fontSize: 10, fontWeight: 700,
+                  color: colors.vitalsCritical, letterSpacing: 2,
+                }}>SIMULATION ACTIVE</span>
+              </div>
+            </div>
+
+            {/* ── Body — patient figure + 2×2 section grid ── */}
+            <div style={{ display: "flex", gap: 0 }}>
+
+              {/* Left: 3D patient figure column */}
+              <div style={{
+                width: 200, flexShrink: 0,
+                display: "flex", flexDirection: "column" as const,
+                alignItems: "center", justifyContent: "center",
+                padding: "28px 0",
+                background: `linear-gradient(180deg, rgba(12,56,82,0.18) 0%, rgba(5,10,30,0.0) 100%)`,
+                borderRight: `1px solid ${colors.white}07`,
+              }}>
+                <svg width={80} height={124} viewBox="0 0 80 124" style={{ overflow: "visible" }}>
                   {/* Scan ring */}
-                  <circle cx={36} cy={20} r={22}
-                    fill="none" stroke={`${colors.oasis}20`} strokeWidth={1}
+                  <circle cx={40} cy={22} r={26}
+                    fill="none" stroke={`${colors.oasis}18`} strokeWidth={1}
                     strokeDasharray="5 4" />
                   {/* Head */}
-                  <circle cx={36} cy={20} r={13}
-                    fill={`${colors.oasis}08`} stroke={`${colors.oasis}70`} strokeWidth={1.5} />
+                  <circle cx={40} cy={22} r={14}
+                    fill={`${colors.oasis}08`} stroke={`${colors.oasis}65`} strokeWidth={1.5} />
                   {/* Torso */}
-                  <path d="M 22 34 Q 36 30 50 34 L 48 76 Q 36 80 24 76 Z"
-                    fill={`${colors.oasis}06`} stroke={`${colors.oasis}45`} strokeWidth={1.3} />
+                  <path d="M 25 37 Q 40 33 55 37 L 53 82 Q 40 87 27 82 Z"
+                    fill={`${colors.oasis}06`} stroke={`${colors.oasis}42`} strokeWidth={1.3} />
                   {/* Arms */}
-                  <line x1={22} y1={36} x2={11} y2={64} stroke={`${colors.oasis}38`} strokeWidth={1.3} />
-                  <line x1={50} y1={36} x2={61} y2={64} stroke={`${colors.oasis}38`} strokeWidth={1.3} />
+                  <line x1={25} y1={40} x2={13} y2={70} stroke={`${colors.oasis}35`} strokeWidth={1.3} />
+                  <line x1={55} y1={40} x2={67} y2={70} stroke={`${colors.oasis}35`} strokeWidth={1.3} />
                   {/* Legs */}
-                  <line x1={28} y1={76} x2={24} y2={112} stroke={`${colors.oasis}38`} strokeWidth={1.3} />
-                  <line x1={44} y1={76} x2={48} y2={112} stroke={`${colors.oasis}38`} strokeWidth={1.3} />
-                  {/* Heart-region highlight */}
-                  <circle cx={32} cy={48} r={4}
-                    fill="none" stroke={`${colors.vitalsCritical}60`} strokeWidth={1}
+                  <line x1={31} y1={82} x2={27} y2={122} stroke={`${colors.oasis}35`} strokeWidth={1.3} />
+                  <line x1={49} y1={82} x2={53} y2={122} stroke={`${colors.oasis}35`} strokeWidth={1.3} />
+                  {/* Cardiac highlight */}
+                  <circle cx={35} cy={52} r={5}
+                    fill="none" stroke={`${colors.vitalsCritical}55`} strokeWidth={1}
                     strokeDasharray="3 3" />
                 </svg>
                 <div style={{
-                  position: "absolute", bottom: 10, left: "50%",
-                  transform: "translateX(-50%)",
-                  fontFamily: fonts.mono, fontSize: 7, color: `${colors.oasis}55`,
-                  letterSpacing: 1.5, whiteSpace: "nowrap",
-                }}>
-                  3D PATIENT MODEL
-                </div>
+                  fontFamily: fonts.mono, fontSize: 7, color: `${colors.oasis}50`,
+                  letterSpacing: 2, marginTop: 10, textAlign: "center" as const,
+                }}>3D PATIENT MODEL</div>
               </div>
 
-              {/* Patient identity + case info */}
-              <div style={{ flex: 1 }}>
-                <div style={{
-                  fontFamily: fonts.mono, fontSize: 10, letterSpacing: 3.5,
-                  color: `${colors.oasis}65`, textTransform: "uppercase" as const,
-                  marginBottom: 10,
-                }}>Virtual Patient Encounter</div>
-                <div style={{
-                  fontFamily: fonts.heading, fontSize: 34, fontWeight: 800,
-                  color: colors.white, lineHeight: 1.1, marginBottom: 6,
-                }}>Maria Santos</div>
-                <div style={{
-                  fontFamily: fonts.mono, fontSize: 14, color: `${colors.white}55`,
-                  marginBottom: 20, lineHeight: 1.5,
-                }}>67F · Chief Complaint: Dyspnea × 3 days, bilateral leg edema</div>
-
-                {/* Encounter capability tags */}
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" as const, marginBottom: 20 }}>
-                  {[
-                    { label: "Interview", color: colors.oasis        },
-                    { label: "Exam",      color: colors.azurite       },
-                    { label: "Media",     color: colors.vitalsWarning },
-                    { label: "Diagnosis", color: colors.vitalsCritical},
-                  ].map(({ label, color }) => (
-                    <div key={label} style={{
-                      fontFamily: fonts.mono, fontSize: 9, fontWeight: 700,
-                      color: `${color}80`, background: `${color}0E`,
-                      border: `1px solid ${color}28`,
-                      padding: "4px 12px", borderRadius: 4, letterSpacing: 1.5,
-                    }}>{label}</div>
-                  ))}
-                </div>
-
-                {/* Simulation active indicator */}
-                <div style={{
-                  display: "flex", alignItems: "center", gap: 10,
-                  paddingTop: 14, borderTop: `1px solid ${colors.white}08`,
-                }}>
-                  <PulsingDot color={colors.vitalsCritical} size={7} delay={INTRO_S} />
-                  <span style={{
-                    fontFamily: fonts.mono, fontSize: 10, fontWeight: 700,
-                    color: colors.vitalsCritical, letterSpacing: 2,
-                  }}>SIMULATION ACTIVE</span>
-                  <span style={{
-                    fontFamily: fonts.mono, fontSize: 10,
-                    color: `${colors.white}35`, marginLeft: 8,
-                  }}>Clinical reasoning required</span>
-                </div>
+              {/* Right: 2×2 section cards — same visual language as phase panels */}
+              <div style={{
+                flex: 1, display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: 0,
+              }}>
+                {[
+                  {
+                    label: "Real-Time Vitals", color: colors.vitalsWarning,
+                    delay: INTRO_S + 10,
+                    content: (
+                      <div style={{ display: "flex", gap: 14, marginTop: 10 }}>
+                        {vitals.slice(0, 4).map(v => (
+                          <div key={v.label} style={{ textAlign: "center" as const }}>
+                            <div style={{ fontFamily: fonts.mono, fontSize: 8, color: `${colors.white}45`, letterSpacing: 1 }}>{v.label}</div>
+                            <div style={{ fontFamily: fonts.mono, fontSize: 17, fontWeight: 700, color: v.color }}>{v.value}</div>
+                            <div style={{ fontFamily: fonts.mono, fontSize: 8, color: `${colors.white}30` }}>{v.unit}</div>
+                          </div>
+                        ))}
+                      </div>
+                    ),
+                  },
+                  {
+                    label: "Patient Interview", color: colors.oasis,
+                    delay: INTRO_S + 16,
+                    content: (
+                      <div style={{ marginTop: 10 }}>
+                        {chatMessages.slice(0, 2).map((m, i) => (
+                          <div key={i} style={{
+                            fontFamily: fonts.body, fontSize: 11,
+                            color: `${colors.white}${i === 0 ? "45" : "30"}`,
+                            marginBottom: 4, lineHeight: 1.4,
+                            overflow: "hidden", whiteSpace: "nowrap" as const,
+                            textOverflow: "ellipsis",
+                          }}>
+                            <span style={{ color: m.from === "student" ? `${colors.oasis}80` : `${colors.white}40`, fontSize: 9 }}>
+                              {m.from === "student" ? "Student  " : "Patient  "}
+                            </span>
+                            {m.text.slice(0, 52)}{m.text.length > 52 ? "…" : ""}
+                          </div>
+                        ))}
+                      </div>
+                    ),
+                  },
+                  {
+                    label: "Physical Exam", color: colors.azurite,
+                    delay: INTRO_S + 22,
+                    content: (
+                      <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" as const }}>
+                        {examTools.map(t => (
+                          <div key={t.name} style={{
+                            fontFamily: fonts.mono, fontSize: 9, fontWeight: 600,
+                            color: `${t.color}80`, background: `${t.color}0C`,
+                            border: `1px solid ${t.color}22`,
+                            padding: "3px 10px", borderRadius: 4, letterSpacing: 1,
+                          }}>{t.name}</div>
+                        ))}
+                      </div>
+                    ),
+                  },
+                  {
+                    label: "Differential Diagnosis", color: colors.vitalsCritical,
+                    delay: INTRO_S + 28,
+                    content: (
+                      <div style={{ marginTop: 10 }}>
+                        {differentials.slice(0, 2).map((d, i) => (
+                          <div key={i} style={{
+                            display: "flex", justifyContent: "space-between", alignItems: "center",
+                            marginBottom: 5,
+                          }}>
+                            <span style={{
+                              fontFamily: fonts.body, fontSize: 11,
+                              color: `${colors.white}${i === 0 ? "65" : "38"}`,
+                              overflow: "hidden", whiteSpace: "nowrap" as const,
+                              textOverflow: "ellipsis", maxWidth: 220,
+                            }}>{d.name}</span>
+                            <span style={{
+                              fontFamily: fonts.mono, fontSize: 9, fontWeight: 700,
+                              color: d.color, marginLeft: 8, flexShrink: 0,
+                            }}>{d.likelihood}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ),
+                  },
+                ].map((sec, si) => {
+                  const secOp = interpolate(frame, [sec.delay, sec.delay + 14], [0, 1], clamp);
+                  const isRight = si % 2 === 1;
+                  const isBottom = si >= 2;
+                  return (
+                    <div key={sec.label} style={{
+                      padding: "20px 22px",
+                      borderRight:  isRight  ? "none" : `1px solid ${colors.white}07`,
+                      borderBottom: isBottom ? "none" : `1px solid ${colors.white}07`,
+                      opacity: secOp,
+                    }}>
+                      <div style={{
+                        fontFamily: fonts.mono, fontSize: 9, letterSpacing: 2.5,
+                        color: `${sec.color}75`, textTransform: "uppercase" as const,
+                        marginBottom: 2,
+                      }}>{sec.label}</div>
+                      {sec.content}
+                    </div>
+                  );
+                })}
               </div>
+            </div>
+
+            {/* ── Footer — mirrors the nav tab strip ── */}
+            <div style={{
+              display: "flex", alignItems: "center", gap: 4,
+              padding: "10px 36px",
+              borderTop: `1px solid ${colors.white}07`,
+              background: "rgba(5,10,30,0.5)",
+              opacity: interpolate(frame, [INTRO_S + 28, INTRO_S + 42], [0, 1], clamp),
+            }}>
+              {(["Chat", "Examine", "Diagnosis", "Assessment"] as const).map((tab) => (
+                <div key={tab} style={{
+                  fontFamily: fonts.heading, fontSize: 12, fontWeight: 500,
+                  color: `${colors.white}42`,
+                  background: "transparent",
+                  padding: "6px 14px", borderRadius: 6,
+                  border: "1px solid transparent",
+                }}>{tab}</div>
+              ))}
+              <div style={{ flex: 1 }} />
+              <div style={{
+                fontFamily: fonts.mono, fontSize: 9, color: `${colors.white}28`,
+                letterSpacing: 1.5,
+              }}>FULLY INTERACTIVE PATIENT</div>
             </div>
           </div>
         </div>
