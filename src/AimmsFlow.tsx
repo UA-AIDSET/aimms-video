@@ -4,6 +4,7 @@ import { TransitionSeries, linearTiming } from "@remotion/transitions";
 import { fade } from "@remotion/transitions/fade";
 import { z } from "zod";
 import { zColor } from "@remotion/zod-types";
+import { Scene0_ColdOpen } from "./scenes/Scene0_ColdOpen";
 import { Scene1_Intro } from "./scenes/Scene1_Intro";
 import { Scene2_MCC } from "./scenes/Scene2_MCC";
 import { Scene3_Assignment } from "./scenes/Scene3_Assignment";
@@ -17,7 +18,8 @@ import { Scene6_FlowRecap } from "./scenes/Scene6_FlowRecap";
  * Voice: ElevenLabs voice tM6ZW48ZoSKdJKuhjatr
  * Model: eleven_monolingual_v1, stability 0.85, similarity_boost 0.75, style 0.0
  *
- * Scene durations (v5 — slower narration pacing):
+ * Scene durations (v7):
+ * 0. Cold Open (ASTEC)   — 240 frames ( 8.0s)  no audio (narration optional)
  * 1. Intro/Title         — 540 frames (18.0s)  audio ~16s
  * 2. MCC Case Creator    — 810 frames (27.0s)  audio ~25s
  * 3. Faculty Assignment  — 660 frames (22.0s)  audio ~20s
@@ -25,7 +27,7 @@ import { Scene6_FlowRecap } from "./scenes/Scene6_FlowRecap";
  * 5. AIMHEI Reports      — 720 frames (24.0s)  audio ~22s
  * 6. Flow Recap & Close  — 720 frames (24.0s)  audio ~22s
  *
- * Total: 5325 - 75 (5 fade transitions × 15 frames) = 5250 frames (~2:55)
+ * Total: 5565 - 90 (6 fade transitions × 15 frames) = 5475 frames (~3:02)
  *
  * @see https://www.remotion.dev/docs/schemas — Zod schema for visual prop editing
  */
@@ -71,6 +73,16 @@ export const AimmsFlow: React.FC<AimsFlowProps> = ({
   return (
     <AbsoluteFill style={{ backgroundColor }}>
       <TransitionSeries>
+        {/* ── Scene 0: Cold Open (ASTEC Building) ── */}
+        <TransitionSeries.Sequence durationInFrames={240} premountFor={30}>
+          <Scene0_ColdOpen />
+        </TransitionSeries.Sequence>
+
+        <TransitionSeries.Transition
+          presentation={fade()}
+          timing={linearTiming({ durationInFrames: fadeDurationFrames })}
+        />
+
         {/* ── Scene 1: Intro ── */}
         <TransitionSeries.Sequence durationInFrames={540} premountFor={30}>
           <Scene1_Intro />

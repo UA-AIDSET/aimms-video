@@ -90,7 +90,7 @@ Always use `colors` and `fonts` exports — never hardcode color values.
 
 ### Static Assets (public/)
 
-- `public/audio/` — 6 scene voiceover MP3s (ElevenLabs, voice ID tM6ZW48ZoSKdJKuhjatr, speed 0.92)
+- `public/audio/` — 6 scene voiceover MP3s (ElevenLabs, voice ID tM6ZW48ZoSKdJKuhjatr, speed 0.92). Scripts live in `scripts/voiceover.md`; regenerate with `npm run voiceover -- --scene N`, then stitch segments to `scene{N}_*.mp3`. After Scene 4 script changes, update `scene4_vp.mp3` and re-verify audio-locked frames in `Scene4_VirtualPatient.tsx` (e.g. vitals at ~f323).
 - `public/screenshots/` — Reference screenshots (not displayed, kept for design reference)
 
 ## Key Patterns

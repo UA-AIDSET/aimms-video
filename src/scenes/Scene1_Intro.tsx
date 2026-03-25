@@ -9,238 +9,200 @@ import {
   useVideoConfig,
 } from "remotion";
 import { colors, fonts } from "../theme";
-import { AnimatedBox } from "../components/AnimatedBox";
 import { SceneShell } from "../layouts/SceneShell";
 import { ParticleField } from "../three/ParticleField";
 import { AnimatedGrid } from "../three/AnimatedGrid";
 import { GlowOrb } from "../three/GlowOrb";
 import { CameraRig } from "../three/CameraRig";
 
-/**
- * Scene 1: Intro — Digital Awakening
- * Layer stack (back to front):
- *   0. Three.js: AnimatedGrid + ParticleField + GlowOrb (3D depth)
- *   1. Dot grid texture — fills empty space with subtle structure
- *   2. Side structural panels — fills the wide empty left/right zones
- *   3. Horizontal data traces — fills empty upper/lower zones
- *   4. Corner UI fragment panels — corner / edge accents
- *   5. Frame border: corner brackets, scan lines, side accent lines
- *   6. Expanding rings (transient)
- *   7. Main text (three-beat progression: AIMMS → subtitle → tagline)
- *   8. Bottom data ticker
- *
- * Total: ~540 frames (15.1s audio + fade)
- */
+/* ═══════════════════════════════════════════════════════════════════════════
+   BEAT TIMING  (30fps · 540 frames = 18 s)
 
-// Side panel data bars — different widths for left vs right
-const LEFT_BARS  = [0.82, 0.65, 0.92, 0.55, 0.78, 0.48, 0.70, 0.60, 0.86, 0.52];
-const RIGHT_BARS = [0.75, 0.90, 0.58, 0.83, 0.68, 0.95, 0.52, 0.77, 0.63, 0.88];
+   BEAT 0  f  0–130   INTRO — ASTEC logo · AIMMS · subtitle
+   BEAT 1  f128–255   BUILDING CASES — documents assemble → case panel
+   BEAT 2  f245–368   RUNNING SIMULATIONS — patient scope + live vitals
+   BEAT 3  f358–460   EVALUATING STUDENTS — score arc + competency bars
+   BEAT 4  f450–535   UNIFIED — three pillars together
+   FADE    f512–535   scene fade out
+   ════════════════════════════════════════════════════════════════════════ */
+const B0E = 130;
+const B1S = 128, B1E = 255;
+const B2S = 245, B2E = 368;
+const B3S = 358, B3E = 460;
+const B4S = 450, B4E = 535;
 
-// Horizontal ambient traces — fills upper (y<280) and lower (y>800) empty zones
-const H_TRACES = [
-  { y: 148, w: 1080, delay: 26, op: 0.100 },
-  { y: 205, w:  800, delay: 36, op: 0.082 },
-  { y: 260, w:  540, delay: 46, op: 0.064 },
-  { y: 820, w: 1080, delay: 31, op: 0.100 },
-  { y: 877, w:  800, delay: 41, op: 0.082 },
-  { y: 934, w:  540, delay: 51, op: 0.064 },
-];
+const CE = { extrapolateLeft: "clamp" as const, extrapolateRight: "clamp" as const };
+const eIO  = Easing.inOut(Easing.cubic);
+const eOut = Easing.out(Easing.cubic);
 
-// Corner/edge UI fragment panels
-const BG_FRAGMENTS: Array<{
-  x: number; y: number; w: number; h: number;
-  sx: number; sy: number; delay: number; bars: number[];
-}> = [
-  { x: 108,  y: 148,  w: 212, h: 108, sx: -38, sy: -28, delay: 5,  bars: [0.72, 0.90, 0.52] },
-  { x: 1600, y: 132,  w: 196, h: 92,  sx:  40, sy: -26, delay: 12, bars: [0.85, 0.60] },
-  { x: 85,   y: 724,  w: 230, h: 112, sx: -36, sy:  32, delay: 18, bars: [0.62, 0.80, 0.46] },
-  { x: 1640, y: 744,  w: 190, h: 96,  sx:  42, sy:  30, delay: 9,  bars: [0.75, 0.55] },
-  { x: 140,  y: 442,  w: 168, h: 74,  sx: -26, sy:  10, delay: 26, bars: [0.80, 0.50] },
-  { x: 1712, y: 458,  w: 156, h: 70,  sx:  28, sy:   8, delay: 21, bars: [0.65, 0.84] },
-  { x: 338,  y: 186,  w: 136, h: 62,  sx: -16, sy: -20, delay: 34, bars: [0.72, 0.50] },
-  { x: 1446, y: 178,  w: 146, h: 66,  sx:  18, sy: -18, delay: 29, bars: [0.60, 0.78] },
-];
+function ph(frame: number, s: number, e: number, fi = 16, fo = 16): number {
+  return interpolate(frame, [s, s + fi, e - fo, e], [0, 1, 1, 0], { ...CE, easing: eIO });
+}
 
-/* ══════════════════════════════════════════════════════════════════════════
-   THREE PILLARS SEQUENCE — module-level constants
+/* ─── document card ─────────────────────────────────────────────── */
+const DocCard: React.FC<{
+  title: string; rows: number; accent: string;
+  x: number; y: number; rot: number; scale: number; opacity: number;
+}> = ({ title, rows, accent, x, y, rot, scale, opacity }) => (
+  <div style={{
+    position: "absolute",
+    left: x, top: y,
+    transform: `translate(-50%, -50%) rotate(${rot}deg) scale(${scale})`,
+    opacity,
+    width: 210, borderRadius: 10, overflow: "hidden",
+    background: "rgba(249,247,242,0.97)",
+    boxShadow: "0 14px 44px rgba(0,0,0,0.50), 0 2px 8px rgba(0,0,0,0.25)",
+    pointerEvents: "none",
+  }}>
+    <div style={{ height: 8, background: accent }} />
+    <div style={{ padding: "11px 14px 14px" }}>
+      <div style={{
+        fontFamily: fonts.heading, fontSize: 15, fontWeight: 700,
+        color: "#1a2035", marginBottom: 9,
+      }}>{title}</div>
+      {Array.from({ length: rows }).map((_, i) => (
+        <div key={i} style={{
+          height: 7, borderRadius: 3,
+          background: "rgba(26,32,53,0.11)",
+          marginBottom: 5,
+          width: `${52 + ((i * 23 + rows * 9) % 38)}%`,
+        }} />
+      ))}
+    </div>
+  </div>
+);
 
-   Timing (30fps): pillars appear one-at-a-time after the tagline settles.
-   P1 starts centered (at P2's final column), shifts left when P2 enters.
-   P2 and P3 always appear at their final 3-column x positions.
-
-   Column math:  240 + 420 + 90 + 420 + 90 + 420 + 240 = 1920 ✓
-   ══════════════════════════════════════════════════════════════════════════ */
-const P1_ENTER    = 228;   // "Building Cases"       enters
-const P2_ENTER    = 308;   // "Running Simulations"  enters (P1 shifts left)
-const P3_ENTER    = 388;   // "Evaluating Students"  enters
-const FINAL_START = 452;   // all three equalize to full prominence
-
-const PILLAR_W = 420;      // card width  (px)
-const PILLAR_H = 210;      // card height (px)
-const PILLAR_Y = 814;      // y-top of pillar row
-
-const PILLAR_P1_X = 240;   // final left-column x
-const PILLAR_P2_X = 750;   // center column x  (also the lone-active position)
-const PILLAR_P3_X = 1260;  // final right-column x
-
-/* Mini-visual data for Pillar 3 competency bars */
-const EVAL_COMPS = [
-  { label: "Clinical Reasoning",  sc: 0.91 },
-  { label: "Documentation",       sc: 0.86 },
-  { label: "Patient Interaction", sc: 0.88 },
-];
+/* ─── competency bar ─────────────────────────────────────────────── */
+const CompBar: React.FC<{ label: string; fill: number; color: string; opacity: number }> = ({
+  label, fill, color, opacity,
+}) => (
+  <div style={{ marginBottom: 18, opacity }}>
+    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+      <span style={{ fontFamily: fonts.body, fontSize: 20, color: "rgba(255,255,255,0.75)" }}>{label}</span>
+      <span style={{ fontFamily: fonts.mono, fontSize: 22, fontWeight: 700, color }}>
+        {Math.round(fill)}%
+      </span>
+    </div>
+    <div style={{ height: 16, borderRadius: 8, background: "rgba(255,255,255,0.10)" }}>
+      <div style={{
+        height: "100%", borderRadius: 8,
+        background: `linear-gradient(90deg, ${color}, ${color}88)`,
+        width: `${fill}%`,
+        boxShadow: `0 0 12px ${color}66`,
+      }} />
+    </div>
+  </div>
+);
 
 export const Scene1_Intro: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const clamp = { extrapolateLeft: "clamp" as const, extrapolateRight: "clamp" as const };
-  const easeIO = { easing: Easing.inOut(Easing.ease) };
 
-  // ── LOGO ENTRANCE ──────────────────────────────────────────────────────────
-  const logoEnter = spring({ frame, fps, config: { damping: 22, stiffness: 80, mass: 1 } });
+  /* ── global ───────────────────────────────────────────────────── */
+  const fadeOut = interpolate(frame, [510, 535], [1, 0], CE);
 
-  // ── HORIZONTAL RULE ────────────────────────────────────────────────────────
-  const ruleWidth = spring({ frame: frame - 30, fps, config: { damping: 25, stiffness: 70 } });
+  /* ── corner brackets ─────────────────────────────────────────── */
+  const bkDraw = interpolate(frame, [5, 60], [0, 1], CE);
+  const bkGlow = 0.6 + 0.4 * Math.sin(frame * 0.06);
+  const CS = 72, CT = 3.5, CI = 40;
+  const sideOp = interpolate(frame, [40, 70], [0, 1], CE) * (0.5 + 0.5 * Math.sin(frame * 0.08));
 
-  // ── SHIMMER across AIMMS ───────────────────────────────────────────────────
-  const shimmerX = interpolate(frame, [50, 120], [-400, 2400], clamp);
+  /* ── ticker ───────────────────────────────────────────────────── */
+  const tickOp  = interpolate(frame, [80, 110], [0, 0.65], CE);
+  const tickX   = interpolate(frame, [80, 580], [0, -2400], CE);
+  const tickStr = "AIMMS v3.2 INITIALIZED   //   NEURAL PIPELINE ACTIVE   //   MEDICAL CASE CREATOR   //   VIRTUAL PATIENT SIM   //   AIMS PERFORMANCE REPORTS   //   FACULTY DASHBOARD   //   AI-POWERED AUTHORING   //   ";
 
-  // ── FRAME BORDER ELEMENTS ──────────────────────────────────────────────────
-  const bracketDraw     = interpolate(frame, [5, 60], [0, 1], clamp);
-  const bracketGlow     = 0.6 + 0.4 * Math.sin(frame * 0.06);
-  const topScanX        = interpolate(frame, [20, 80], [-1920, 0], clamp);
-  const botScanX        = interpolate(frame, [30, 90], [1920, 0], clamp);
-  const sideLineOpacity = interpolate(frame, [40, 70], [0, 1], clamp);
-  const sideLinePulse   = 0.5 + 0.5 * Math.sin(frame * 0.08);
+  /* ── BEAT 0 — intro ──────────────────────────────────────────── */
+  const b0Op      = interpolate(frame, [0, 18, B0E - 18, B0E], [0, 1, 1, 0], { ...CE, easing: eIO });
+  const logoSp    = spring({ frame, fps, config: { damping: 22, stiffness: 80, mass: 1 } });
+  const ruleW     = spring({ frame: frame - 30, fps, config: { damping: 25, stiffness: 70 } });
+  const shimX     = interpolate(frame, [50, 120], [-400, 2400], CE);
+  const settled   = frame >= 90;
+  const breath    = settled ? 1 + 0.007 * Math.sin((frame - 90) * 0.038) : 1;
+  const glowF     = settled ? 0.52 + 0.18 * Math.sin((frame - 90) * 0.038) : 0.40;
+  const subOp     = interpolate(frame, [88, 112], [0, 1], CE);
 
-  // ── EXPANDING RINGS ────────────────────────────────────────────────────────
-  const ringScale    = interpolate(frame, [10, 100], [0, 1], clamp);
-  const ringOpacity  = interpolate(frame, [10, 50, 90, 130], [0, 0.25, 0.15, 0], clamp);
-  const ring2Scale   = interpolate(frame, [30, 120], [0, 1], clamp);
-  const ring2Opacity = interpolate(frame, [30, 70, 110, 150], [0, 0.20, 0.10, 0], clamp);
+  /* ── system expansion ring (intro → pillar transition) ──────── */
+  const expandOp    = interpolate(frame, [110, 122, 144, 162], [0, 1, 1, 0], CE);
+  const expandScale = interpolate(frame, [110, 162], [0.3, 2.4], { ...CE, easing: eOut });
 
-  // ── TICKER ─────────────────────────────────────────────────────────────────
-  const tickerOpacity = interpolate(frame, [80, 110], [0, 0.65], clamp);
-  const tickerScroll  = interpolate(frame, [80, 580], [0, -2400], clamp);
+  /* ── BEAT 1 — building cases ─────────────────────────────────── */
+  const b1Op    = ph(frame, B1S, B1E, 18, 18);
+  const b1Prog  = interpolate(frame, [B1S, B1E], [0, 1], CE);
 
-  // ── GLOBAL FADE OUT ────────────────────────────────────────────────────────
-  const fadeOut = interpolate(frame, [500, 535], [1, 0], clamp);
-
-  // ── BACKGROUND ORGANISE ANIMATION ─────────────────────────────────────────
-  // bg elements: start slightly scattered, settle into final positions
-  const organizeProgress = interpolate(frame, [15, 80], [0, 1], { ...clamp, ...easeIO });
-  const bgSwayX = Math.sin(frame * 0.011) * 7;
-  const bgSwayY = Math.cos(frame * 0.009 + 0.8) * 4;
-
-  // ── DOT GRID TEXTURE ───────────────────────────────────────────────────────
-  const dotGridOp = interpolate(frame, [0, 35], [0, 1], { ...clamp, ...easeIO });
-
-  // ── SIDE STRUCTURAL PANELS ─────────────────────────────────────────────────
-  // Panels appear early (f12-58) to establish spatial structure before text
-  const sidePanelOp = interpolate(frame, [12, 58], [0, 1], { ...clamp, ...easeIO });
-  // Each bar inside a panel reveals staggered top → bottom (suggests system initialising)
-  const leftBarOp  = (i: number) => interpolate(frame, [20 + i * 7, 20 + i * 7 + 22], [0, 1], clamp);
-  const rightBarOp = (i: number) => interpolate(frame, [24 + i * 7, 24 + i * 7 + 22], [0, 1], clamp);
-
-  // ── HORIZONTAL DATA TRACES ─────────────────────────────────────────────────
-  // Draw from center outward (scaleX 0→1) to fill upper/lower empty zones
-  const traceProgress = (delay: number) =>
-    interpolate(frame, [delay, delay + 28], [0, 1], { ...clamp, ...easeIO });
-
-  // ── AIMMS TITLE: subtle breathing after settling ───────────────────────────
-  const aimmsSettled   = frame >= 90;
-  const aimmsBreath    = aimmsSettled ? 1 + 0.008 * Math.sin((frame - 90) * 0.038) : 1;
-  const aimmsGlowF     = aimmsSettled ? 0.52 + 0.18 * Math.sin((frame - 90) * 0.038) : 0.40;
-
-  // ── SUBTITLE DATA LINES ────────────────────────────────────────────────────
-  const dataLine1 = interpolate(frame, [105, 133], [0, 1], { ...clamp, ...easeIO });
-  const dataLine2 = interpolate(frame, [118, 146], [0, 1], { ...clamp, ...easeIO });
-  const dataLine3 = interpolate(frame, [131, 159], [0, 1], { ...clamp, ...easeIO });
-
-  const cornerSize      = 60;
-  const cornerThickness = 2;
-  const cornerInset     = 40;
-
-  const tickerItems = [
-    "AIMMS v3.2 INITIALIZED", "//", "NEURAL PIPELINE ACTIVE", "//",
-    "LLM ENGINE: READY", "//", "MEDICAL CASE CREATOR", "//",
-    "VIRTUAL PATIENT SIM", "//", "AIMS PERFORMANCE REPORTS", "//",
-    "FACULTY DASHBOARD", "//", "AI-POWERED CASE AUTHORING", "//",
+  const DOCS = [
+    { title: "Patient History",  rows: 4, color: colors.azurite,       fromX: -340, fromY: -200, tx: 718,  ty: 380 },
+    { title: "Vital Signs",      rows: 3, color: colors.vitalsWarning,  fromX:  340, fromY: -200, tx: 1202, ty: 380 },
+    { title: "Exam Findings",    rows: 3, color: colors.arizonaRed,     fromX: -340, fromY:  200, tx: 718,  ty: 600 },
+    { title: "Lab Results",      rows: 5, color: "#16a34a",              fromX:  340, fromY:  200, tx: 1202, ty: 600 },
   ];
-  const tickerText = tickerItems.join("   ");
+  const docFlies  = DOCS.map((_, i) =>
+    interpolate(b1Prog, [0.06 + i * 0.09, 0.28 + i * 0.09], [0, 1], { ...CE, easing: eOut })
+  );
+  const assembleP = interpolate(b1Prog, [0.65, 0.88], [0, 1], { ...CE, easing: eIO });
+  const readyOp   = interpolate(b1Prog, [0.85, 0.96], [0, 1], { ...CE, easing: eIO });
 
-  // Panel shared styling helpers
-  const panelBorderColor = `${colors.oasis}28`;       // ~16% opacity
-  const panelFill = `linear-gradient(180deg, ${colors.azurite}0D 0%, ${colors.midnight}07 60%, transparent 100%)`;
+  /* ── BEAT 2 — running simulations ──────────────────────────── */
+  const b2Op    = ph(frame, B2S, B2E, 18, 18);
+  const b2Prog  = interpolate(frame, [B2S, B2E], [0, 1], CE);
+  const simPulse   = 0.5 + 0.5 * Math.sin(frame * 0.19);
+  const simBodyOp  = interpolate(b2Prog, [0.04, 0.24], [0, 1], { ...CE, easing: eOut });
+  const simRingP   = interpolate(b2Prog, [0.08, 0.52], [0, 1], { ...CE, easing: eOut });
+  const VITALS = [
+    { label: "HR",   value: "74",     unit: "bpm",  color: colors.vitalsNormal, style: { left: "2%",  top: "40%" } as React.CSSProperties },
+    { label: "SpO₂", value: "98",     unit: "%",    color: colors.oasis,        style: { right: "2%", top: "40%" } as React.CSSProperties },
+    { label: "BP",   value: "122/78", unit: "mmHg", color: colors.azurite,      style: { left: "2%",  top: "60%" } as React.CSSProperties },
+  ];
+  const vitalOps = VITALS.map((_, i) =>
+    interpolate(b2Prog, [0.30 + i * 0.13, 0.50 + i * 0.13], [0, 1], { ...CE, easing: eOut })
+  );
+  const simBadgeOp = interpolate(b2Prog, [0.62, 0.80], [0, 1], { ...CE, easing: eIO });
 
-  // ── THREE PILLARS ANIMATION VARIABLES ─────────────────────────────────────
-  const P1_COLOR = colors.arizonaRed;
-  const P2_COLOR = colors.oasis;
-  const P3_COLOR = colors.vitalsNormal;
+  /* ── BEAT 3 — evaluating students ─────────────────────────── */
+  const b3Op    = ph(frame, B3S, B3E, 18, 16);
+  const b3Prog  = interpolate(frame, [B3S, B3E], [0, 1], CE);
 
-  const eIO2  = { ...clamp, ...easeIO };
-  const eOut2 = { ...clamp, easing: Easing.out(Easing.ease) };
+  const scoreVal  = Math.floor(interpolate(b3Prog, [0.10, 0.54], [0, 87], CE));
+  const SL        = 2 * Math.PI * 120;
+  const scoreOff  = SL - SL * (scoreVal / 100);
 
-  // P1 "Building Cases": enters centered (PILLAR_P2_X), shifts left when P2 enters
-  const p1X     = interpolate(frame, [P2_ENTER, P2_ENTER + 26], [PILLAR_P2_X, PILLAR_P1_X], eIO2);
-  const p1Op    = interpolate(frame,
-    [P1_ENTER, P1_ENTER+14, P2_ENTER+16, P2_ENTER+30, FINAL_START, FINAL_START+16],
-    [0, 1, 1, 0.44, 0.44, 1], eIO2);
-  const p1Scale = interpolate(frame,
-    [P1_ENTER, P1_ENTER+14, P2_ENTER, P2_ENTER+26, FINAL_START, FINAL_START+16],
-    [0.92, 1.08, 1.08, 0.96, 0.96, 1.0], eIO2);
-  const p1Dy    = interpolate(frame, [P1_ENTER, P1_ENTER+14], [14, 0], eOut2);
-  const p1Glow  = interpolate(frame, [P1_ENTER+14, P2_ENTER, P2_ENTER+20], [1, 1, 0], clamp);
+  const COMPS = [
+    { label: "Clinical Skills",     score: 91, color: colors.vitalsNormal },
+    { label: "Information Gathering", score: 82, color: colors.oasis },
+    { label: "Medical Terminology",   score: 80, color: colors.azurite },
+    { label: "Empathy & Rapport",     score: 88, color: colors.oasis },
+  ];
+  const barFills = COMPS.map((c, i) =>
+    interpolate(b3Prog, [0.22 + i * 0.08, 0.52 + i * 0.08], [0, c.score], CE)
+  );
+  const barOps = COMPS.map((_, i) =>
+    interpolate(b3Prog, [0.18 + i * 0.08, 0.36 + i * 0.08], [0, 1], { ...CE, easing: eOut })
+  );
+  const rubricOp   = interpolate(b3Prog, [0.60, 0.76], [0, 1], { ...CE, easing: eIO });
+  const CHECKS = ["Onset & duration asked", "Medication history reviewed", "Assessment documented"];
+  const checkOps   = CHECKS.map((_, i) =>
+    interpolate(b3Prog, [0.62 + i * 0.09, 0.76 + i * 0.09], [0, 1], { ...CE, easing: eOut })
+  );
+  const evalBadgeOp = interpolate(b3Prog, [0.83, 0.95], [0, 1], { ...CE, easing: eIO });
 
-  // P2 "Running Simulations": always at PILLAR_P2_X (center column)
-  const p2Op    = interpolate(frame,
-    [P2_ENTER, P2_ENTER+14, P3_ENTER+16, P3_ENTER+30, FINAL_START, FINAL_START+16],
-    [0, 1, 1, 0.44, 0.44, 1], eIO2);
-  const p2Scale = interpolate(frame,
-    [P2_ENTER, P2_ENTER+14, P3_ENTER, P3_ENTER+26, FINAL_START, FINAL_START+16],
-    [0.92, 1.08, 1.08, 0.96, 0.96, 1.0], eIO2);
-  const p2Dy    = interpolate(frame, [P2_ENTER, P2_ENTER+14], [14, 0], eOut2);
-  const p2Glow  = interpolate(frame, [P2_ENTER+14, P3_ENTER, P3_ENTER+20], [1, 1, 0], clamp);
+  /* ── BEAT 4 — unified ──────────────────────────────────────── */
+  const b4Op       = interpolate(frame, [B4S, B4S + 22, B4E - 12, B4E], [0, 1, 1, 0], { ...CE, easing: eIO });
+  const b4Scale    = interpolate(frame, [B4S, B4S + 30], [0.92, 1], { ...CE, easing: eIO });
+  const cardEnters = [0, 1, 2].map(i =>
+    interpolate(frame, [B4S + 8 + i * 14, B4S + 26 + i * 14], [0, 1], { ...CE, easing: eOut })
+  );
+  const arrowOp  = interpolate(frame, [B4S + 48, B4S + 64], [0, 1], CE);
 
-  // P3 "Evaluating Students": enters at right column, stays active through final
-  const p3Op    = interpolate(frame,
-    [P3_ENTER, P3_ENTER+14, FINAL_START, FINAL_START+16], [0, 1, 1, 1], eIO2);
-  const p3Scale = interpolate(frame,
-    [P3_ENTER, P3_ENTER+14, FINAL_START, FINAL_START+16], [0.92, 1.08, 1.08, 1.0], eIO2);
-  const p3Dy    = interpolate(frame, [P3_ENTER, P3_ENTER+14], [14, 0], eOut2);
-  const p3Glow  = interpolate(frame,
-    [P3_ENTER+14, FINAL_START, FINAL_START+20], [1, 1, 0.5], clamp);
-
-  // Dim the title text stack while pillars are the focal point
-  const mainDimForPillars = interpolate(frame,
-    [P1_ENTER, P1_ENTER+18, FINAL_START, FINAL_START+18],
-    [1, 0.28, 0.28, 0.42], eIO2);
-
-  // Thin separator above pillar row
-  const pillarsLineOp = interpolate(frame, [P1_ENTER - 6, P1_ENTER + 14], [0, 1], clamp);
-
-  // P1 inner: document sheets slide in sequentially, stamp appears when all assembled
-  const p1DocProg = interpolate(frame, [P1_ENTER + 8, P1_ENTER + 54], [0, 1], eIO2);
-  const p1StampOp = interpolate(frame, [P1_ENTER + 56, P1_ENTER + 70], [0, 1], eIO2);
-
-  // P2 inner: simulation scope — scan ring draws in, then pulses continuously
-  const p2ScanPulse = 0.5 + 0.5 * Math.sin(frame * 0.14);
-  const p2RingProg  = interpolate(frame, [P2_ENTER + 8, P2_ENTER + 50], [0, 1], eIO2);
-
-  // P3 inner: assessment gauge arc fills to score value (0 → 91%)
-  const p3GaugeProg = interpolate(frame, [P3_ENTER + 8, P3_ENTER + 52], [0, 0.91], eIO2);
-
+  /* ── 3D background ─────────────────────────────────────────── */
   const threeContent = (
     <>
       <AnimatedGrid color="#1E5288" opacity={0.06} />
-      <ParticleField count={32} color="#378DBD" speed={0.002} opacity={0.11} />
+      <ParticleField count={36} color="#378DBD" speed={0.002} opacity={0.12} />
       <GlowOrb position={[0, 0, -6]} color={colors.oasis} radius={3} baseOpacity={0.07} />
-      <CameraRig
-        positions={[
-          { frame: 0,   position: [0, 0, 10.5] },
-          { frame: 400, position: [0, 0,  8.5] },
-        ]}
-      />
+      <CameraRig positions={[
+        { frame: 0,   position: [0, 0, 10.5] },
+        { frame: 400, position: [0, 0, 8.5]  },
+      ]} />
     </>
   );
 
@@ -248,603 +210,479 @@ export const Scene1_Intro: React.FC = () => {
     <SceneShell threeContent={threeContent}>
       <div style={{ position: "absolute", inset: 0, overflow: "hidden", opacity: fadeOut }}>
 
-        {/* ══════════════════════════════════════════════════════════════════
-            LAYER 1 — DOT GRID TEXTURE
-            Subtle repeating dot pattern fills the dark background with
-            micro-structure so the frame never reads as pure empty. */}
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            backgroundImage: `radial-gradient(circle, ${colors.oasis}38 1px, transparent 1px)`,
-            backgroundSize: "80px 80px",
-            opacity: dotGridOp * 0.055,
-            transform: `translate(${bgSwayX * 0.3}px, ${bgSwayY * 0.3}px)`,
-            pointerEvents: "none",
-            zIndex: 0,
-          }}
-        />
-
-        {/* ══════════════════════════════════════════════════════════════════
-            LAYER 2 — SIDE STRUCTURAL PANELS
-            Two large faint panels on left and right fill the wide empty
-            zones flanking the center text column. They appear before the
-            text to establish spatial presence first, then the text arrives.
-
-            Left panel: x 68–318  (inside corner bracket, outside fragments)
-            Right panel: x 1602–1852  (mirror) */}
-
-        {/* Left panel */}
-        <div
-          style={{
-            position: "absolute",
-            left: 68,
-            top: 162,
-            width: 258,
-            height: 756,
-            opacity: sidePanelOp,
-            border: `1px solid ${panelBorderColor}`,
-            borderRadius: 6,
-            background: panelFill,
-            overflow: "hidden",
-            pointerEvents: "none",
-            zIndex: 1,
-            transform: `translate(${bgSwayX * 0.55}px, ${bgSwayY * 0.45}px)`,
-          }}
-        >
-          {/* Header accent bar */}
-          <div style={{ height: 2, width: "100%", background: `${colors.arizonaRed}55`, flexShrink: 0 }} />
-          {/* Mono label */}
-          <div style={{
-            fontFamily: fonts.mono, fontSize: 9, letterSpacing: 2.5,
-            color: `${colors.oasis}70`, textTransform: "uppercase",
-            padding: "8px 14px 12px",
-          }}>
-            SYS STATUS
-          </div>
-          {/* Data bar rows — top section */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 10, padding: "0 14px" }}>
-            {LEFT_BARS.slice(0, 6).map((bw, i) => (
-              <div key={i} style={{ opacity: leftBarOp(i) }}>
-                <div style={{ fontSize: 8, fontFamily: fonts.mono, color: `${colors.oasis}50`,
-                  letterSpacing: 1.5, marginBottom: 3 }}>
-                  {["PATIENT DB", "CASE LIB", "AI ENGINE", "FACULTY", "STUDENTS", "REPORTS"][i]}
-                </div>
-                <div style={{
-                  height: 3, width: `${bw * 100}%`,
-                  background: i % 2 === 0
-                    ? `linear-gradient(90deg, ${colors.oasis}C0, ${colors.oasis}50)`
-                    : `linear-gradient(90deg, ${colors.azurite}C0, ${colors.azurite}50)`,
-                  borderRadius: 2,
-                }} />
-              </div>
-            ))}
-          </div>
-          {/* Divider */}
-          <div style={{ height: 1, background: `${colors.oasis}20`, margin: "18px 14px" }} />
-          {/* Secondary bar rows */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 9, padding: "0 14px" }}>
-            {LEFT_BARS.slice(6).map((bw, i) => (
-              <div key={i} style={{ opacity: leftBarOp(i + 7) }}>
-                <div style={{
-                  height: 2, width: `${bw * 100}%`,
-                  background: `${colors.oasis}80`,
-                  borderRadius: 1,
-                }} />
-              </div>
-            ))}
-          </div>
-          {/* Bottom fade */}
-          <div style={{
-            position: "absolute", bottom: 0, left: 0, right: 0, height: 120,
-            background: `linear-gradient(0deg, ${colors.midnight} 0%, transparent 100%)`,
-          }} />
-        </div>
-
-        {/* Right panel */}
-        <div
-          style={{
-            position: "absolute",
-            right: 68,
-            top: 195,
-            width: 250,
-            height: 690,
-            opacity: sidePanelOp,
-            border: `1px solid ${panelBorderColor}`,
-            borderRadius: 6,
-            background: panelFill,
-            overflow: "hidden",
-            pointerEvents: "none",
-            zIndex: 1,
-            transform: `translate(${-bgSwayX * 0.55}px, ${bgSwayY * 0.45}px)`,
-          }}
-        >
-          {/* Header accent bar */}
-          <div style={{ height: 2, width: "100%", background: `${colors.arizonaRed}55` }} />
-          <div style={{
-            fontFamily: fonts.mono, fontSize: 9, letterSpacing: 2.5,
-            color: `${colors.oasis}70`, textTransform: "uppercase",
-            padding: "8px 14px 12px",
-          }}>
-            DATA FLOW
-          </div>
-          {/* Top data group */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: "0 14px" }}>
-            {RIGHT_BARS.slice(0, 4).map((bw, i) => (
-              <div key={i} style={{ opacity: rightBarOp(i) }}>
-                <div style={{ fontSize: 8, fontFamily: fonts.mono, color: `${colors.azurite}55`,
-                  letterSpacing: 1.5, marginBottom: 3 }}>
-                  {["INPUT", "PROCESS", "VALIDATE", "OUTPUT"][i]}
-                </div>
-                <div style={{
-                  height: 3, width: `${bw * 100}%`,
-                  background: i % 2 === 0
-                    ? `linear-gradient(90deg, ${colors.azurite}C0, ${colors.azurite}50)`
-                    : `linear-gradient(90deg, ${colors.oasis}C0, ${colors.oasis}50)`,
-                  borderRadius: 2,
-                }} />
-              </div>
-            ))}
-          </div>
-          {/* Divider */}
-          <div style={{ height: 1, background: `${colors.oasis}20`, margin: "18px 14px" }} />
-          {/* Secondary mini-panel group */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 7, padding: "0 14px" }}>
-            {RIGHT_BARS.slice(4, 8).map((bw, i) => (
-              <div key={i} style={{
-                padding: "6px 10px",
-                border: `1px solid ${colors.azurite}22`,
-                borderRadius: 4,
-                opacity: rightBarOp(i + 5),
-              }}>
-                <div style={{
-                  height: 2, width: `${bw * 100}%`,
-                  background: `${colors.oasis}70`, borderRadius: 1,
-                }} />
-                <div style={{
-                  height: 1.5, width: `${RIGHT_BARS[i + 4 + 1] ?? 0.6 * 100}%`,
-                  background: `${colors.azurite}60`, borderRadius: 1, marginTop: 5,
-                }} />
-              </div>
-            ))}
-          </div>
-          {/* Bottom fade */}
-          <div style={{
-            position: "absolute", bottom: 0, left: 0, right: 0, height: 100,
-            background: `linear-gradient(0deg, ${colors.midnight} 0%, transparent 100%)`,
-          }} />
-        </div>
-
-        {/* ══════════════════════════════════════════════════════════════════
-            LAYER 3 — HORIZONTAL DATA TRACES
-            Fills the empty upper zone (y 148–260) and lower zone (y 820–934)
-            with faint horizontal lines that draw from center outward.
-            Three traces per zone at decreasing widths and opacity. */}
-        {H_TRACES.map((t, i) => {
-          const tp = traceProgress(t.delay);
-          return (
-            <div
-              key={`trace-${i}`}
-              style={{
-                position: "absolute",
-                top: t.y,
-                left: "50%",
-                width: t.w,
-                height: 1,
-                transform: `translateX(-50%) scaleX(${tp})`,
-                transformOrigin: "center",
-                background: i % 2 === 0
-                  ? `linear-gradient(90deg, transparent, ${colors.oasis}70, transparent)`
-                  : `linear-gradient(90deg, transparent, ${colors.azurite}80, transparent)`,
-                opacity: tp * t.op,
-                pointerEvents: "none",
-                zIndex: 1,
-              }}
-            />
-          );
-        })}
-
-        {/* ══════════════════════════════════════════════════════════════════
-            LAYER 4 — CORNER / EDGE FRAGMENT PANELS
-            Small faint UI panels anchored to corners and edge midpoints. */}
-        <div style={{ position: "absolute", inset: 0, zIndex: 1, pointerEvents: "none" }}>
-          {BG_FRAGMENTS.map((frag, i) => {
-            // Corrected opacity: simple fade-in to a visible base
-            const fragOp = interpolate(frame, [frag.delay, frag.delay + 28], [0, 1], clamp);
-            const baseVis = i >= 6 ? 0.13 : 0.17;  // inner panels slightly dimmer
-            const curX = frag.x + frag.sx * (1 - organizeProgress) + bgSwayX * 0.75;
-            const curY = frag.y + frag.sy * (1 - organizeProgress) + bgSwayY * 0.60;
-
-            return (
-              <div
-                key={`frag-${i}`}
-                style={{
-                  position: "absolute",
-                  left: curX,
-                  top: curY,
-                  width: frag.w,
-                  height: frag.h,
-                  opacity: fragOp * baseVis,
-                  border: `1px solid ${colors.oasis}55`,
-                  borderRadius: 5,
-                  padding: "10px 14px",
-                  background: `linear-gradient(135deg, ${colors.azurite}0E, ${colors.oasis}08)`,
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "space-around",
-                  gap: 7,
-                }}
-              >
-                <div style={{ height: 1, width: "35%", background: `${colors.arizonaRed}90`, borderRadius: 1 }} />
-                {frag.bars.map((bw, bi) => (
-                  <div
-                    key={bi}
-                    style={{
-                      height: bi === 0 ? 2 : 1.5,
-                      width: `${bw * 100}%`,
-                      background: bi === 0 ? `${colors.oasis}CC` : `${colors.azurite}A0`,
-                      borderRadius: 1,
-                    }}
-                  />
-                ))}
-              </div>
-            );
-          })}
-        </div>
-
-        {/* ══════════════════════════════════════════════════════════════════
-            LAYER 5 — FRAME BORDER: CORNER BRACKETS, SCAN LINES, SIDE ACCENTS */}
-
-        {/* Corner brackets */}
-        <svg style={{ position: "absolute", top: cornerInset, left: cornerInset }}
-          width={cornerSize} height={cornerSize} viewBox={`0 0 ${cornerSize} ${cornerSize}`}>
-          <path d={`M 0,${cornerSize} L 0,0 L ${cornerSize},0`} fill="none" stroke={colors.oasis}
-            strokeWidth={cornerThickness} strokeLinecap="round" opacity={bracketGlow}
-            strokeDasharray={cornerSize * 2} strokeDashoffset={cornerSize * 2 * (1 - bracketDraw)} />
-        </svg>
-        <svg style={{ position: "absolute", top: cornerInset, right: cornerInset }}
-          width={cornerSize} height={cornerSize} viewBox={`0 0 ${cornerSize} ${cornerSize}`}>
-          <path d={`M 0,0 L ${cornerSize},0 L ${cornerSize},${cornerSize}`} fill="none" stroke={colors.oasis}
-            strokeWidth={cornerThickness} strokeLinecap="round" opacity={bracketGlow}
-            strokeDasharray={cornerSize * 2} strokeDashoffset={cornerSize * 2 * (1 - bracketDraw)} />
-        </svg>
-        <svg style={{ position: "absolute", bottom: cornerInset + 40, left: cornerInset }}
-          width={cornerSize} height={cornerSize} viewBox={`0 0 ${cornerSize} ${cornerSize}`}>
-          <path d={`M 0,0 L 0,${cornerSize} L ${cornerSize},${cornerSize}`} fill="none" stroke={colors.oasis}
-            strokeWidth={cornerThickness} strokeLinecap="round" opacity={bracketGlow}
-            strokeDasharray={cornerSize * 2} strokeDashoffset={cornerSize * 2 * (1 - bracketDraw)} />
-        </svg>
-        <svg style={{ position: "absolute", bottom: cornerInset + 40, right: cornerInset }}
-          width={cornerSize} height={cornerSize} viewBox={`0 0 ${cornerSize} ${cornerSize}`}>
-          <path d={`M ${cornerSize},0 L ${cornerSize},${cornerSize} L 0,${cornerSize}`} fill="none" stroke={colors.oasis}
-            strokeWidth={cornerThickness} strokeLinecap="round" opacity={bracketGlow}
-            strokeDasharray={cornerSize * 2} strokeDashoffset={cornerSize * 2 * (1 - bracketDraw)} />
-        </svg>
-
-        {/* Horizontal scan lines — sweep in from edges */}
-        <div style={{
-          position: "absolute", top: cornerInset + 10,
-          left: cornerInset + cornerSize + 20, right: cornerInset + cornerSize + 20,
-          height: 1,
-          background: `linear-gradient(90deg, ${colors.oasis}60, ${colors.oasis}20, transparent)`,
-          transform: `translateX(${topScanX}px)`,
-        }} />
-        <div style={{
-          position: "absolute", bottom: cornerInset + 40 + cornerSize - 10,
-          left: cornerInset + cornerSize + 20, right: cornerInset + cornerSize + 20,
-          height: 1,
-          background: `linear-gradient(270deg, ${colors.oasis}60, ${colors.oasis}20, transparent)`,
-          transform: `translateX(${botScanX}px)`,
-        }} />
-
-        {/* Side accent lines */}
-        {(["left", "right"] as const).map((side) => (
-          <div
-            key={side}
-            style={{
-              position: "absolute",
-              top: cornerInset + cornerSize + 30,
-              bottom: cornerInset + 40 + cornerSize + 30,
-              [side]: cornerInset + 10,
-              width: 1,
-              background: `linear-gradient(180deg, ${colors.oasis}00, ${colors.azurite}80, ${colors.oasis}00)`,
-              opacity: sideLineOpacity * sideLinePulse,
-            }}
-          />
+        {/* ── corner brackets ── */}
+        {[
+          { style: { top: CI, left: CI } as React.CSSProperties,         d: `M 0,${CS} L 0,0 L ${CS},0` },
+          { style: { top: CI, right: CI } as React.CSSProperties,        d: `M 0,0 L ${CS},0 L ${CS},${CS}` },
+          { style: { bottom: CI + 40, left: CI } as React.CSSProperties, d: `M 0,0 L 0,${CS} L ${CS},${CS}` },
+          { style: { bottom: CI + 40, right: CI } as React.CSSProperties,d: `M ${CS},0 L ${CS},${CS} L 0,${CS}` },
+        ].map((c, i) => (
+          <svg key={i} style={{ position: "absolute", ...c.style }} width={CS} height={CS} viewBox={`0 0 ${CS} ${CS}`}>
+            <path d={c.d} fill="none" stroke={colors.oasis} strokeWidth={CT} strokeLinecap="round"
+              opacity={bkGlow} strokeDasharray={CS * 2} strokeDashoffset={CS * 2 * (1 - bkDraw)} />
+          </svg>
         ))}
 
-        {/* Edge tick marks — left */}
-        {[0, 1, 2, 3, 4].map((i) => {
-          const td = 50 + i * 12;
-          const tickOp = interpolate(frame, [td, td + 15], [0, 0.5], clamp);
-          return (
-            <div key={`tl-${i}`} style={{
-              position: "absolute", top: 200 + i * 120, left: cornerInset,
-              width: 20, height: 1, background: colors.azurite,
-              opacity: tickOp * sideLinePulse,
-            }} />
-          );
-        })}
-        {/* Edge tick marks — right */}
-        {[0, 1, 2, 3, 4].map((i) => {
-          const td = 55 + i * 12;
-          const tickOp = interpolate(frame, [td, td + 15], [0, 0.5], clamp);
-          return (
-            <div key={`tr-${i}`} style={{
-              position: "absolute", top: 200 + i * 120, right: cornerInset,
-              width: 20, height: 1, background: colors.azurite,
-              opacity: tickOp * sideLinePulse,
-            }} />
-          );
-        })}
+        {/* side accent lines */}
+        {(["left", "right"] as const).map(side => (
+          <div key={side} style={{
+            position: "absolute",
+            top: CI + CS + 30, bottom: CI + 40 + CS + 30,
+            [side]: CI + 10, width: 3,
+            background: `linear-gradient(180deg, ${colors.oasis}00, ${colors.azurite}90, ${colors.oasis}00)`,
+            opacity: sideOp,
+          }} />
+        ))}
 
-        {/* ══════════════════════════════════════════════════════════════════
-            LAYER 6 — EXPANDING RINGS (transient, behind text) */}
+        {/* ═══════════════════════════════════════════════════════════
+            BEAT 0 — INTRO  (f0–130)
+           ═══════════════════════════════════════════════════════════ */}
         <div style={{
-          position: "absolute", top: "50%", left: "50%",
-          transform: `translate(-50%, -50%) scale(${ringScale})`,
-          width: 500, height: 500, borderRadius: "50%",
-          border: `1px solid ${colors.oasis}`, opacity: ringOpacity, pointerEvents: "none",
-        }} />
-        <div style={{
-          position: "absolute", top: "50%", left: "50%",
-          transform: `translate(-50%, -50%) scale(${ring2Scale})`,
-          width: 700, height: 700, borderRadius: "50%",
-          border: `1px solid ${colors.azurite}`, opacity: ring2Opacity, pointerEvents: "none",
-        }} />
-
-        {/* ══════════════════════════════════════════════════════════════════
-            LAYER 7 — MAIN TEXT: THREE-BEAT PROGRESSION
-            Beat A f35  → "AIMMS"                (arrives alone, owns the frame)
-            Beat B f90  → "AI Medical Mentoring System"  (1.8s gap after A)
-            Beat C f145 → Supporting tagline               (1.8s gap after B) */}
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            height: "100%",
-            padding: 60,
-            position: "relative",
-            zIndex: 2,
-            opacity: mainDimForPillars,
-          }}
-        >
-          {/* ASTEC Logo — immediate anchor */}
-          <AnimatedBox delay={0} direction="scale">
-            <div
-              style={{
-                opacity: interpolate(logoEnter, [0, 1], [0, 1]),
-                transform: `scale(${interpolate(logoEnter, [0, 1], [0.9, 1])})`,
-                background: `linear-gradient(135deg, ${colors.white}90, ${colors.white}60)`,
-                backdropFilter: "blur(16px)",
-                borderRadius: 16,
-                padding: "18px 36px",
-                border: `1px solid ${colors.white}40`,
-                boxShadow: `0 8px 32px ${colors.midnight}60, 0 0 40px ${colors.oasis}15, inset 0 1px 0 ${colors.white}40`,
-              }}
-            >
-              <Img src={staticFile("screenshots/astec_logo.png")}
-                style={{ height: 70, objectFit: "contain" }} />
-            </div>
-          </AnimatedBox>
+          position: "absolute", inset: 0, zIndex: 10,
+          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+          opacity: b0Op,
+        }}>
+          {/* ASTEC logo */}
+          <div style={{
+            opacity: interpolate(logoSp, [0, 1], [0, 1]),
+            transform: `scale(${interpolate(logoSp, [0, 1], [0.9, 1])})`,
+            background: `linear-gradient(135deg, ${colors.white}90, ${colors.white}60)`,
+            backdropFilter: "blur(16px)",
+            borderRadius: 16, padding: "18px 36px",
+            border: `1px solid ${colors.white}40`,
+            boxShadow: `0 8px 32px ${colors.midnight}60, 0 0 40px ${colors.oasis}15, inset 0 1px 0 ${colors.white}40`,
+            marginBottom: 28,
+          }}>
+            <Img src={staticFile("screenshots/astec_logo.png")} style={{ height: 70, objectFit: "contain" }} />
+          </div>
 
           {/* Dividing rule */}
           <div style={{
-            width: interpolate(ruleWidth, [0, 1], [0, 200]),
-            height: 2,
+            width: interpolate(ruleW, [0, 1], [0, 240]), height: 4,
             background: `linear-gradient(90deg, transparent, ${colors.arizonaRed}, transparent)`,
-            borderRadius: 1,
-            marginTop: 28,
-            marginBottom: 28,
+            borderRadius: 2, marginBottom: 30,
+            boxShadow: `0 0 16px ${colors.arizonaRed}50`,
           }} />
 
-          {/* ── BEAT A: "AIMMS" ─────────────────────────────────────────── */}
-          <AnimatedBox delay={35} direction="up">
-            <div style={{ position: "relative", overflow: "hidden" }}>
-              <h1
-                style={{
-                  color: colors.white,
-                  fontSize: 90,
-                  fontFamily: fonts.heading,
-                  fontWeight: 800,
-                  letterSpacing: -2,
-                  margin: 0,
-                  textAlign: "center",
-                  lineHeight: 1.1,
-                  textShadow: `0 0 ${48 + aimmsGlowF * 28}px ${colors.oasis}60, 0 0 90px ${colors.oasis}18`,
-                  transform: `scale(${aimmsBreath})`,
-                  display: "block",
-                }}
-              >
-                AIMMS
-              </h1>
-              {/* Shimmer sweep */}
-              <div style={{
-                position: "absolute", top: 0, left: shimmerX, width: 200, height: "100%",
-                background: `linear-gradient(90deg, transparent, ${colors.white}30, transparent)`,
-                transform: "skewX(-20deg)", pointerEvents: "none",
-              }} />
-            </div>
-          </AnimatedBox>
-
-          {/* ── BEAT B: subtitle ─────────────────────────────────────────── */}
-          <AnimatedBox delay={90} direction="up">
-            <div>
-              <p style={{
-                color: colors.oasis,
-                fontSize: 27,
-                fontFamily: fonts.body,
-                fontWeight: 400,
-                letterSpacing: 6,
-                textTransform: "uppercase",
-                margin: "18px 0 0",
-                textAlign: "center",
-              }}>
-                AI Medical Mentoring System
-              </p>
-              {/* Three tapering data lines beneath subtitle */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 5, marginTop: 14, alignItems: "center" }}>
-                {[
-                  { op: dataLine1, w: "62%", color: `${colors.oasis}52` },
-                  { op: dataLine2, w: "44%", color: `${colors.azurite}62` },
-                  { op: dataLine3, w: "28%", color: `${colors.oasis}38` },
-                ].map((l, i) => (
-                  <div key={i} style={{
-                    height: 1, width: l.w, background: l.color, borderRadius: 1,
-                    opacity: l.op, transform: `scaleX(${l.op})`, transformOrigin: "center",
-                  }} />
-                ))}
-              </div>
-            </div>
-          </AnimatedBox>
-
-          {/* ── BEAT C: tagline ──────────────────────────────────────────── */}
-          <AnimatedBox delay={145} direction="up">
-            <p style={{
-              color: `${colors.slate200}C8`,
-              fontSize: 20,
-              fontFamily: fonts.body,
-              fontWeight: 400,
-              margin: "26px 0 0",
-              textAlign: "center",
-              maxWidth: 720,
-              lineHeight: 1.6,
+          {/* AIMMS — large, with shimmer */}
+          <div style={{ position: "relative", overflow: "hidden", marginBottom: 22 }}>
+            <h1 style={{
+              color: colors.white, fontSize: 100, fontFamily: fonts.heading, fontWeight: 800,
+              letterSpacing: -2, margin: 0, textAlign: "center", lineHeight: 1.05,
+              textShadow: `0 0 ${48 + glowF * 28}px ${colors.oasis}60, 0 0 90px ${colors.oasis}18`,
+              transform: `scale(${breath})`,
             }}>
-              An end-to-end pipeline for case authoring, immersive virtual patient
-              simulation, and AI-driven performance evaluation.
-            </p>
-          </AnimatedBox>
-        </div>
-
-        {/* ══════════════════════════════════════════════════════════════════
-            LAYER 8 — BOTTOM DATA TICKER */}
-        <div style={{
-          position: "absolute", bottom: 20, left: 0, right: 0,
-          height: 24, overflow: "hidden", opacity: tickerOpacity,
-        }}>
-          <div style={{
-            position: "absolute", top: 0, left: 0, whiteSpace: "nowrap",
-            transform: `translateX(${tickerScroll}px)`,
-            fontFamily: fonts.mono, fontSize: 12, color: colors.oasis,
-            letterSpacing: 2, lineHeight: "24px",
-          }}>
-            {tickerText}{tickerText}
+              AIMMS
+            </h1>
+            <div style={{
+              position: "absolute", top: 0, left: shimX, width: 200, height: "100%",
+              background: `linear-gradient(90deg, transparent, ${colors.white}28, transparent)`,
+              transform: "skewX(-20deg)", pointerEvents: "none",
+            }} />
           </div>
-          <div style={{
-            position: "absolute", inset: 0,
-            background: `linear-gradient(90deg, ${colors.midnight}, transparent 15%, transparent 85%, ${colors.midnight})`,
-            pointerEvents: "none",
-          }} />
+
+          {/* Subtitle — screen-dominant product name */}
+          <div style={{ opacity: subOp }}>
+            <p style={{
+              color: colors.oasis,
+              fontSize: 90,
+              fontFamily: fonts.heading,
+              fontWeight: 700,
+              letterSpacing: 1,
+              margin: 0,
+              textAlign: "center",
+              lineHeight: 1.1,
+              textShadow: `0 0 60px ${colors.oasis}55, 0 0 120px ${colors.oasis}20`,
+            }}>
+              AI Medical Mentoring System
+            </p>
+          </div>
         </div>
 
-        {/* ══════════════════════════════════════════════════════════════════
-            LAYER 9 — THREE PILLARS SEQUENCE
-            Beat D: "Building Cases / Running Simulations / Evaluating Students"
-            Appears below the title stack, one pillar at a time.
-            P1 enters centered (PILLAR_P2_X), then shifts left as P2 enters.
-            P2 and P3 always appear at their final column positions.
-           ══════════════════════════════════════════════════════════════════ */}
-
-        {/* Separator — thin gradient rule above pillar row */}
-        {pillarsLineOp > 0.01 && (
+        {/* ── System expansion ring (bridge between intro and first pillar) ── */}
+        {expandOp > 0.01 && (
           <div style={{
-            position: "absolute", top: PILLAR_Y - 16, left: "50%",
-            transform: "translateX(-50%)",
-            width: 520, height: 1, zIndex: 4, pointerEvents: "none",
-            background: `linear-gradient(90deg, transparent, ${colors.oasis}26, transparent)`,
-            opacity: pillarsLineOp,
+            position: "absolute", top: "50%", left: "50%",
+            transform: `translate(-50%, -50%) scale(${expandScale})`,
+            width: 560, height: 560, borderRadius: "50%",
+            border: `1.5px solid ${colors.oasis}40`,
+            boxShadow: `0 0 60px ${colors.oasis}28, inset 0 0 60px ${colors.oasis}08`,
+            opacity: expandOp, pointerEvents: "none", zIndex: 9,
           }} />
         )}
 
-        {/* ── PILLAR 1: Building Cases ── */}
-        {p1Op > 0.01 && (
-          <div style={{
-            position: "absolute",
-            left: p1X,
-            top: PILLAR_Y,
-            width: PILLAR_W,
-            height: PILLAR_H,
-            opacity: p1Op,
-            transform: `scale(${p1Scale}) translateY(${p1Dy}px)`,
-            transformOrigin: "center top",
-            zIndex: 5, pointerEvents: "none",
-          }}>
-            <div style={{
-              height: "100%", borderRadius: 16,
-              background: "rgba(5, 10, 32, 0.92)",
-              backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)",
-              border: `1.5px solid ${P1_COLOR}${Math.round(p1Glow * 76 + 22).toString(16).padStart(2, "0")}`,
-              padding: "22px 26px",
-              boxShadow: p1Glow > 0.1
-                ? `0 0 64px ${P1_COLOR}26, 0 18px 48px rgba(0,0,0,0.52)`
-                : `0 8px 28px rgba(0,0,0,0.35)`,
-              display: "flex", flexDirection: "column" as const,
-            }}>
+        {/* ═══════════════════════════════════════════════════════════
+            BEAT 1 — BUILDING CASES  (f128–255)
+            Documents fly from corners → converge → assembled case panel
+           ═══════════════════════════════════════════════════════════ */}
+        {b1Op > 0.01 && (
+          <div style={{ position: "absolute", inset: 0, zIndex: 10, opacity: b1Op }}>
+
+            {/* Beat label */}
+            <div style={{ position: "absolute", top: 60, left: "50%", transform: "translateX(-50%)", textAlign: "center", whiteSpace: "nowrap" }}>
               <div style={{
-                fontFamily: fonts.mono, fontSize: 10, letterSpacing: 3.5,
-                color: `${P1_COLOR}80`, textTransform: "uppercase" as const,
-                marginBottom: 7,
-              }}>
-                01
-              </div>
-              <div style={{
-                fontFamily: fonts.heading, fontSize: 22, fontWeight: 800,
-                color: colors.white, marginBottom: 14, lineHeight: 1.2,
+                fontFamily: fonts.heading,
+                fontSize: 96,
+                fontWeight: 800,
+                color: colors.white,
+                lineHeight: 1,
+                textShadow: `0 0 60px ${colors.arizonaRed}40, 0 0 120px ${colors.arizonaRed}15`,
               }}>
                 Building Cases
               </div>
-              <div style={{ height: 1, background: `${P1_COLOR}28`, marginBottom: 13 }} />
-              {/* Clinical document sheets slide in sequentially and assemble into a case */}
-              <div style={{ position: "relative" as const }}>
+            </div>
+
+            {/* Floating document cards */}
+            {DOCS.map((doc, i) => {
+              const p    = docFlies[i];
+              const srcX = 960 + doc.fromX;
+              const srcY = 560 + doc.fromY;
+              // As assembly progresses, docs drift toward center
+              const destX = doc.tx + assembleP * (870 - doc.tx);
+              const destY = doc.ty + assembleP * (560 + i * 28 - doc.ty);
+              const curX  = srcX + (destX - srcX) * p;
+              const curY  = srcY + (destY - srcY) * p;
+              const rot   = (1 - p) * (i % 2 === 0 ? -9 : 9);
+              const sc    = 0.72 + p * 0.28 - assembleP * 0.08;
+              const op    = p * (1 - assembleP * 0.75);
+              return (
+                <DocCard
+                  key={i}
+                  title={doc.title} rows={doc.rows} accent={doc.color}
+                  x={curX} y={curY} rot={rot} scale={sc} opacity={op}
+                />
+              );
+            })}
+
+            {/* Assembled case panel — emerges as docs converge */}
+            {assembleP > 0.05 && (
+              <div style={{
+                position: "absolute", left: "50%", top: "58%",
+                transform: `translate(-50%, -50%) scale(${0.86 + assembleP * 0.14})`,
+                opacity: assembleP,
+                width: 580, borderRadius: 18,
+                background: "linear-gradient(160deg, rgba(8,18,44,0.97) 0%, rgba(4,10,26,0.92) 100%)",
+        border: `2.5px solid ${colors.arizonaRed}55`,
+        boxShadow: `0 0 80px ${colors.arizonaRed}28, 0 40px 88px rgba(0,0,0,0.60)`,
+        padding: "36px 44px",
+                zIndex: 8,
+              }}>
+                <div style={{
+                  fontFamily: fonts.mono, fontSize: 13, letterSpacing: 3,
+                  color: `${colors.arizonaRed}80`, textTransform: "uppercase", marginBottom: 18,
+                }}>
+                  Clinical Case · Assembled
+                </div>
+                <div style={{
+                  fontFamily: fonts.heading, fontSize: 34, fontWeight: 800,
+                  color: colors.white, marginBottom: 24, lineHeight: 1.2,
+                }}>
+                  Michael Chen — Community-Acquired Pneumonia
+                </div>
                 {[
-                  { label: "Patient History", w1: 0.85, w2: 0.62 },
-                  { label: "Vital Signs",     w1: 0.70, w2: 0.88 },
-                  { label: "Exam Findings",   w1: 0.90, w2: 0.68 },
-                ].map((sh, si) => {
-                  const sp = Math.max(0, Math.min(1, (p1DocProg - si * 0.24) / 0.58));
-                  return (
-                    <div key={si} style={{
-                      display: "flex", alignItems: "center", gap: 9,
-                      marginBottom: si < 2 ? 4 : 0,
-                      opacity: sp,
-                      transform: `translateX(${(1 - sp) * -20}px)`,
+                  { label: "Patient History",  color: colors.azurite,       w: "88%" },
+                  { label: "Vital Signs",       color: colors.vitalsWarning, w: "72%" },
+                  { label: "Exam Findings",     color: colors.arizonaRed,    w: "80%" },
+                  { label: "Lab Results",       color: "#16a34a",             w: "94%" },
+                ].map((row, ri) => (
+                  <div key={ri} style={{ marginBottom: 16, opacity: Math.min(1, assembleP * 2.8 - ri * 0.55) }}>
+                    <div style={{
+                      fontFamily: fonts.mono, fontSize: 16, color: `${colors.white}65`,
+                      letterSpacing: 2, marginBottom: 8, textTransform: "uppercase",
                     }}>
-                      <div style={{
-                        width: 2, height: 20, borderRadius: 1, flexShrink: 0,
-                        background: `${P1_COLOR}CC`,
-                      }} />
-                      <div style={{ flex: 1 }}>
-                        <div style={{
-                          fontFamily: fonts.mono, fontSize: 8,
-                          color: `${colors.white}32`, letterSpacing: 1.5, marginBottom: 3,
-                        }}>
-                          {sh.label}
-                        </div>
-                        <div style={{
-                          height: 2, background: `${P1_COLOR}55`, borderRadius: 1,
-                          marginBottom: 3, width: `${sh.w1 * 100}%`,
-                        }} />
-                        <div style={{
-                          height: 2, background: `${colors.white}14`, borderRadius: 1,
-                          width: `${sh.w2 * 100}%`,
-                        }} />
-                      </div>
+                      {row.label}
                     </div>
-                  );
-                })}
-                {p1StampOp > 0.01 && (
+                    <div style={{ height: 14, borderRadius: 7, background: `${colors.white}10` }}>
+                      <div style={{
+                        height: "100%", borderRadius: 7,
+                        background: `linear-gradient(90deg, ${row.color}DD, ${row.color}66)`,
+                        width: row.w,
+                        boxShadow: `0 0 10px ${row.color}50`,
+                      }} />
+                    </div>
+                  </div>
+                ))}
+
+                {readyOp > 0.01 && (
                   <div style={{
-                    marginTop: 8, display: "inline-block",
-                    opacity: p1StampOp,
-                    fontFamily: fonts.mono, fontSize: 8, letterSpacing: 2,
-                    color: `${P1_COLOR}90`,
-                    border: `1px solid ${P1_COLOR}40`, borderRadius: 3,
-                    padding: "2px 8px",
-                    textTransform: "uppercase" as const,
+                    marginTop: 20, opacity: readyOp,
+                    display: "inline-flex", alignItems: "center", gap: 14,
+                    background: `${colors.vitalsNormal}18`,
+                    border: `2.5px solid ${colors.vitalsNormal}60`,
+                    borderRadius: 12, padding: "14px 26px",
+                    boxShadow: `0 0 36px ${colors.vitalsNormal}28`,
                   }}>
-                    CASE READY
+                    <div style={{
+                      width: 9, height: 9, borderRadius: "50%",
+                      background: colors.vitalsNormal,
+                      boxShadow: `0 0 10px ${colors.vitalsNormal}`,
+                    }} />
+                    <span style={{
+                      fontFamily: fonts.mono, fontSize: 24, fontWeight: 700,
+                      color: colors.vitalsNormal, letterSpacing: 3, textTransform: "uppercase",
+                    }}>
+                      Case Ready
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ═══════════════════════════════════════════════════════════
+            BEAT 2 — RUNNING SIMULATIONS  (f245–368)
+            Patient silhouette + scan ring + live vital panels
+           ═══════════════════════════════════════════════════════════ */}
+        {b2Op > 0.01 && (
+          <div style={{ position: "absolute", inset: 0, zIndex: 10, opacity: b2Op }}>
+
+            {/* Beat label */}
+            <div style={{ position: "absolute", top: 60, left: "50%", transform: "translateX(-50%)", textAlign: "center", whiteSpace: "nowrap" }}>
+              <div style={{
+                fontFamily: fonts.heading,
+                fontSize: 96,
+                fontWeight: 800,
+                color: colors.white,
+                lineHeight: 1,
+                textShadow: `0 0 60px ${colors.oasis}40, 0 0 120px ${colors.oasis}15`,
+              }}>
+                Running Simulations
+              </div>
+            </div>
+
+            {/* Patient scope — centered below large headline */}
+            <div style={{
+              position: "absolute", left: "50%", top: "50%",
+              transform: "translate(-50%, -50%) translateY(36px)",
+              opacity: simBodyOp,
+            }}>
+              <svg width={440} height={500} viewBox="0 0 440 500" style={{ display: "block", overflow: "visible" }}>
+                {/* Outer atmosphere */}
+                <circle cx={220} cy={248} r={210} fill="none" stroke={`${colors.oasis}14`} strokeWidth={2} />
+
+                {/* Active scan ring — draws in and pulses */}
+                <circle cx={220} cy={248} r={196}
+                  fill="none" stroke={colors.oasis} strokeWidth={5}
+                  strokeDasharray={`${simRingP * 2 * Math.PI * 196} ${2 * Math.PI * 196}`}
+                  strokeLinecap="round" transform="rotate(-90 220 248)"
+                  opacity={0.55 + 0.40 * simPulse}
+                  style={{ filter: `drop-shadow(0 0 18px ${colors.oasis}99)` }}
+                />
+
+                {/* Inner reference ring */}
+                <circle cx={220} cy={248} r={170}
+                  fill="none" stroke={`${colors.oasis}20`} strokeWidth={2}
+                  strokeDasharray="6 10" />
+
+                {/* Crosshairs */}
+                <line x1={220} y1={50}  x2={220} y2={445} stroke={`${colors.oasis}22`} strokeWidth={1.5} />
+                <line x1={22}  y1={248} x2={418} y2={248} stroke={`${colors.oasis}22`} strokeWidth={1.5} />
+
+                {/* Patient head */}
+                <circle cx={220} cy={112} r={48}
+                  fill={`${colors.arizonaBlue}22`} stroke={`${colors.oasis}66`} strokeWidth={4} />
+                <circle cx={220} cy={112} r={29}
+                  fill={`${colors.oasis}10`} stroke={`${colors.oasis}36`} strokeWidth={2} />
+
+                {/* Patient torso */}
+                <path d="M 158 166 Q 220 154 282 166 L 270 320 Q 220 334 170 320 Z"
+                  fill={`${colors.oasis}0d`} stroke={`${colors.oasis}55`} strokeWidth={3.5} />
+
+                {/* Arms */}
+                <path d="M 160 178 Q 122 222 126 274 Q 130 304 146 316"
+                  fill="none" stroke={`${colors.oasis}44`} strokeWidth={16} strokeLinecap="round" />
+                <path d="M 280 178 Q 318 222 314 274 Q 310 304 294 316"
+                  fill="none" stroke={`${colors.oasis}44`} strokeWidth={16} strokeLinecap="round" />
+
+                {/* Legs */}
+                <path d="M 176 320 Q 165 378 162 438" fill="none" stroke={`${colors.oasis}38`} strokeWidth={18} strokeLinecap="round" />
+                <path d="M 264 320 Q 275 378 278 438" fill="none" stroke={`${colors.oasis}38`} strokeWidth={18} strokeLinecap="round" />
+
+                {/* Monitor corner brackets */}
+                {["M 30,90 L 30,30 L 90,30", "M 350,30 L 410,30 L 410,90",
+                  "M 30,408 L 30,468 L 90,468", "M 350,468 L 410,468 L 410,408"].map((d, ci) => (
+                  <path key={ci} d={d} fill="none"
+                    stroke={`${colors.oasis}${Math.round(44 + simRingP * 40).toString(16).padStart(2, "0")}`}
+                    strokeWidth={4} strokeLinecap="round" />
+                ))}
+
+                {/* Live center dot */}
+                <circle cx={220} cy={248} r={9}
+                  fill={colors.oasis} opacity={0.60 + 0.40 * simPulse}
+                  style={{ filter: `drop-shadow(0 0 14px ${colors.oasis})` }} />
+              </svg>
+            </div>
+
+            {/* Vital sign panels */}
+            {VITALS.map((v, i) => (
+              <div key={i} style={{
+                position: "absolute", ...v.style,
+                opacity: vitalOps[i],
+                padding: "20px 28px",
+                borderRadius: 16,
+                background: `${v.color}12`,
+                border: `2px solid ${v.color}45`,
+                backdropFilter: "blur(12px)",
+                minWidth: 210,
+                boxShadow: `0 0 28px ${v.color}16`,
+              }}>
+                <div style={{
+                  fontFamily: fonts.mono, fontSize: 18, letterSpacing: 2.5,
+                  color: `${v.color}80`, textTransform: "uppercase", marginBottom: 10,
+                }}>
+                  {v.label}
+                </div>
+                <div style={{
+                  fontFamily: fonts.heading, fontSize: 52, fontWeight: 800, color: colors.white, lineHeight: 1,
+                }}>
+                  {v.value}
+                  <span style={{ fontFamily: fonts.mono, fontSize: 20, color: `${v.color}70`, marginLeft: 10 }}>
+                    {v.unit}
+                  </span>
+                </div>
+              </div>
+            ))}
+
+            {/* Simulation active badge */}
+            {simBadgeOp > 0.01 && (
+              <div style={{
+                position: "absolute", bottom: 78, left: "50%", transform: "translateX(-50%)",
+                opacity: simBadgeOp,
+                display: "flex", alignItems: "center", gap: 14,
+                background: `${colors.oasis}12`,
+                border: `1px solid ${colors.oasis}40`,
+                borderRadius: 10, padding: "13px 26px",
+                boxShadow: `0 0 28px ${colors.oasis}20`,
+              }}>
+                <div style={{
+                  width: 10, height: 10, borderRadius: "50%",
+                  background: colors.oasis,
+                  boxShadow: `0 0 10px ${colors.oasis}`,
+                  opacity: 0.68 + 0.32 * simPulse,
+                }} />
+                <span style={{
+                  fontFamily: fonts.mono, fontSize: 24, fontWeight: 700,
+                  color: colors.oasis, letterSpacing: 3, textTransform: "uppercase",
+                }}>
+                  Simulation Active
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ═══════════════════════════════════════════════════════════
+            BEAT 3 — EVALUATING STUDENTS  (f358–460)
+            Score arc fills · competency bars animate · rubric checks
+           ═══════════════════════════════════════════════════════════ */}
+        {b3Op > 0.01 && (
+          <div style={{ position: "absolute", inset: 0, zIndex: 10, opacity: b3Op }}>
+
+            {/* Beat label */}
+            <div style={{ position: "absolute", top: 60, left: "50%", transform: "translateX(-50%)", textAlign: "center", whiteSpace: "nowrap" }}>
+              <div style={{
+                fontFamily: fonts.heading,
+                fontSize: 96,
+                fontWeight: 800,
+                color: colors.white,
+                lineHeight: 1,
+                textShadow: `0 0 60px ${colors.vitalsNormal}40, 0 0 120px ${colors.vitalsNormal}15`,
+              }}>
+                Evaluating Students
+              </div>
+            </div>
+
+            {/* Two-column layout */}
+            <div style={{
+              position: "absolute", inset: 0,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              padding: "90px 5% 30px",
+              gap: "3%",
+            }}>
+              {/* LEFT — Score arc */}
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 22, flexShrink: 0 }}>
+                <div style={{ position: "relative", width: 280, height: 280 }}>
+                  <svg width={280} height={280} style={{ position: "absolute", top: 0, left: 0 }}>
+                    <circle cx={140} cy={140} r={120} fill="none" stroke={`${colors.white}10`} strokeWidth={20} />
+                    <circle cx={140} cy={140} r={120}
+                      fill="none" stroke={colors.vitalsNormal} strokeWidth={20}
+                      strokeDasharray={SL} strokeDashoffset={scoreOff}
+                      strokeLinecap="round" transform="rotate(-90 140 140)"
+                      style={{ filter: `drop-shadow(0 0 16px ${colors.vitalsNormal}65)` }}
+                    />
+                  </svg>
+                  <div style={{
+                    position: "absolute", inset: 0,
+                    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                  }}>
+                    <div style={{ fontFamily: fonts.heading, fontSize: 78, fontWeight: 800, color: colors.white, lineHeight: 1 }}>
+                      {scoreVal}
+                    </div>
+                    <div style={{ fontFamily: fonts.mono, fontSize: 16, color: `${colors.vitalsNormal}80`, marginTop: 6 }}>
+                      / 100
+                    </div>
+                  </div>
+                </div>
+                <div style={{ fontFamily: fonts.body, fontSize: 20, color: colors.oasis, fontWeight: 600, letterSpacing: 1 }}>
+                  Overall Score
+                </div>
+                {evalBadgeOp > 0.01 && (
+                  <div style={{
+                    opacity: evalBadgeOp,
+                    display: "inline-flex", alignItems: "center", gap: 12,
+                    background: `${colors.vitalsNormal}18`,
+                    border: `2.5px solid ${colors.vitalsNormal}60`,
+                    borderRadius: 12, padding: "14px 26px",
+                    boxShadow: `0 0 32px ${colors.vitalsNormal}22`,
+                  }}>
+                    <span style={{
+                      fontFamily: fonts.mono, fontSize: 24, fontWeight: 700,
+                      color: colors.vitalsNormal, letterSpacing: 2.5, textTransform: "uppercase",
+                    }}>
+                      ✓ Evaluation Complete
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* RIGHT — Competency bars + rubric */}
+              <div style={{ flex: 1, maxWidth: 540 }}>
+                <div style={{
+                  fontFamily: fonts.mono, fontSize: 20, letterSpacing: 3,
+                  color: `${colors.white}60`, textTransform: "uppercase", marginBottom: 24,
+                }}>
+                  Competency Breakdown
+                </div>
+                {COMPS.map((c, i) => (
+                  <CompBar key={i} label={c.label} fill={barFills[i]} color={c.color} opacity={barOps[i]} />
+                ))}
+
+                {rubricOp > 0.01 && (
+                  <div style={{
+                    marginTop: 22, opacity: rubricOp,
+                    padding: "18px 22px", borderRadius: 12,
+                    background: "rgba(255,255,255,0.04)",
+                    border: `1px solid ${colors.oasis}18`,
+                  }}>
+                    {CHECKS.map((row, ri) => (
+                      <div key={ri} style={{
+                        display: "flex", alignItems: "center", gap: 18,
+                        marginBottom: ri < CHECKS.length - 1 ? 16 : 0,
+                        opacity: checkOps[ri],
+                      }}>
+                        <div style={{
+                          width: 32, height: 32, borderRadius: "50%", flexShrink: 0,
+                          background: `${colors.vitalsNormal}20`,
+                          border: `2.5px solid ${colors.vitalsNormal}65`,
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          fontFamily: fonts.mono, fontSize: 15, fontWeight: 700, color: colors.vitalsNormal,
+                        }}>✓</div>
+                        <span style={{ fontFamily: fonts.body, fontSize: 20, color: "rgba(255,255,255,0.72)" }}>
+                          {row}
+                        </span>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
@@ -852,197 +690,160 @@ export const Scene1_Intro: React.FC = () => {
           </div>
         )}
 
-        {/* ── PILLAR 2: Running Simulations ── */}
-        {p2Op > 0.01 && (
+        {/* ═══════════════════════════════════════════════════════════
+            BEAT 4 — UNIFIED PLATFORM VIEW  (f450–535)
+           ═══════════════════════════════════════════════════════════ */}
+        {b4Op > 0.01 && (
           <div style={{
-            position: "absolute",
-            left: PILLAR_P2_X,
-            top: PILLAR_Y,
-            width: PILLAR_W,
-            height: PILLAR_H,
-            opacity: p2Op,
-            transform: `scale(${p2Scale}) translateY(${p2Dy}px)`,
-            transformOrigin: "center top",
-            zIndex: 5, pointerEvents: "none",
+            position: "absolute", inset: 0, zIndex: 10, opacity: b4Op,
+            display: "flex", flexDirection: "column",
+            alignItems: "center", justifyContent: "center", gap: 18,
+            transform: `scale(${b4Scale})`,
           }}>
             <div style={{
-              height: "100%", borderRadius: 16,
-              background: "rgba(5, 10, 32, 0.92)",
-              backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)",
-              border: `1.5px solid ${P2_COLOR}${Math.round(p2Glow * 76 + 22).toString(16).padStart(2, "0")}`,
-              padding: "22px 26px",
-              boxShadow: p2Glow > 0.1
-                ? `0 0 64px ${P2_COLOR}26, 0 18px 48px rgba(0,0,0,0.52)`
-                : `0 8px 28px rgba(0,0,0,0.35)`,
-              display: "flex", flexDirection: "column" as const,
+              fontFamily: fonts.heading,
+              fontSize: 52,
+              fontWeight: 700,
+              letterSpacing: 2,
+              color: `${colors.white}70`,
             }}>
-              <div style={{
-                fontFamily: fonts.mono, fontSize: 10, letterSpacing: 3.5,
-                color: `${P2_COLOR}80`, textTransform: "uppercase" as const,
-                marginBottom: 7,
-              }}>
-                02
-              </div>
-              <div style={{
-                fontFamily: fonts.heading, fontSize: 22, fontWeight: 800,
-                color: colors.white, marginBottom: 14, lineHeight: 1.2,
-              }}>
-                Running Simulations
-              </div>
-              <div style={{ height: 1, background: `${P2_COLOR}28`, marginBottom: 11 }} />
-              {/* Clinical simulation: patient scope with scan ring + live vital readouts */}
-              <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-                {/* Circular scope — abstract patient silhouette + active scan ring */}
-                <svg width={68} height={68} viewBox="0 0 68 68" style={{ flexShrink: 0, overflow: "visible" }}>
-                  {/* Monitor ring */}
-                  <circle cx={34} cy={34} r={30} fill="none" stroke={`${P2_COLOR}20`} strokeWidth={1.2} />
-                  {/* Crosshair */}
-                  <line x1={34} y1={6}  x2={34} y2={62} stroke={`${P2_COLOR}14`} strokeWidth={0.6} />
-                  <line x1={6}  y1={34} x2={62} y2={34} stroke={`${P2_COLOR}14`} strokeWidth={0.6} />
-                  {/* Patient silhouette: head */}
-                  <circle cx={34} cy={18} r={6}
-                    fill={`${P2_COLOR}08`} stroke={`${P2_COLOR}70`} strokeWidth={1.4} />
-                  {/* Patient silhouette: torso */}
-                  <path d="M 27 25 Q 34 22 41 25 L 39 50 Q 34 53 29 50 Z"
-                    fill={`${P2_COLOR}06`} stroke={`${P2_COLOR}48`} strokeWidth={1.2} />
-                  {/* Active scan ring — draws in on entry, then pulses */}
-                  <circle cx={34} cy={34} r={28}
-                    fill="none" stroke={P2_COLOR} strokeWidth={1.5}
-                    strokeDasharray={`${p2RingProg * 176} 176`}
-                    strokeLinecap="round"
-                    transform="rotate(-90 34 34)"
-                    opacity={0.44 + 0.36 * p2ScanPulse}
-                  />
-                  {/* Corner monitor brackets */}
-                  <path d="M 6 15 L 6 6 L 15 6"  fill="none" stroke={`${P2_COLOR}40`} strokeWidth={1.2} />
-                  <path d="M 53 6 L 62 6 L 62 15" fill="none" stroke={`${P2_COLOR}40`} strokeWidth={1.2} />
-                  <path d="M 6 53 L 6 62 L 15 62"  fill="none" stroke={`${P2_COLOR}40`} strokeWidth={1.2} />
-                  <path d="M 53 62 L 62 62 L 62 53" fill="none" stroke={`${P2_COLOR}40`} strokeWidth={1.2} />
-                </svg>
-                {/* Live vital readouts */}
-                <div style={{ flex: 1, display: "flex", flexDirection: "column" as const, gap: 5 }}>
-                  {[
-                    { k: "HR",   v: "74",     u: "bpm",  hi: true  },
-                    { k: "SpO₂", v: "98",     u: "%",    hi: true  },
-                    { k: "BP",   v: "122/78", u: "mmHg", hi: false },
-                  ].map((vt, vi) => (
-                    <div key={vi} style={{
-                      display: "flex", justifyContent: "space-between", alignItems: "baseline",
-                      paddingBottom: 5, borderBottom: `1px solid ${P2_COLOR}14`,
+              One Connected Platform
+            </div>
+
+            {/* Three pillar cards with connecting arrows */}
+            <div style={{
+              display: "flex", alignItems: "center", justifyContent: "center",
+              gap: 0, width: "100%", maxWidth: 1300,
+            }}>
+              {[
+                {
+                  label: "Building Cases", sub: "Case Creator",
+                  color: colors.arizonaRed,
+                  icon: (
+                    <svg width={80} height={64} viewBox="0 0 80 64">
+                      {[0, 1, 2].map(i => (
+                        <rect key={i} x={6 + i * 4} y={4 + i * 4} width={52} height={38} rx={4}
+                          fill={`${colors.arizonaRed}${i === 2 ? "2a" : i === 1 ? "14" : "08"}`}
+                          stroke={`${colors.arizonaRed}${i === 2 ? "60" : "30"}`} strokeWidth={1.5} />
+                      ))}
+                      <rect x={18} y={50} width={40} height={3} rx={1.5} fill={`${colors.arizonaRed}55`} />
+                      <rect x={18} y={56} width={28} height={2.5} rx={1} fill={`${colors.arizonaRed}35`} />
+                    </svg>
+                  ),
+                },
+                {
+                  label: "Running Simulations", sub: "Virtual Patient",
+                  color: colors.oasis,
+                  icon: (
+                    <svg width={80} height={64} viewBox="0 0 80 64">
+                      <circle cx={40} cy={24} r={20} fill="none" stroke={`${colors.oasis}38`} strokeWidth={1.5} />
+                      <circle cx={40} cy={24} r={20} fill="none" stroke={colors.oasis} strokeWidth={1.5}
+                        strokeDasharray="28 98" strokeLinecap="round" />
+                      <circle cx={40} cy={13} r={7} fill={`${colors.oasis}18`} stroke={`${colors.oasis}60`} strokeWidth={1.5} />
+                      <path d="M 32 21 Q 40 18 48 21 L 46 44 Q 40 47 34 44 Z"
+                        fill={`${colors.oasis}0e`} stroke={`${colors.oasis}42`} strokeWidth={1.2} />
+                      <line x1={22} y1={52} x2={58} y2={52} stroke={`${colors.oasis}28`} strokeWidth={1} />
+                      <line x1={18} y1={58} x2={62} y2={58} stroke={`${colors.oasis}18`} strokeWidth={1} />
+                    </svg>
+                  ),
+                },
+                {
+                  label: "Evaluating Students", sub: "AIMS Reports",
+                  color: colors.vitalsNormal,
+                  icon: (
+                    <svg width={80} height={64} viewBox="0 0 80 64">
+                      <circle cx={40} cy={30} r={24} fill="none" stroke={`${colors.vitalsNormal}18`} strokeWidth={7} />
+                      <circle cx={40} cy={30} r={24} fill="none" stroke={colors.vitalsNormal} strokeWidth={7}
+                        strokeDasharray={`${0.87 * 2 * Math.PI * 24} ${2 * Math.PI * 24}`}
+                        strokeLinecap="round" transform="rotate(-90 40 30)"
+                        style={{ filter: `drop-shadow(0 0 5px ${colors.vitalsNormal}65)` }} />
+                      <text x={40} y={35} textAnchor="middle"
+                        fontFamily={fonts.heading} fontSize={15} fontWeight={800} fill={colors.vitalsNormal}>
+                        87
+                      </text>
+                      <line x1={14} y1={58} x2={66} y2={58} stroke={`${colors.vitalsNormal}22`} strokeWidth={1} />
+                    </svg>
+                  ),
+                },
+              ].map((p, i) => (
+                <React.Fragment key={p.label}>
+                  {i > 0 && (
+                    <div style={{
+                      width: 64, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
+                      opacity: arrowOp, marginBottom: 16,
                     }}>
-                      <span style={{ fontFamily: fonts.mono, fontSize: 8, color: `${P2_COLOR}55`, letterSpacing: 1.5 }}>
-                        {vt.k}
-                      </span>
-                      <span style={{
-                        fontFamily: fonts.heading, fontSize: 13, fontWeight: 700,
-                        color: vt.hi ? colors.white : `${colors.white}50`,
-                      }}>
-                        {vt.v}
-                      </span>
-                      <span style={{ fontFamily: fonts.mono, fontSize: 7, color: `${colors.white}28` }}>
-                        {vt.u}
-                      </span>
+                      <svg width={40} height={20} viewBox="0 0 40 20">
+                        <path d="M 2,10 L 32,10 M 26,4 L 34,10 L 26,16"
+                          fill="none" stroke={`${colors.oasis}70`} strokeWidth={3.5}
+                          strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
                     </div>
-                  ))}
-                </div>
-              </div>
+                  )}
+                  <div style={{
+                    opacity: cardEnters[i],
+                    transform: `translateY(${interpolate(cardEnters[i], [0, 1], [22, 0])}px)`,
+                    width: 290, flexShrink: 0,
+                  }}>
+                    <div style={{
+                      padding: "30px 26px",
+                      background: "rgba(5,10,34,0.92)",
+                      backdropFilter: "blur(20px)",
+                      borderRadius: 18,
+                      border: `1.5px solid ${p.color}38`,
+                      borderTop: `3px solid ${p.color}`,
+                      boxShadow: `0 0 44px ${p.color}16, 0 18px 52px rgba(0,0,0,0.48)`,
+                      display: "flex", flexDirection: "column", alignItems: "center",
+                      gap: 16, textAlign: "center",
+                    }}>
+                      {p.icon}
+                      <div>
+                        <div style={{
+                          fontFamily: fonts.heading, fontSize: 30, fontWeight: 800,
+                          color: colors.white, marginBottom: 10,
+                        }}>
+                          {p.label}
+                        </div>
+                        <div style={{
+                          fontFamily: fonts.mono, fontSize: 16, color: p.color,
+                          letterSpacing: 2.5, textTransform: "uppercase",
+                        }}>
+                          {p.sub}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </React.Fragment>
+              ))}
+            </div>
+
+            <div style={{
+              fontFamily: fonts.mono, fontSize: 22, letterSpacing: 5,
+              color: `${colors.oasis}65`, textTransform: "uppercase",
+            }}>
+              AI Medical Mentoring System
             </div>
           </div>
         )}
 
-        {/* ── PILLAR 3: Evaluating Students ── */}
-        {p3Op > 0.01 && (
+        {/* ── bottom ticker ── */}
+        <div style={{
+          position: "absolute", bottom: 20, left: 0, right: 0,
+          height: 24, overflow: "hidden", opacity: tickOp,
+        }}>
           <div style={{
-            position: "absolute",
-            left: PILLAR_P3_X,
-            top: PILLAR_Y,
-            width: PILLAR_W,
-            height: PILLAR_H,
-            opacity: p3Op,
-            transform: `scale(${p3Scale}) translateY(${p3Dy}px)`,
-            transformOrigin: "center top",
-            zIndex: 5, pointerEvents: "none",
+            position: "absolute", top: 0, left: 0, whiteSpace: "nowrap",
+            transform: `translateX(${tickX}px)`,
+            fontFamily: fonts.mono, fontSize: 12, color: colors.oasis,
+            letterSpacing: 2, lineHeight: "24px",
           }}>
-            <div style={{
-              height: "100%", borderRadius: 16,
-              background: "rgba(5, 10, 32, 0.92)",
-              backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)",
-              border: `1.5px solid ${P3_COLOR}${Math.round(p3Glow * 76 + 22).toString(16).padStart(2, "0")}`,
-              padding: "22px 26px",
-              boxShadow: p3Glow > 0.1
-                ? `0 0 64px ${P3_COLOR}26, 0 18px 48px rgba(0,0,0,0.52)`
-                : `0 8px 28px rgba(0,0,0,0.35)`,
-              display: "flex", flexDirection: "column" as const,
-            }}>
-              <div style={{
-                fontFamily: fonts.mono, fontSize: 10, letterSpacing: 3.5,
-                color: `${P3_COLOR}80`, textTransform: "uppercase" as const,
-                marginBottom: 7,
-              }}>
-                03
-              </div>
-              <div style={{
-                fontFamily: fonts.heading, fontSize: 22, fontWeight: 800,
-                color: colors.white, marginBottom: 14, lineHeight: 1.2,
-              }}>
-                Evaluating Students
-              </div>
-              <div style={{ height: 1, background: `${P3_COLOR}28`, marginBottom: 12 }} />
-              {/* Calibrated assessment gauge — semicircular arc fills to score */}
-              <svg width="100%" height={62} viewBox="0 0 368 62" style={{ display: "block" }}>
-                {/* Endpoint tick marks */}
-                <line x1={130} y1={59} x2={122} y2={54} stroke={`${P3_COLOR}30`} strokeWidth={1.2} />
-                <line x1={238} y1={59} x2={246} y2={54} stroke={`${P3_COLOR}30`} strokeWidth={1.2} />
-                {/* Track arc (background) */}
-                <path d="M 130 59 A 54 54 0 0 0 238 59"
-                  fill="none" stroke={`${P3_COLOR}18`} strokeWidth={7} strokeLinecap="round" />
-                {/* Score fill arc — animates as pillar enters */}
-                <path d="M 130 59 A 54 54 0 0 0 238 59"
-                  fill="none" stroke={P3_COLOR} strokeWidth={7} strokeLinecap="round"
-                  strokeDasharray={`${p3GaugeProg * 169.6} 169.6`}
-                  opacity={0.88}
-                />
-                {/* Score number */}
-                <text x={184} y={46}
-                  textAnchor="middle" fontFamily={fonts.heading}
-                  fontSize={26} fontWeight={900} fill={P3_COLOR}>
-                  {Math.round(p3GaugeProg * 100)}
-                </text>
-                {/* Label */}
-                <text x={184} y={57}
-                  textAnchor="middle" fontFamily={fonts.mono}
-                  fontSize={7} fill={`${P3_COLOR}55`} letterSpacing={2}>
-                  SCORE
-                </text>
-              </svg>
-              {/* Competency dimension bars */}
-              <div style={{ display: "flex", flexDirection: "column" as const, gap: 5, marginTop: 4 }}>
-                {EVAL_COMPS.slice(0, 2).map((c, ci) => {
-                  const barFill = Math.max(0, Math.min(c.sc, (p3GaugeProg / 0.91) * c.sc));
-                  return (
-                    <div key={ci}>
-                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
-                        <div style={{ fontFamily: fonts.mono, fontSize: 8, color: `${colors.white}35` }}>
-                          {c.label}
-                        </div>
-                        <div style={{ fontFamily: fonts.mono, fontSize: 8, color: `${P3_COLOR}72` }}>
-                          {Math.round(c.sc * 100)}
-                        </div>
-                      </div>
-                      <div style={{ height: 2.5, background: `${P3_COLOR}16`, borderRadius: 2 }}>
-                        <div style={{
-                          height: "100%", width: `${barFill * 100}%`,
-                          background: `linear-gradient(90deg, ${P3_COLOR}CC, ${P3_COLOR}55)`,
-                          borderRadius: 2,
-                        }} />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+            {tickStr}{tickStr}
           </div>
-        )}
+          <div style={{
+            position: "absolute", inset: 0,
+            background: `linear-gradient(90deg, ${colors.midnight}, transparent 15%, transparent 85%, ${colors.midnight})`,
+            pointerEvents: "none",
+          }} />
+        </div>
 
       </div>
     </SceneShell>

@@ -30,6 +30,19 @@ Generate both, listen, and keep the one that sounds most natural.
 
 ---
 
+## Scene 0: Cold Open (ASTEC Building)
+
+### s0-01 [intro | speed:0.86]
+At the University of Arizona Health Sciences — the Arizona Simulation Technology and Education Center trains the next generation of clinical professionals.
+
+### s0-02 [intro | speed:0.86]
+Thousands of students. Four health professions colleges. One unified simulation platform.
+
+### s0-03 [intro | speed:0.88]
+This is where AIMMS was built.
+
+---
+
 ## Scene 1: Intro
 
 ### s1-01 [intro | speed:0.88]
@@ -89,47 +102,58 @@ All in one streamlined view. Assignments reach students instantly.
 
 ## Scene 4: Virtual Patient
 
+Visual reference: `src/scenes/Scene4_VirtualPatient.tsx` (timeline comment block at top of file).
+
+**After editing these lines:**
+
+1. `npm run voiceover -- --scene 4` — generates `public/audio/segments/s4-*.mp3` (requires `ELEVENLABS_API_KEY`).
+2. `npm run voiceover:stitch-4` — concatenates `s4-01` → `s4-11` into `public/audio/scene4_vp.mp3` (requires `ffmpeg`).
+
+Alternate takes: `S4_07_ID=s4-07b S4_08_ID=s4-08b S4_11_ID=s4-11b npm run voiceover:stitch-4`
+
+Re-check lip-sync beats after a new master: vitals ~9.3s (“Real-time” → ~f323), submit ~56.5s (~f1740 from f45 offset).
+
 ### s4-01 [feature | speed:0.83]
 Students enter the Virtual Patient — an immersive clinical encounter.
 
 ### s4-02 [demo | speed:0.83]
-A 3D patient model. Real-time vital signs.
+A 3D patient model — then live vital signs in real time.
 
 ### s4-03 [demo | speed:0.83]
-The student interviews through natural conversation — exploring symptoms and history.
+The student interviews the patient — symptoms, history, and context in one flowing conversation.
 
 ### s4-04 [demo | speed:0.83]
 Then, the physical exam.
 
 ### s4-05 [demo | speed:0.83]
-Stethoscope. Palpation. Percussion.
+Stethoscope. Palpation. Percussion — each tool surfaces a focused finding.
 
 ### s4-06 [demo | speed:0.83]
-Each reveals real clinical media from a curated patient library.
+Every finding ties to real media from a curated patient library — audio, imaging, and tags mapped to the case.
 
 ### s4-07 [demo | speed:0.83]
-Actual heart sounds, lung audio, and examination images — all mapped to the case.
+Heart sounds, lung audio, and examination images — sequenced and mapped to this patient.
 
 ### s4-07b [demo | speed:0.83]
 Heart sounds. Lung audio. Examination images — all mapped to the case.
 
 ### s4-08 [feature | speed:0.83]
-Next, the student builds a differential diagnosis — and orders the tests needed to support it.
+Clinical reasoning: a ranked differential takes shape — then the workup orders the tests that support it.
 
 ### s4-08b [feature | speed:0.83]
-A differential diagnosis is built — and the appropriate tests are ordered.
+The differential is ranked — and the supporting labs and imaging are ordered in one structured view.
 
 ### s4-09 [demo | speed:0.83]
-Assessment and planning. Documenting the approach. Calling for consult if needed.
+Assessment and plan — documented in a formal note. Treatment steps build line by line — with consult or referral when escalation is needed.
 
 ### s4-10 [demo | speed:0.83]
-At the end, the full encounter is available for review.
+The encounter pulls back into a single record — vitals, history, exam, media, differential, and plan — complete and ready to review.
 
 ### s4-11 [demo | speed:0.83]
-Submit — and the session is captured. Ready for evaluation.
+Submit — the session is locked and saved. Evaluation is queued — faculty review and scoring are next.
 
 ### s4-11b [demo | speed:0.83]
-Submit. The session is captured — and ready for evaluation.
+Submit. Session captured and secured — ready for evaluation.
 
 ---
 

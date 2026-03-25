@@ -63,23 +63,23 @@ export const Scene6_FlowRecap: React.FC = () => {
       {/* Phase 1: Pipeline Diagram (0-290) */}
       <div style={{
         position: "absolute", inset: 0, display: "flex", flexDirection: "column",
-        alignItems: "center", justifyContent: "center", padding: "40px 60px",
+        alignItems: "center", justifyContent: "center", padding: "18px 40px",
         opacity: flowOpacity,
       }}>
         {/* Header */}
         <AnimatedBox delay={0} direction="down">
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, marginBottom: 30 }}>
-            <span style={{ color: colors.white, fontSize: 38, fontFamily: fonts.heading, fontWeight: 700, letterSpacing: 1 }}>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, marginBottom: 14 }}>
+            <span style={{ color: colors.white, fontSize: 48, fontFamily: fonts.heading, fontWeight: 800, letterSpacing: 0 }}>
               The AIMMS Pipeline
             </span>
-            <span style={{ color: colors.oasis, fontSize: 18, fontFamily: fonts.body, fontWeight: 400, letterSpacing: 3, textTransform: "uppercase" }}>
+            <span style={{ color: colors.oasis, fontSize: 22, fontFamily: fonts.body, fontWeight: 500, letterSpacing: 3, textTransform: "uppercase" }}>
               End-to-End Medical Education
             </span>
           </div>
         </AnimatedBox>
 
         {/* Pipeline: cards with connecting arrows */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", position: "relative", marginBottom: 28 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", position: "relative", marginBottom: 14 }}>
           {steps.map((step, i) => {
             // Stagger each card ~40 frames apart so narration can introduce each step
             const cardDelay = 30 + i * 40;
@@ -89,15 +89,16 @@ export const Scene6_FlowRecap: React.FC = () => {
               <React.Fragment key={step.title}>
                 <div style={{
                   display: "flex", flexDirection: "column", alignItems: "center", gap: 0,
-                  width: 200, opacity: cardOp,
+                  width: 230, opacity: cardOp,
                 }}>
                   {/* Step number circle */}
                   <div style={{
-                    width: 36, height: 36, borderRadius: "50%",
-                    background: `${step.color}30`, border: `2px solid ${step.color}`,
+                    width: 48, height: 48, borderRadius: "50%",
+                    background: `${step.color}30`, border: `3px solid ${step.color}`,
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    fontFamily: fonts.mono, fontSize: 18, fontWeight: 700, color: step.color,
-                    marginBottom: 10,
+                    fontFamily: fonts.mono, fontSize: 22, fontWeight: 800, color: step.color,
+                    marginBottom: 12,
+                    boxShadow: `0 0 20px ${step.color}30`,
                   }}>
                     {i + 1}
                   </div>
@@ -106,14 +107,14 @@ export const Scene6_FlowRecap: React.FC = () => {
                   <div style={{
                     width: "100%", padding: "16px 14px",
                     background: "rgba(12, 35, 75, 0.75)", backdropFilter: "blur(20px)",
-                    border: `1px solid ${step.color}35`, borderRadius: 12,
-                    borderTop: `3px solid ${step.color}`,
-                    display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+                    border: `2px solid ${step.color}50`, borderRadius: 16,
+                    borderTop: `5px solid ${step.color}`,
+                    display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
                   }}>
-                    <div style={{ fontFamily: fonts.heading, fontSize: 20, fontWeight: 700, color: colors.white, textAlign: "center" }}>
+                    <div style={{ fontFamily: fonts.heading, fontSize: 26, fontWeight: 800, color: colors.white, textAlign: "center" }}>
                       {step.title}
                     </div>
-                    <div style={{ fontFamily: fonts.body, fontSize: 14, color: step.color, textAlign: "center" }}>
+                    <div style={{ fontFamily: fonts.body, fontSize: 17, color: step.color, textAlign: "center", fontWeight: 600 }}>
                       {step.subtitle}
                     </div>
 
@@ -172,10 +173,10 @@ export const Scene6_FlowRecap: React.FC = () => {
                 {i < steps.length - 1 && (
                   <div style={{
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    width: 40, opacity: arrowOp, marginTop: 30,
+                    width: 28, opacity: arrowOp, marginTop: 30,
                   }}>
-                    <svg width={30} height={20} viewBox="0 0 30 20">
-                      <path d="M 0,10 L 22,10 M 16,4 L 24,10 L 16,16" fill="none" stroke={colors.oasis} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" opacity={0.6} />
+                    <svg width={36} height={24} viewBox="0 0 36 24">
+                      <path d="M 0,12 L 26,12 M 19,5 L 29,12 L 19,19" fill="none" stroke={colors.oasis} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" opacity={0.8} />
                     </svg>
                   </div>
                 )}
@@ -183,46 +184,41 @@ export const Scene6_FlowRecap: React.FC = () => {
             );
           })}
         </div>
-        {/* Capabilities row — appears after pipeline cards (last card at f190+22=f212) */}
+        {/* Data-driven / scale row — "Each step connects seamlessly — data-driven, built to scale" */}
         {(() => {
-          // Header fades in when narration shifts to procedures
-          const capHeaderOp = interpolate(frame, [220, 240], [0, 1], clamp);
-          // Each pill staggered 22 frames = ~0.7s so narration can name each one
-          const caps = [
-            { label: "IV / Arterial Line" },
-            { label: "Intubation" },
-            { label: "Lumbar Puncture" },
-            { label: "Suturing" },
-            { label: "Team Simulation" },
-            { label: "Debrief & IPE" },
+          const rowHeaderOp = interpolate(frame, [215, 235], [0, 1], clamp);
+          const pillars = [
+            { label: "AI Case Authoring",    color: colors.arizonaRed  },
+            { label: "Automated Scoring",    color: colors.azurite     },
+            { label: "Competency Tracking",  color: colors.oasis       },
+            { label: "Faculty Analytics",    color: colors.vitalsNormal },
+            { label: "Instant Assignment",   color: colors.oasis       },
+            { label: "Scalable Platform",    color: colors.arizonaRed  },
           ];
           return (
-            <div style={{
-              display: "flex", flexDirection: "column", alignItems: "center", gap: 10,
-            }}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
               <div style={{
-                fontFamily: fonts.mono, fontSize: 12, color: `${colors.oasis}70`,
-                letterSpacing: 3, textTransform: "uppercase",
-                opacity: capHeaderOp,
+                fontFamily: fonts.mono, fontSize: 16, letterSpacing: 3.5,
+                color: `${colors.white}50`, textTransform: "uppercase",
+                opacity: rowHeaderOp,
               }}>
-                Simulation Capabilities
+                Data-Driven · Built to Scale
               </div>
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" as const, justifyContent: "center" }}>
-                {caps.map((cap, i) => {
-                  // Start at f230 (after header), 22-frame stagger per pill
-                  const capDelay = 230 + i * 22;
-                  const capOp = interpolate(frame, [capDelay, capDelay + 16], [0, 1], clamp);
+              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" as const, justifyContent: "center" }}>
+                {pillars.map((p, i) => {
+                  const delay = 226 + i * 18;
+                  const pOp = interpolate(frame, [delay, delay + 14], [0, 1], clamp);
                   return (
-                    <div key={cap.label} style={{
-                      padding: "5px 16px", borderRadius: 3,
-                      background: "rgba(12, 35, 75, 0.6)",
-                      border: `1px solid ${colors.oasis}22`,
-                      opacity: capOp,
+                    <div key={p.label} style={{
+                      padding: "10px 24px", borderRadius: 10,
+                      background: `${p.color}10`,
+                      border: `2px solid ${p.color}45`,
+                      opacity: pOp,
                     }}>
                       <span style={{
-                        fontFamily: fonts.mono, fontSize: 12, fontWeight: 600,
-                        color: `${colors.white}75`, letterSpacing: 1,
-                      }}>{cap.label}</span>
+                        fontFamily: fonts.mono, fontSize: 16, fontWeight: 700,
+                        color: `${colors.white}90`, letterSpacing: 0.8,
+                      }}>{p.label}</span>
                     </div>
                   );
                 })}
@@ -256,17 +252,17 @@ export const Scene6_FlowRecap: React.FC = () => {
           })()}
 
           {/* Side accent lines */}
-          <div style={{ position: "absolute", top: 130, bottom: 130, left: 50, width: 1, background: `linear-gradient(180deg, ${colors.oasis}00, ${colors.azurite}80, ${colors.oasis}00)`, opacity: closeSideOpacity * closeSidePulse }} />
-          <div style={{ position: "absolute", top: 130, bottom: 130, right: 50, width: 1, background: `linear-gradient(180deg, ${colors.oasis}00, ${colors.azurite}80, ${colors.oasis}00)`, opacity: closeSideOpacity * closeSidePulse }} />
+          <div style={{ position: "absolute", top: 80, bottom: 80, left: 44, width: 3, background: `linear-gradient(180deg, ${colors.oasis}00, ${colors.azurite}90, ${colors.oasis}00)`, opacity: closeSideOpacity * closeSidePulse }} />
+          <div style={{ position: "absolute", top: 80, bottom: 80, right: 44, width: 3, background: `linear-gradient(180deg, ${colors.oasis}00, ${colors.azurite}90, ${colors.oasis}00)`, opacity: closeSideOpacity * closeSidePulse }} />
 
           {/* Expanding rings */}
-          <div style={{ position: "absolute", top: "50%", left: "50%", transform: `translate(-50%, -50%) scale(${closeRing1Scale})`, width: 500, height: 500, borderRadius: "50%", border: `1px solid ${colors.oasis}`, opacity: closeRing1Opacity, pointerEvents: "none" }} />
-          <div style={{ position: "absolute", top: "50%", left: "50%", transform: `translate(-50%, -50%) scale(${closeRing2Scale})`, width: 700, height: 700, borderRadius: "50%", border: `1px solid ${colors.azurite}`, opacity: closeRing2Opacity, pointerEvents: "none" }} />
+          <div style={{ position: "absolute", top: "50%", left: "50%", transform: `translate(-50%, -50%) scale(${closeRing1Scale})`, width: 500, height: 500, borderRadius: "50%", border: `3px solid ${colors.oasis}`, opacity: closeRing1Opacity, pointerEvents: "none" }} />
+          <div style={{ position: "absolute", top: "50%", left: "50%", transform: `translate(-50%, -50%) scale(${closeRing2Scale})`, width: 700, height: 700, borderRadius: "50%", border: `3px solid ${colors.azurite}`, opacity: closeRing2Opacity, pointerEvents: "none" }} />
 
           {/* Centered content */}
           <div style={{
             position: "absolute", inset: 0, display: "flex", flexDirection: "column",
-            alignItems: "center", justifyContent: "center", gap: 20, zIndex: 2,
+            alignItems: "center", justifyContent: "center", gap: 12, zIndex: 2,
           }}>
             <AnimatedBox delay={280} direction="scale">
               <div style={{
@@ -290,12 +286,12 @@ export const Scene6_FlowRecap: React.FC = () => {
             }} />
 
             <AnimatedBox delay={300} direction="up">
-              <div style={{ color: colors.white, fontSize: 42, fontFamily: fonts.heading, fontWeight: 700, textAlign: "center" }}>
+              <div style={{ color: colors.white, fontSize: 56, fontFamily: fonts.heading, fontWeight: 800, textAlign: "center", textShadow: `0 0 60px ${colors.oasis}30` }}>
                 AI Medical Mentoring System
               </div>
             </AnimatedBox>
             <AnimatedBox delay={320} direction="up">
-              <div style={{ color: colors.oasis, fontSize: 22, fontFamily: fonts.body, fontWeight: 500, textAlign: "center", letterSpacing: 2, maxWidth: 700, lineHeight: 1.5 }}>
+              <div style={{ color: colors.oasis, fontSize: 28, fontFamily: fonts.body, fontWeight: 600, textAlign: "center", letterSpacing: 2, maxWidth: 800, lineHeight: 1.5 }}>
                 Case Creator &middot; Virtual Patient &middot; AIMS Reports
               </div>
             </AnimatedBox>
@@ -306,7 +302,7 @@ export const Scene6_FlowRecap: React.FC = () => {
             <div style={{
               position: "absolute", top: 0, left: 0, whiteSpace: "nowrap",
               transform: `translateX(${closeTickerScroll}px)`,
-              fontFamily: fonts.mono, fontSize: 11, color: colors.oasis,
+              fontFamily: fonts.mono, fontSize: 14, color: colors.oasis,
               letterSpacing: 2, lineHeight: "24px",
             }}>
               {"AIMMS v3.2   //   MEDICAL CASE CREATOR   //   VIRTUAL PATIENT   //   AIMS REPORTS   //   FACULTY DASHBOARD   //   AI-POWERED CASE AUTHORING   //   PROCEDURAL TRAINING   //   TEAM SIMULATION   //   IPE   //   ".repeat(3)}

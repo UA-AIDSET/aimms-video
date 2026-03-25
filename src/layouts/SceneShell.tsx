@@ -80,27 +80,27 @@ export const SceneShell: React.FC<SceneShellProps> = ({
               zIndex: 10,
             }}
           >
-            <div
+          <div
+            style={{
+              backgroundColor: `${colors.arizonaRed}22`,
+              borderRadius: 28,
+              padding: "12px 32px",
+              border: `2px solid ${colors.arizonaRed}55`,
+            }}
+          >
+            <span
               style={{
-                backgroundColor: `${colors.arizonaRed}20`,
-                borderRadius: 24,
-                padding: "10px 28px",
-                border: `1px solid ${colors.arizonaRed}40`,
+                color: colors.white,
+                fontSize: 20,
+                fontFamily: fonts.body,
+                fontWeight: 700,
+                letterSpacing: 2.5,
+                textTransform: "uppercase" as const,
               }}
             >
-              <span
-                style={{
-                  color: colors.white,
-                  fontSize: 17,
-                  fontFamily: fonts.body,
-                  fontWeight: 600,
-                  letterSpacing: 2,
-                  textTransform: "uppercase" as const,
-                }}
-              >
-                {sectionLabel}
-              </span>
-            </div>
+              {sectionLabel}
+            </span>
+          </div>
           </div>
         )}
 

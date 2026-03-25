@@ -7,7 +7,9 @@
     "dev": "npx remotion studio",
     "build": "npx remotion render AimmsFlow out/aimms-lms-flow.mp4 --gl=angle",
     "preview": "npx remotion studio",
-    "voiceover": "node scripts/generate-voiceover.js"
+    "voiceover": "node scripts/generate-voiceover.js",
+    "voiceover:stitch-0": "bash scripts/stitch-scene0-voiceover.sh",
+    "voiceover:stitch-4": "bash scripts/stitch-scene4-voiceover.sh"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",

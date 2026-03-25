@@ -6,165 +6,17 @@ import { AnimatedGrid } from "../three/AnimatedGrid";
 import { GlowOrb } from "../three/GlowOrb";
 import { NodeNetwork } from "../three/NodeNetwork";
 import { CameraRig } from "../three/CameraRig";
-import { PulsingDot } from "../components/PulsingDot";
 import { colors, fonts } from "../theme";
 
-/* ──────────────────────────────────────────────────────────────────────
-   PAPER DOCUMENT COMPONENT
-   ────────────────────────────────────────────────────────────────────── */
-const PAPER_BG = "rgba(252, 249, 240, 0.97)";
-const INK_DARK = "#1a2035";
-const INK_BAR  = "rgba(26, 32, 53, 0.13)";
-const INK_MED  = "#7080a0";
-
-interface PaperSection { heading: string; lines: number }
-interface PaperDocProps {
-  title: string; subtitle: string; accent: string;
-  sections: PaperSection[]; badge?: string;
-}
-const PaperDoc: React.FC<PaperDocProps> = ({ title, subtitle, accent, sections, badge }) => (
-  <div style={{
-    background: PAPER_BG, borderRadius: 3, overflow: "hidden",
-    boxShadow: "0 8px 32px rgba(0,0,0,0.42), 0 2px 8px rgba(0,0,0,0.2)",
-    width: "100%", height: "100%", display: "flex", flexDirection: "column",
-  }}>
-    <div style={{ height: 10, background: accent, flexShrink: 0 }} />
-    <div style={{
-      padding: "16px 22px 12px",
-      borderBottom: "1px solid rgba(26,32,53,0.10)",
-      flexShrink: 0, display: "flex", alignItems: "flex-start", justifyContent: "space-between",
-    }}>
-      <div>
-        <div style={{ fontFamily: fonts.heading, fontSize: 30, fontWeight: 800, color: INK_DARK, lineHeight: 1.1 }}>
-          {title}
-        </div>
-        <div style={{ fontFamily: fonts.mono, fontSize: 12, color: INK_MED, marginTop: 5 }}>{subtitle}</div>
-      </div>
-      {badge && (
-        <div style={{
-          fontFamily: fonts.mono, fontSize: 12, fontWeight: 700, color: "#c0392b",
-          background: "rgba(192,57,43,0.10)", border: "1px solid rgba(192,57,43,0.25)",
-          padding: "4px 10px", borderRadius: 4, marginTop: 4, flexShrink: 0,
-        }}>{badge}</div>
-      )}
-    </div>
-    <div style={{ padding: "14px 22px", flex: 1, display: "flex", flexDirection: "column", gap: 14, overflow: "hidden" }}>
-      {sections.map((sec, si) => (
-        <div key={si}>
-          <div style={{
-            fontFamily: fonts.mono, fontSize: 10, fontWeight: 700, color: "#8090b8",
-            letterSpacing: 1.5, textTransform: "uppercase" as const, marginBottom: 8,
-          }}>{sec.heading}</div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            {Array.from({ length: sec.lines }).map((_, li) => (
-              <div key={li} style={{
-                height: 12, borderRadius: 6, background: INK_BAR,
-                width: `${56 + ((li * 41 + si * 17 + 9) % 36)}%`,
-              }} />
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
-  </div>
-);
-
-/* ──────────────────────────────────────────────────────────────────────
-   NEURAL NETWORK (AI visualization during generation)
-   ────────────────────────────────────────────────────────────────────── */
-function buildNetworkNodes() {
-  const nodes: { x: number; y: number; z: number }[] = [];
-  for (let i = 0; i < 8;  i++) nodes.push({ x: -2, y: -1.75 + i * 0.5, z: -1 });
-  for (let i = 0; i < 14; i++) nodes.push({ x:  0, y: -1.75 + i * (3.5 / 13), z: -1 });
-  for (let i = 0; i < 8;  i++) nodes.push({ x:  2, y: -1.75 + i * 0.5, z: -1 });
-  return nodes;
-}
-function buildNetworkEdges(n: number): [number, number][] {
-  const edges: [number, number][] = [];
-  const ie = 8, he = 22;
-  for (let i = 0; i < ie; i++) for (let j = ie; j < he; j += 2) edges.push([i, j]);
-  for (let i = ie; i < he; i++) for (let j = he; j < n;  j += 2) edges.push([i, j]);
-  return edges;
-}
-
-/* ──────────────────────────────────────────────────────────────────────
-   SCENE DATA
-   ────────────────────────────────────────────────────────────────────── */
-const paperLayout = [
-  { left: 60,   top: 88,  w: 520, h: 385, rot: -2.5, si: 0, z: 2,
-    title: "PATIENT HISTORY",    subtitle: "12 pages · Last updated 09/14", accent: colors.arizonaBlue, badge: "12 pg",
-    sections: [{ heading: "HISTORY OF PRESENT ILLNESS", lines: 5 }, { heading: "PAST MEDICAL HISTORY", lines: 4 }, { heading: "MEDICATIONS", lines: 3 }] },
-  { left: 1340, top: 90,  w: 520, h: 385, rot:  3.0, si: 2, z: 2,
-    title: "LAB RESULTS",        subtitle: "CBC / BMP · 8 pages",           accent: "#16a34a",          badge: "8 pg",
-    sections: [{ heading: "COMPLETE BLOOD COUNT", lines: 5 }, { heading: "METABOLIC PANEL", lines: 4 }, { heading: "URINALYSIS", lines: 3 }] },
-  { left: 55,   top: 618, w: 500, h: 355, rot:  1.5, si: 3, z: 2,
-    title: "MEDICATION LOG",     subtitle: "Active orders · 6 pages",        accent: colors.vitalsWarning, badge: "6 pg",
-    sections: [{ heading: "ACTIVE MEDICATIONS", lines: 5 }, { heading: "RECENT ORDERS", lines: 4 }] },
-  { left: 1365, top: 622, w: 490, h: 350, rot: -2.0, si: 4, z: 2,
-    title: "REFERRAL NOTES",     subtitle: "Consultation request · 4 pages", accent: "#06b6d4",          badge: "4 pg",
-    sections: [{ heading: "REASON FOR REFERRAL", lines: 4 }, { heading: "CLINICAL SUMMARY", lines: 4 }] },
-  { left: 528,  top: 242, w: 864, h: 536, rot: -0.5, si: 1, z: 4,
-    title: "CLINICAL NOTES",     subtitle: "3 days of documentation · 17 pages", accent: colors.arizonaRed, badge: "17 pg",
-    sections: [{ heading: "HISTORY OF PRESENT ILLNESS", lines: 5 }, { heading: "PHYSICAL EXAMINATION", lines: 4 }, { heading: "ASSESSMENT & PLAN", lines: 4 }, { heading: "FOLLOW-UP ORDERS", lines: 3 }] },
-];
-
-const libraryCategories = [
-  { name: "Pulmonology",   items: [{ label: "Pneumonia", selected: true }, { label: "COPD Exacerbation", selected: false }, { label: "Pulmonary Embolism", selected: false }] },
-  { name: "Cardiology",    items: [{ label: "Heart Failure", selected: false }, { label: "STEMI", selected: false }, { label: "Atrial Fibrillation", selected: false }] },
-  { name: "Endocrinology", items: [{ label: "Diabetic Ketoacidosis", selected: false }, { label: "Hypoglycemia", selected: false }] },
-];
-const templateSections = ["Patient Information", "Vital Signs", "Chief Complaint", "Physical Examination", "Lab Results", "Assessment & Plan"];
-
-const aiSections = [
-  {
-    title: "Patient Information", color: colors.oasis,
-    fields: [
-      { label: "PATIENT",          value: "Michael Chen",            flag: null },
-      { label: "AGE / SEX",        value: "58 — Male",               flag: null },
-      { label: "CHIEF COMPLAINT",  value: "Fever & cough × 3 days",  flag: null },
-    ],
-  },
-  {
-    title: "Vital Signs", color: "#F59E0B",
-    fields: [
-      { label: "TEMPERATURE",    value: "38.9 °C",      flag: "H" },
-      { label: "HEART RATE",     value: "96 bpm",        flag: null },
-      { label: "BLOOD PRESSURE", value: "138/88 mmHg",  flag: "H" },
-      { label: "O₂ SATURATION",  value: "95%",           flag: null },
-    ],
-  },
-  {
-    title: "Exam Findings", color: colors.azurite,
-    fields: [
-      { label: "RESPIRATORY",   value: "Bilateral crackles",       flag: null },
-      { label: "BREATH SOUNDS", value: "Decreased at bases",       flag: null },
-      { label: "PERCUSSION",    value: "Dull — right lower lobe",  flag: null },
-    ],
-  },
-  {
-    title: "Diagnostics", color: "#06b6d4",
-    fields: [
-      { label: "CHEST X-RAY", value: "RLL Consolidation",            flag: "!" },
-      { label: "WBC COUNT",   value: "14,200 /μL",                   flag: "H" },
-      { label: "ASSESSMENT",  value: "Community-Acquired Pneumonia", flag: null },
-    ],
-  },
-];
-
-/* ──────────────────────────────────────────────────────────────────────
-   BEAT-BASED PHASE BOUNDARIES  (30fps · audio starts f10 · ends ~f778)
-
-   Each beat follows: ENTER (12–18f) → HOLD (30–70f) → TRANSITION (12–16f)
-
-   P1   f 65–192   Papers — manual documentation burden
-                   Papers spring in staggered (f68–116), hold f116–184
-   SCAN f184–228   Transformation sweep
-   P2   f226–340   BEAT A — Interface overview (hold ~70f)
-   P3   f334–480   BEAT B — Library browse only (hold ~28f after categories)
-   P4   f472–578   BEAT C — Template selection, standalone focused beat
-   P5   f570–775   BEAT D — AI generation, 4 sections at deliberate pace
-   P6   f765–810   BEAT E — Finalized / case ready
-   ────────────────────────────────────────────────────────────────────── */
+/* ── PHASE TIMING (30fps) ──────────────────────────────────────────────
+   P1   f 65–192   Manual burden — icon stacks pile up
+   SCAN f182–228   Scan-line transformation
+   P2   f226–340   Category icons overview
+   P3   f334–480   Library browse — icon columns + card selection
+   P4   f472–578   Template selection — 6 section icons check in
+   P5   f570–775   AI generation — 4 sequential icon panels
+   P6   f765–810   Case finalized — 2×2 grid + green check
+   ─────────────────────────────────────────────────────────────────── */
 const P1S = 65,  P1E = 192;
 const P2S = 226, P2E = 340;
 const P3S = 334, P3E = 480;
@@ -172,163 +24,304 @@ const P4S = 472, P4E = 578;
 const P5S = 570, P5E = 775;
 const P6S = 765, P6E = 810;
 
-// ── AI generation: slower field pacing for readability ──
-// FILL_DELAY: pause after section appears before AI starts filling (0.4s)
-// FIELD_GAP:  frames between field starts — must allow reading each value
-// FIELD_TIME: frames to type each field value
-const FILL_DELAY = 12;  // 0.40s pause before first field
-const FIELD_GAP  = 12;  // 0.40s between field starts (was 14 — was too fast)
-const FIELD_TIME = 12;  // 0.40s typing duration per field
+const CE   = { extrapolateLeft: "clamp" as const, extrapolateRight: "clamp" as const };
+const eIO  = Easing.inOut(Easing.cubic);
+const eOut = Easing.out(Easing.cubic);
 
-// Section windows with deliberate gaps between sections (~8f crossfade)
-// Each section has enough frames to complete all field typing before fading:
-//   3-field section needs: FILL_DELAY + 2×FIELD_GAP + FIELD_TIME = 12+24+12 = 48f
-//   4-field section needs: FILL_DELAY + 3×FIELD_GAP + FIELD_TIME = 12+36+12 = 60f
-const SEC_WINDOWS = [
-  [574, 630],  // Patient Info  (56f > 48f needed) ✓
-  [622, 690],  // Vital Signs   (68f > 60f needed) ✓
-  [682, 736],  // Exam Findings (54f > 48f needed) ✓
-  [728, 775],  // Diagnostics   (47f ≈ 48f needed) ✓
+/* ════════════════════════════════════════════════════════════════════
+   ICONS
+   ════════════════════════════════════════════════════════════════════ */
+const IDoc: React.FC<{ c: string; s?: number }> = ({ c, s = 64 }) => (
+  <svg width={s} height={s} viewBox="0 0 64 64" fill="none">
+    <rect x={10} y={6} width={36} height={48} rx={4} stroke={c} strokeWidth={2.5} />
+    <path d="M 36 6 L 46 16 L 36 16 Z" fill={c} fillOpacity={0.25} stroke={c} strokeWidth={1.5} strokeLinejoin="round" />
+    <rect x={16} y={24} width={22} height={3} rx={1.5} fill={c} opacity={0.45} />
+    <rect x={16} y={31} width={17} height={3} rx={1.5} fill={c} opacity={0.35} />
+    <rect x={16} y={38} width={20} height={3} rx={1.5} fill={c} opacity={0.35} />
+    <rect x={16} y={45} width={14} height={3} rx={1.5} fill={c} opacity={0.25} />
+  </svg>
+);
+const IFlask: React.FC<{ c: string; s?: number }> = ({ c, s = 64 }) => (
+  <svg width={s} height={s} viewBox="0 0 64 64" fill="none">
+    <path d="M 24 8 L 24 28 L 12 50 Q 10 56 20 56 L 44 56 Q 54 56 52 50 L 40 28 L 40 8 Z"
+      stroke={c} strokeWidth={2.5} strokeLinejoin="round" />
+    <line x1={20} y1={8} x2={44} y2={8} stroke={c} strokeWidth={2.5} strokeLinecap="round" />
+    <line x1={15} y1={44} x2={49} y2={44} stroke={c} strokeWidth={1.5} strokeLinecap="round" opacity={0.4} />
+    <circle cx={30} cy={49} r={3} fill={c} opacity={0.55} />
+    <circle cx={39} cy={46} r={2} fill={c} opacity={0.35} />
+  </svg>
+);
+const IPill: React.FC<{ c: string; s?: number }> = ({ c, s = 64 }) => (
+  <svg width={s} height={s} viewBox="0 0 64 64" fill="none">
+    <rect x={8} y={22} width={48} height={20} rx={10} stroke={c} strokeWidth={2.5} />
+    <line x1={32} y1={22} x2={32} y2={42} stroke={c} strokeWidth={2} opacity={0.6} />
+    <rect x={8} y={22} width={24} height={20} rx={10} fill={c} opacity={0.18} />
+  </svg>
+);
+const IArrows: React.FC<{ c: string; s?: number }> = ({ c, s = 64 }) => (
+  <svg width={s} height={s} viewBox="0 0 64 64" fill="none">
+    <circle cx={16} cy={32} r={10} stroke={c} strokeWidth={2} />
+    <circle cx={48} cy={32} r={10} stroke={c} strokeWidth={2} />
+    <path d="M 26 32 L 38 32 M 34 27 L 39 32 L 34 37"
+      stroke={c} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+const IClip: React.FC<{ c: string; s?: number }> = ({ c, s = 64 }) => (
+  <svg width={s} height={s} viewBox="0 0 64 64" fill="none">
+    <rect x={10} y={12} width={44} height={48} rx={4} stroke={c} strokeWidth={2.5} />
+    <rect x={22} y={8} width={20} height={10} rx={5} stroke={c} strokeWidth={2} />
+    <rect x={18} y={26} width={28} height={3} rx={1.5} fill={c} opacity={0.45} />
+    <rect x={18} y={33} width={22} height={3} rx={1.5} fill={c} opacity={0.40} />
+    <rect x={18} y={40} width={24} height={3} rx={1.5} fill={c} opacity={0.35} />
+    <rect x={18} y={47} width={16} height={3} rx={1.5} fill={c} opacity={0.25} />
+  </svg>
+);
+const ILungs: React.FC<{ c: string; s?: number }> = ({ c, s = 64 }) => (
+  <svg width={s} height={s} viewBox="0 0 64 64" fill="none">
+    <line x1={32} y1={10} x2={32} y2={22} stroke={c} strokeWidth={2.5} strokeLinecap="round" />
+    <path d="M 32 22 Q 20 22 14 30 Q 8 38 10 48 Q 12 56 22 54 Q 28 52 28 46 L 28 26 Q 28 22 32 22"
+      stroke={c} strokeWidth={2.2} strokeLinecap="round" fill={c} fillOpacity={0.08} />
+    <path d="M 32 22 Q 44 22 50 30 Q 56 38 54 48 Q 52 56 42 54 Q 36 52 36 46 L 36 26 Q 36 22 32 22"
+      stroke={c} strokeWidth={2.2} strokeLinecap="round" fill={c} fillOpacity={0.08} />
+  </svg>
+);
+const IHeart: React.FC<{ c: string; s?: number; pulse?: number }> = ({ c, s = 64, pulse = 0 }) => (
+  <svg width={s} height={s} viewBox="0 0 64 64" fill="none">
+    <path d="M 32 52 Q 8 36 8 22 Q 8 10 20 10 Q 28 10 32 20 Q 36 10 44 10 Q 56 10 56 22 Q 56 36 32 52 Z"
+      stroke={c} strokeWidth={2.5} fill={c} fillOpacity={0.12} />
+    <path d={`M 14 32 L 20 ${28 - pulse * 4} L 26 ${36 + pulse * 5} L 32 ${20 - pulse * 6} L 38 ${40 + pulse * 5} L 44 ${28 - pulse * 3} L 50 32`}
+      stroke={c} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" opacity={0.75} />
+  </svg>
+);
+const IMol: React.FC<{ c: string; s?: number }> = ({ c, s = 64 }) => (
+  <svg width={s} height={s} viewBox="0 0 64 64" fill="none">
+    <circle cx={32} cy={32} r={7} stroke={c} strokeWidth={2.2} fill={c} fillOpacity={0.2} />
+    <circle cx={14} cy={18} r={5} stroke={c} strokeWidth={2} fill={c} fillOpacity={0.15} />
+    <circle cx={50} cy={18} r={5} stroke={c} strokeWidth={2} fill={c} fillOpacity={0.15} />
+    <circle cx={14} cy={46} r={5} stroke={c} strokeWidth={2} fill={c} fillOpacity={0.15} />
+    <circle cx={50} cy={46} r={5} stroke={c} strokeWidth={2} fill={c} fillOpacity={0.15} />
+    <line x1={27} y1={27} x2={19} y2={23} stroke={c} strokeWidth={1.5} />
+    <line x1={37} y1={27} x2={45} y2={23} stroke={c} strokeWidth={1.5} />
+    <line x1={27} y1={37} x2={19} y2={41} stroke={c} strokeWidth={1.5} />
+    <line x1={37} y1={37} x2={45} y2={41} stroke={c} strokeWidth={1.5} />
+  </svg>
+);
+const IPerson: React.FC<{ c: string; s?: number }> = ({ c, s = 64 }) => (
+  <svg width={s} height={s} viewBox="0 0 64 64" fill="none">
+    <circle cx={32} cy={18} r={10} stroke={c} strokeWidth={2.5} fill={c} fillOpacity={0.12} />
+    <path d="M 12 56 Q 14 36 32 36 Q 50 36 52 56"
+      stroke={c} strokeWidth={2.5} strokeLinecap="round" />
+  </svg>
+);
+const IScope: React.FC<{ c: string; s?: number }> = ({ c, s = 64 }) => (
+  <svg width={s} height={s} viewBox="0 0 64 64" fill="none">
+    <circle cx={44} cy={44} r={10} stroke={c} strokeWidth={2.5} fill={c} fillOpacity={0.1} />
+    <line x1={16} y1={12} x2={28} y2={12} stroke={c} strokeWidth={2.5} strokeLinecap="round" />
+    <path d="M 16 12 L 16 32 Q 16 46 32 46 L 34 46"
+      stroke={c} strokeWidth={2.5} strokeLinecap="round" />
+    <path d="M 28 12 L 28 32 Q 28 46 32 46"
+      stroke={c} strokeWidth={2.5} strokeLinecap="round" />
+  </svg>
+);
+const IScan: React.FC<{ c: string; s?: number; prog?: number }> = ({ c, s = 64, prog = 0.5 }) => (
+  <svg width={s} height={s} viewBox="0 0 64 64" fill="none">
+    <rect x={8} y={8} width={48} height={48} rx={6} stroke={c} strokeWidth={1.5} opacity={0.4} />
+    <path d="M 8 20 L 8 8 L 20 8"  stroke={c} strokeWidth={2.5} strokeLinecap="round" />
+    <path d="M 44 8 L 56 8 L 56 20" stroke={c} strokeWidth={2.5} strokeLinecap="round" />
+    <path d="M 8 44 L 8 56 L 20 56" stroke={c} strokeWidth={2.5} strokeLinecap="round" />
+    <path d="M 44 56 L 56 56 L 56 44" stroke={c} strokeWidth={2.5} strokeLinecap="round" />
+    <line x1={8} y1={8 + prog * 48} x2={56} y2={8 + prog * 48}
+      stroke={c} strokeWidth={2} opacity={0.9} />
+    <rect x={16} y={20} width={32} height={4} rx={2} fill={c} opacity={0.18} />
+    <rect x={16} y={28} width={24} height={3} rx={1.5} fill={c} opacity={0.14} />
+    <rect x={16} y={35} width={28} height={3} rx={1.5} fill={c} opacity={0.14} />
+  </svg>
+);
+const ICheck: React.FC<{ c: string; s?: number }> = ({ c, s = 32 }) => (
+  <svg width={s} height={s} viewBox="0 0 32 32" fill="none">
+    <circle cx={16} cy={16} r={14} stroke={c} strokeWidth={2} fill={c} fillOpacity={0.15} />
+    <path d="M 8 16 L 13 21 L 24 10"
+      stroke={c} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+function renderIcon(name: string, color: string, size = 64): React.ReactNode {
+  switch (name) {
+    case "doc":    return <IDoc    c={color} s={size} />;
+    case "flask":  return <IFlask  c={color} s={size} />;
+    case "pill":   return <IPill   c={color} s={size} />;
+    case "arrows": return <IArrows c={color} s={size} />;
+    case "clip":   return <IClip   c={color} s={size} />;
+    case "lungs":  return <ILungs  c={color} s={size} />;
+    case "heart":  return <IHeart  c={color} s={size} />;
+    case "mol":    return <IMol    c={color} s={size} />;
+    case "person": return <IPerson c={color} s={size} />;
+    case "scope":  return <IScope  c={color} s={size} />;
+    case "scan":   return <IScan   c={color} s={size} />;
+    default:       return null;
+  }
+}
+
+/* ── STATIC DATA ────────────────────────────────────────────────── */
+const STACKS = [
+  { icon: "doc",    color: colors.azurite,      left: 200,  top: 140, w: 190, h: 190, rot: -2.5, si: 0 },
+  { icon: "flask",  color: "#16a34a",             left: 1530, top: 130, w: 190, h: 190, rot:  3.0, si: 2 },
+  { icon: "pill",   color: colors.vitalsWarning,  left: 210,  top: 680, w: 170, h: 170, rot:  1.5, si: 3 },
+  { icon: "arrows", color: "#06b6d4",              left: 1540, top: 690, w: 170, h: 170, rot: -2.0, si: 4 },
+  { icon: "clip",   color: colors.arizonaRed,     left: 760,  top: 310, w: 400, h: 400, rot: -0.5, si: 1 },
 ] as const;
 
-/* ──────────────────────────────────────────────────────────────────────
+const CAT_ICONS = [
+  { icon: "lungs", color: colors.oasis },
+  { icon: "heart", color: colors.arizonaRed },
+  { icon: "mol",   color: "#16a34a" },
+] as const;
+
+const SECT_ICONS = [
+  { icon: "person", color: colors.oasis },
+  { icon: "heart",  color: colors.vitalsWarning },
+  { icon: "scope",  color: "#06b6d4" },
+  { icon: "scope",  color: colors.azurite },
+  { icon: "flask",  color: "#16a34a" },
+  { icon: "clip",   color: colors.arizonaRed },
+] as const;
+
+const AI_PANELS = [
+  { icon: "person", color: colors.oasis },
+  { icon: "heart",  color: colors.vitalsWarning },
+  { icon: "lungs",  color: colors.azurite },
+  { icon: "scan",   color: "#06b6d4" },
+] as const;
+
+const SEC_WINDOWS = [
+  [574, 638],
+  [630, 698],
+  [690, 742],
+  [735, 775],
+] as const;
+
+const B3_CARDS = [3, 3, 2] as const;
+
+/* ── NEURAL NETWORK ─────────────────────────────────────────────── */
+function buildNodes() {
+  const n: { x: number; y: number; z: number }[] = [];
+  for (let i = 0; i < 8;  i++) n.push({ x: -2, y: -1.75 + i * 0.5, z: -1 });
+  for (let i = 0; i < 14; i++) n.push({ x:  0, y: -1.75 + i * (3.5 / 13), z: -1 });
+  for (let i = 0; i < 8;  i++) n.push({ x:  2, y: -1.75 + i * 0.5, z: -1 });
+  return n;
+}
+function buildEdges(n: number): [number, number][] {
+  const e: [number, number][] = [];
+  const ie = 8, he = 22;
+  for (let i = 0; i < ie; i++) for (let j = ie; j < he; j += 2) e.push([i, j]);
+  for (let i = ie; i < he; i++) for (let j = he; j < n;  j += 2) e.push([i, j]);
+  return e;
+}
+
+/* ════════════════════════════════════════════════════════════════════
    COMPONENT
-   ────────────────────────────────────────────────────────────────────── */
+   ════════════════════════════════════════════════════════════════════ */
 export const Scene2_MCC: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const clamp  = { extrapolateLeft: "clamp" as const, extrapolateRight: "clamp" as const };
-  const easeIO = { easing: Easing.inOut(Easing.ease), ...clamp };
-  const easeIn = { easing: Easing.in(Easing.ease),    ...clamp };
 
-  const networkNodes = useMemo(() => buildNetworkNodes(), []);
-  const networkEdges = useMemo(() => buildNetworkEdges(networkNodes.length), [networkNodes.length]);
+  const netNodes = useMemo(() => buildNodes(), []);
+  const netEdges = useMemo(() => buildEdges(netNodes.length), [netNodes.length]);
 
-  /* ── Paper springs — more spread stagger for readability ── */
-  // Each paper arrives 12 frames apart so the viewer watches them build up
-  const PAPER_DELAYS = [68, 80, 92, 104, 116] as const;
-  const paperSprings = PAPER_DELAYS.map(d =>
+  /* ── Beat 1 springs ── */
+  const DELAYS = [68, 80, 92, 104, 116] as const;
+  const springs = DELAYS.map(d =>
     spring({ frame: frame - d, fps, config: { damping: 22, stiffness: 88, mass: 1.0 } })
   );
-  // Papers exit cleanly after hold period (f184–240)
-  const papersExitOp    = interpolate(frame, [184, 240], [1, 0], easeIn);
-  const papersExitScale = interpolate(frame, [184, 240], [1, 0.90], easeIn);
-  const papersExitY     = interpolate(frame, [184, 240], [0, 20], easeIn);
+  const exitOp    = interpolate(frame, [184, 244], [1, 0], { ...CE, easing: Easing.in(Easing.ease) });
+  const exitScale = interpolate(frame, [184, 244], [1, 0.88], CE);
 
-  /* ── Scan transformation line ── */
-  const scanProgress = interpolate(frame, [182, 226], [0, 1], clamp);
-  const scanOpacity  = interpolate(frame, [180, 186, 221, 228], [0, 1, 1, 0], clamp);
+  /* ── Scan line ── */
+  const scanProg = interpolate(frame, [182, 226], [0, 1], CE);
+  const scanOp   = interpolate(frame, [180, 186, 221, 228], [0, 1, 1, 0], CE);
 
-  /* ── Phase opacity helpers ── */
-  // Standard phase: 18-frame enter, 16-frame exit — leaves long hold in the middle
-  const phOp   = (s: number, e: number) => interpolate(frame, [s, s + 18, e - 16, e], [0, 1, 1, 0], clamp);
-  const phZoom = (s: number)            => interpolate(frame, [s, s + 28], [0.95, 1.0], easeIO);
+  /* ── Phase helpers ── */
+  const phOp   = (s: number, e: number) => interpolate(frame, [s, s + 18, e - 16, e], [0, 1, 1, 0], CE);
+  const phZoom = (s: number) => interpolate(frame, [s, s + 28], [0.95, 1.0], { ...CE, easing: eIO });
 
-  // ── P2 OVERVIEW ──
+  /* ── Beat 2 ── */
   const p2Op   = phOp(P2S, P2E);
   const p2Zoom = phZoom(P2S);
+  const catOps = [0, 1, 2].map(i =>
+    interpolate(frame, [P2S + 18 + i * 20, P2S + 36 + i * 20], [0, 1], CE)
+  );
 
-  // ── P3 LIBRARY ──
+  /* ── Beat 3 ── */
   const p3Op   = phOp(P3S, P3E);
   const p3Zoom = phZoom(P3S);
-
-  // Library items stagger — SLOWER: 26-frame gap between categories, 16-frame gap between items
-  // This gives the viewer time to read each category before the next appears.
-  const libItemOps = libraryCategories.flatMap((cat, ci) =>
-    cat.items.map((_, ii) => {
-      const start = P3S + 20 + ci * 26 + ii * 16;
-      return interpolate(frame, [start, start + 16], [0, 1], clamp);
+  const cardOps = (B3_CARDS as readonly number[]).map((count, ci) =>
+    Array.from({ length: count }, (_, ri) => {
+      const st = P3S + 18 + ci * 28 + ri * 16;
+      return interpolate(frame, [st, st + 16], [0, 1], CE);
     })
   );
+  const selGlow = interpolate(frame, [P3S + 80, P3S + 105], [0, 1], CE);
+  const checkOp = interpolate(frame, [P3S + 112, P3S + 130], [0, 1], CE);
 
-  // ── P4 TEMPLATE — standalone beat ──
+  /* ── Beat 4 ── */
   const p4Op   = phOp(P4S, P4E);
   const p4Zoom = phZoom(P4S);
-
-  // Template sections reveal one-by-one with deliberate spacing (12-frame stagger, 12-frame fade)
-  // Viewer can read each section name before the next appears
-  const templateSectOps = templateSections.map((_, i) => {
-    const start = P4S + 14 + i * 12;
-    return interpolate(frame, [start, start + 12], [0, 1], clamp);
+  const sectOps = Array.from({ length: 6 }, (_, i) => {
+    const st = P4S + 14 + i * 13;
+    return interpolate(frame, [st, st + 13], [0, 1], CE);
   });
-  // "Initiating AI generation..." — holds for ~12 frames before scene transitions
-  const generateBtnOp = interpolate(frame, [P4S + 76, P4S + 90], [0, 1], clamp);
+  const sectChk = Array.from({ length: 6 }, (_, i) => {
+    const st = P4S + 40 + i * 10;
+    return interpolate(frame, [st, st + 10], [0, 1], CE);
+  });
+  const aiDotOp = interpolate(frame, [P4S + 80, P4S + 94], [0, 1], CE);
 
-  // ── P5 AI GENERATION ──
-  const secOps = SEC_WINDOWS.map(([s, e]) =>
-    interpolate(frame, [s, s + 16, e - 14, e], [0, 1, 1, 0], clamp)
+  /* ── Beat 5 ── */
+  const secOps  = SEC_WINDOWS.map(([s, e]) =>
+    interpolate(frame, [s, s + 16, e - 14, e], [0, 1, 1, 0], CE)
   );
+  const secProg = SEC_WINDOWS.map(([s, e]) =>
+    interpolate(frame, [s + 16, e - 10], [0, 1], CE)
+  );
+  const secDone = SEC_WINDOWS.map(([, e]) => frame >= e - 10);
+  const netOp   = interpolate(frame, [P5S, P5S + 30, P5E - 20, P5E], [0, 0.28, 0.28, 0], CE);
+  const pulse   = 0.5 + 0.5 * Math.sin(frame * 0.22);
 
-  // Field reveal ops — how many characters of each field's value are shown
-  const secFieldOps = aiSections.map((sec, si) => {
-    const fillStart = SEC_WINDOWS[si][0] + FILL_DELAY;
-    return sec.fields.map((field, fi) => {
-      const start = fillStart + fi * FIELD_GAP;
-      return Math.floor(interpolate(frame, [start, start + FIELD_TIME], [0, field.value.length], clamp));
-    });
-  });
-
-  const isDone = (si: number, fi: number) => {
-    const fillStart = SEC_WINDOWS[si][0] + FILL_DELAY;
-    return frame >= fillStart + fi * FIELD_GAP + FIELD_TIME;
-  };
-  const isTyping = (si: number, fi: number) => {
-    const fillStart = SEC_WINDOWS[si][0] + FILL_DELAY;
-    const start = fillStart + fi * FIELD_GAP;
-    return frame > start && !isDone(si, fi);
-  };
-
-  const activeSec = SEC_WINDOWS.findIndex(([s, e]) => frame >= s && frame < e);
-
-  const secDone = aiSections.map((sec, si) => {
-    const fillStart = SEC_WINDOWS[si][0] + FILL_DELAY;
-    const lastField = sec.fields.length - 1;
-    return frame >= fillStart + lastField * FIELD_GAP + FIELD_TIME;
-  });
-
-  // ── P6 FINALIZED ──
-  const p6Op   = interpolate(frame, [P6S, P6S + 20, P6E], [0, 1, 1], clamp);
-  const p6Zoom = phZoom(P6S);
-
-  /* ── Neural network (AI thinking, only during P5) ── */
-  const networkOp = interpolate(frame, [P5S, P5S + 30, P5E - 20, P5E], [0, 0.28, 0.28, 0], clamp);
+  /* ── Beat 6 ── */
+  const p6Op     = interpolate(frame, [P6S, P6S + 20, P6E], [0, 1, 1], CE);
+  const p6Zoom   = phZoom(P6S);
+  const bigChkOp = interpolate(frame, [P6S + 16, P6S + 36], [0, 1], { ...CE, easing: eOut });
+  const bigChkSc = interpolate(frame, [P6S + 16, P6S + 36], [0.4, 1.0], { ...CE, easing: eOut });
 
   /* ── 3D background ── */
   const threeContent = (
     <>
       <AnimatedGrid color={colors.azurite} opacity={0.06} />
       <ParticleField count={48} color={colors.oasis} speed={0.002} opacity={0.16} />
-      {networkOp > 0 && (
+      {netOp > 0 && (
         <NodeNetwork
-          nodes={networkNodes} edges={networkEdges}
+          nodes={netNodes} edges={netEdges}
           color={colors.oasis} nodeSize={0.04}
-          edgeOpacity={networkOp * 0.38} pulseSpeed={0.018}
+          edgeOpacity={netOp * 0.38} pulseSpeed={0.018}
           position={[0, 0, -2]} scale={0.9}
         />
       )}
       <GlowOrb position={[0, 0, -3]} color={colors.azurite} radius={3} baseOpacity={0.10} />
       <CameraRig positions={[
         { frame: 0,   position: [0, 0, 10] },
-        { frame: 180, position: [0, 0, 9] },
-        { frame: 360, position: [0, 0, 8] },
-        { frame: 810, position: [0, 0, 8] },
+        { frame: 180, position: [0, 0, 9]  },
+        { frame: 360, position: [0, 0, 8]  },
+        { frame: 810, position: [0, 0, 8]  },
       ]} />
     </>
   );
 
-  const phWrap = (op: number): React.CSSProperties => ({
-    position: "absolute", inset: 0,
-    display: "flex", alignItems: "center", justifyContent: "center",
-    padding: "80px 64px 28px",
-    opacity: op, pointerEvents: "none", zIndex: 10,
-  });
-
   const glass: React.CSSProperties = {
-    background: "rgba(12, 35, 75, 0.82)",
+    background: "rgba(10, 28, 64, 0.84)",
     backdropFilter: "blur(16px)",
     WebkitBackdropFilter: "blur(16px)",
     border: `1px solid ${colors.oasis}28`,
-    borderRadius: 14,
+    borderRadius: 16,
   };
 
   return (
@@ -338,517 +331,475 @@ export const Scene2_MCC: React.FC = () => {
       threeContent={threeContent}
     >
 
-      {/* ════════════════════════════════════════════════════════════════
-          PHASE 1 — PAPERS  (f65–240)
-          Five clinical documents spring in with a 12-frame stagger,
-          so the viewer watches the paperwork accumulate one sheet at a time.
-          All papers are held visible for ~70 frames before the
-          transformation begins — enough time to read "this is a lot."
-         ════════════════════════════════════════════════════════════════ */}
-      {frame >= P1S && frame < 245 && paperLayout.map((p, pi) => {
-        const sp = paperSprings[p.si];
+      {/* ════════════════════════════════════════════════════════════
+          BEAT 1 — MANUAL BURDEN  (f65–192)
+          5 icon stacks spring onto screen with depth layers.
+          Max text on screen: "Manual" — 1 word
+         ════════════════════════════════════════════════════════════ */}
+      {frame >= P1S && frame < 248 && STACKS.map((s, pi) => {
+        const sp      = springs[s.si] ?? 0;
         const spOp    = interpolate(sp, [0, 1], [0, 1], { extrapolateRight: "clamp" as const });
-        const spScale = interpolate(sp, [0, 1], [0.88, 1], { extrapolateRight: "clamp" as const });
-        const spY     = interpolate(sp, [0, 1], [24, 0], { extrapolateRight: "clamp" as const });
+        const spScale = interpolate(sp, [0, 1], [0.72, 1], { extrapolateRight: "clamp" as const });
+        const spY     = interpolate(sp, [0, 1], [44, 0], { extrapolateRight: "clamp" as const });
         return (
           <div key={pi} style={{
-            position: "absolute", left: p.left, top: p.top, width: p.w, height: p.h,
-            zIndex: p.z, pointerEvents: "none",
-            transform: `rotate(${p.rot}deg) scale(${spScale * papersExitScale}) translateY(${spY + papersExitY}px)`,
-            opacity: spOp * papersExitOp, transformOrigin: "center center",
+            position: "absolute",
+            left: s.left, top: s.top, width: s.w, height: s.h,
+            zIndex: pi === 4 ? 8 : 4,
+            pointerEvents: "none",
+            transform: `rotate(${s.rot}deg) scale(${spScale * exitScale}) translateY(${spY}px)`,
+            opacity: spOp * exitOp,
+            transformOrigin: "center center",
           }}>
-            <PaperDoc title={p.title} subtitle={p.subtitle} accent={p.accent} sections={p.sections} badge={p.badge} />
+            {/* Depth layers */}
+            {([2, 1] as const).map(d => (
+              <div key={d} style={{
+                position: "absolute",
+                transform: `translate(${d * 5}px, ${d * 5}px)`,
+                width: s.w - 20, height: s.h - 20,
+                borderRadius: 10,
+                background: "rgba(249,247,242,0.95)",
+                boxShadow: "0 8px 28px rgba(0,0,0,0.36)",
+                border: `3px solid ${s.color}`,
+                opacity: 0.55 - (d - 1) * 0.14,
+              }} />
+            ))}
+            {/* Top face */}
+            <div style={{
+              position: "absolute",
+              width: s.w - 20, height: s.h - 20,
+              borderRadius: 10,
+              background: "rgba(249,247,242,0.98)",
+              boxShadow: "0 8px 28px rgba(0,0,0,0.40)",
+              border: `3px solid ${s.color}`,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              zIndex: 3,
+            }}>
+              <div style={{ transform: `scale(${pi === 4 ? 1.8 : 1.4})` }}>
+                {renderIcon(s.icon, s.color, 56)}
+              </div>
+              <div style={{
+                position: "absolute", top: 8, right: 8,
+                width: 22, height: 22, borderRadius: "50%",
+                background: s.color,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                boxShadow: `0 0 8px ${s.color}80`,
+              }}>
+                <div style={{ width: 7, height: 7, borderRadius: "50%", background: "white" }} />
+              </div>
+            </div>
           </div>
         );
       })}
 
-      {/* HOLD label — appears after papers settle, held through end of P1 */}
-      {frame >= 100 && frame < 210 && (
+      {/* 1 word */}
+      {frame >= 104 && frame < 212 && (
         <div style={{
-          position: "absolute", left: "50%", bottom: 36, transform: "translateX(-50%)",
-          opacity: interpolate(frame, [100, 122, 186, 210], [0, 1, 1, 0], clamp),
-          pointerEvents: "none", zIndex: 5, textAlign: "center" as const,
+          position: "absolute", left: "50%", bottom: 38, transform: "translateX(-50%)",
+          opacity: interpolate(frame, [104, 124, 188, 212], [0, 1, 1, 0], CE),
+          pointerEvents: "none", zIndex: 5, textAlign: "center",
         }}>
           <div style={{
-            fontFamily: fonts.mono, fontSize: 13, color: `${colors.white}65`,
-            letterSpacing: 2.5, textTransform: "uppercase" as const,
+            fontFamily: fonts.heading, fontSize: 40, fontWeight: 700,
+            color: `${colors.white}55`, letterSpacing: 5, textTransform: "uppercase",
           }}>
-            Traditional Manual Documentation
+            Manual
           </div>
         </div>
       )}
 
-      {/* ════════════════════════════════════════════════════════════════
-          SCAN LINE — transformation sweep  (f182–228)
-         ════════════════════════════════════════════════════════════════ */}
-      {scanOpacity > 0 && (
-        <div style={{
-          position: "absolute", left: 0, right: 0,
-          top: scanProgress * 1080, height: 4,
-          background: `linear-gradient(90deg, transparent 0%, ${colors.oasis}40 8%, ${colors.oasis} 50%, ${colors.oasis}40 92%, transparent 100%)`,
-          boxShadow: `0 0 12px 2px ${colors.oasis}AA, 0 0 32px 6px ${colors.oasis}55, 0 0 60px 12px ${colors.oasis}22`,
-          opacity: scanOpacity, zIndex: 30, pointerEvents: "none",
-        }} />
+      {/* ════════════════════════════════════════════════════════════
+          SCAN LINE  (f182–228)  — no text
+         ════════════════════════════════════════════════════════════ */}
+      {scanOp > 0 && (
+        <>
+          <div style={{
+            position: "absolute", left: 0, right: 0,
+            top: scanProg * 1080, height: 8,
+            background: `linear-gradient(90deg, transparent, ${colors.oasis}55 8%, ${colors.oasis} 50%, ${colors.oasis}55 92%, transparent)`,
+            boxShadow: `0 0 18px 4px ${colors.oasis}CC, 0 0 48px 10px ${colors.oasis}66`,
+            opacity: scanOp, zIndex: 30, pointerEvents: "none",
+          }} />
+          <div style={{
+            position: "absolute", left: 0, right: 0, top: 0,
+            height: scanProg * 1080,
+            background: `
+              repeating-linear-gradient(0deg,  transparent, transparent 39px, ${colors.oasis}09 40px),
+              repeating-linear-gradient(90deg, transparent, transparent 39px, ${colors.oasis}09 40px)`,
+            opacity: scanOp * 0.7, zIndex: 20, pointerEvents: "none",
+          }} />
+        </>
       )}
 
-      {/* ════════════════════════════════════════════════════════════════
-          BEAT A — INTERFACE OVERVIEW  (f226–340)
-          Full interface establishing shot. Nav items reveal with an
-          8-frame stagger. HOLD: ~70 frames after last item appears,
-          giving the viewer time to recognize the layout before
-          moving to the library.
-         ════════════════════════════════════════════════════════════════ */}
+      {/* ════════════════════════════════════════════════════════════
+          BEAT 2 — INTERFACE OVERVIEW  (f226–340)
+          Three large category icons reveal.
+          Max text: "Case Library" — 2 words
+         ════════════════════════════════════════════════════════════ */}
       {p2Op > 0 && (
-        <div style={phWrap(p2Op)}>
-          <div style={{ transform: `scale(${p2Zoom})`, width: "100%", maxWidth: 960, display: "flex", flexDirection: "column", gap: 12 }}>
-            <div style={{ ...glass, padding: "14px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                <span style={{ fontFamily: fonts.heading, fontSize: 22, fontWeight: 700, color: colors.white }}>
-                  Medical Case Creator
-                </span>
-                <span style={{ fontFamily: fonts.mono, fontSize: 13, color: `${colors.white}40` }}>
-                  Pneumonia — Adult
-                </span>
-              </div>
-              <div style={{ display: "flex", gap: 10 }}>
-                {["Case Library", "Templates", "My Cases"].map(btn => (
-                  <div key={btn} style={{
-                    fontFamily: fonts.body, fontSize: 14, fontWeight: 600,
-                    color: btn === "Case Library" ? colors.oasis : `${colors.white}55`,
-                    background: btn === "Case Library" ? `${colors.oasis}18` : "transparent",
-                    padding: "5px 14px", borderRadius: 6,
-                    border: `1px solid ${btn === "Case Library" ? `${colors.oasis}35` : "transparent"}`,
-                  }}>{btn}</div>
-                ))}
-              </div>
+        <div style={{
+          position: "absolute", inset: 0,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          opacity: p2Op, pointerEvents: "none", zIndex: 10,
+        }}>
+          <div style={{ transform: `scale(${p2Zoom})`, display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
+            <div style={{
+              fontFamily: fonts.mono, fontSize: 18, letterSpacing: 6,
+              color: `${colors.oasis}75`, textTransform: "uppercase",
+              opacity: interpolate(frame, [P2S + 8, P2S + 24], [0, 1], CE),
+            }}>
+              Case Library
             </div>
-
-            <div style={{ display: "flex", gap: 12, height: 380 }}>
-              <div style={{ ...glass, width: 220, padding: "18px 16px", display: "flex", flexDirection: "column", gap: 6, flexShrink: 0 }}>
-                <div style={{ fontFamily: fonts.mono, fontSize: 10, letterSpacing: 2, color: `${colors.white}35`, textTransform: "uppercase" as const, marginBottom: 8 }}>
-                  Case Library
-                </div>
-                {/* Nav categories stagger at 10-frame intervals — readable pace */}
-                {["Pulmonology", "Cardiology", "Endocrinology", "Nephrology", "Neurology"].map((cat, i) => (
-                  <div key={cat} style={{
-                    fontFamily: fonts.body, fontSize: 15, fontWeight: i === 0 ? 600 : 400,
-                    color: i === 0 ? colors.oasis : `${colors.white}50`,
-                    padding: "6px 10px", borderRadius: 6,
-                    background: i === 0 ? `${colors.oasis}14` : "transparent",
-                    opacity: interpolate(frame, [P2S + 26 + i * 10, P2S + 40 + i * 10], [0, 1], clamp),
-                  }}>{cat}</div>
-                ))}
-              </div>
-
-              <div style={{ ...glass, flex: 1, padding: "28px 32px", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 14 }}>
-                <div style={{
-                  fontFamily: fonts.heading, fontSize: 26, fontWeight: 700, color: `${colors.white}40`,
-                  opacity: interpolate(frame, [P2S + 34, P2S + 50], [0, 1], clamp),
+            <div style={{ display: "flex", gap: 28, alignItems: "center" }}>
+              {CAT_ICONS.map((cat, i) => (
+                <div key={i} style={{
+                  opacity: catOps[i],
+                  transform: `scale(${interpolate(catOps[i], [0, 1], [0.65, 1])}) translateY(${interpolate(catOps[i], [0, 1], [24, 0])}px)`,
+                  display: "flex", flexDirection: "column", alignItems: "center", gap: 18,
                 }}>
-                  Browse the case library
-                </div>
-                <div style={{
-                  fontFamily: fonts.body, fontSize: 16, color: `${colors.white}28`,
-                  opacity: interpolate(frame, [P2S + 48, P2S + 64], [0, 1], clamp),
-                }}>
-                  Select a category to find clinical cases and templates
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ════════════════════════════════════════════════════════════════
-          BEAT B — LIBRARY BROWSE  (f334–480)
-          Library panel only — no template yet. Categories reveal with
-          a deliberate 26-frame category gap and 16-frame item gap.
-          After all items are visible there is a ~28-frame HOLD
-          so the viewer can see "Pneumonia" is selected.
-         ════════════════════════════════════════════════════════════════ */}
-      {p3Op > 0 && (
-        <div style={phWrap(p3Op)}>
-          <div style={{ transform: `scale(${p3Zoom})`, width: "100%", maxWidth: 960, display: "flex", gap: 16, height: 500 }}>
-
-            {/* Case Library — full width in this beat */}
-            <div style={{ ...glass, width: 380, flexShrink: 0, padding: "20px 18px", display: "flex", flexDirection: "column", gap: 4, overflow: "hidden" }}>
-              <div style={{ fontFamily: fonts.mono, fontSize: 10, letterSpacing: 2, color: `${colors.white}40`, textTransform: "uppercase" as const, marginBottom: 12 }}>
-                Case Library
-              </div>
-              {(() => {
-                let globalIdx = 0;
-                return libraryCategories.map((cat, ci) => (
-                  <div key={cat.name}>
-                    {/* Category header fades in before its items */}
-                    <div style={{
-                      fontFamily: fonts.mono, fontSize: 13, fontWeight: 700,
-                      color: `${colors.white}50`, letterSpacing: 1.5, textTransform: "uppercase" as const,
-                      padding: "10px 0 5px",
-                      opacity: interpolate(frame, [P3S + 16 + ci * 26, P3S + 30 + ci * 26], [0, 1], clamp),
-                    }}>{cat.name}</div>
-                    {cat.items.map(item => {
-                      const itemOp = libItemOps[globalIdx++];
-                      return (
-                        <div key={item.label} style={{
-                          fontFamily: fonts.body, fontSize: 16, fontWeight: item.selected ? 700 : 400,
-                          color: item.selected ? colors.oasis : `${colors.white}65`,
-                          padding: "8px 14px", borderRadius: 7, marginBottom: 3,
-                          background: item.selected ? `${colors.oasis}16` : "transparent",
-                          border: item.selected ? `1px solid ${colors.oasis}35` : "1px solid transparent",
-                          display: "flex", alignItems: "center", justifyContent: "space-between",
-                          opacity: itemOp,
-                        }}>
-                          {item.label}
-                          {item.selected && (
-                            <span style={{ fontFamily: fonts.mono, fontSize: 12, color: colors.oasis }}>
-                              Selected ›
-                            </span>
-                          )}
-                        </div>
-                      );
-                    })}
+                  <div style={{
+                    width: 200, height: 200, borderRadius: 30,
+                    background: `${cat.color}12`,
+                    border: `3px solid ${cat.color}42`,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    boxShadow: `0 0 60px ${cat.color}22, 0 20px 50px rgba(0,0,0,0.35)`,
+                  }}>
+                    {renderIcon(cat.icon, cat.color, 104)}
                   </div>
-                ));
-              })()}
-            </div>
-
-            {/* Right side — empty / dark placeholder while library is the focus */}
-            <div style={{
-              ...glass,
-              flex: 1,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              opacity: 0.35,
-            }}>
-              <div style={{ fontFamily: fonts.body, fontSize: 16, color: `${colors.white}25`, textAlign: "center" as const }}>
-                Select a case to preview template
-              </div>
+                  <div style={{ display: "flex", gap: 7 }}>
+                    {[0, 1, 2].map(d => (
+                      <div key={d} style={{
+                        width: 9, height: 9, borderRadius: "50%",
+                        background: cat.color, opacity: 0.28 + d * 0.14,
+                      }} />
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
       )}
 
-      {/* ════════════════════════════════════════════════════════════════
-          BEAT C — TEMPLATE SELECTION  (f472–578)
-          Template panel is now its own focused beat. The six template
-          sections check in one-by-one (12-frame stagger), then the
-          "Initiating AI generation…" prompt appears and holds briefly
-          before transitioning to the AI generation phase.
-         ════════════════════════════════════════════════════════════════ */}
-      {p4Op > 0 && (
-        <div style={phWrap(p4Op)}>
-          <div style={{ transform: `scale(${p4Zoom})`, width: "100%", maxWidth: 960, display: "flex", gap: 16, height: 500 }}>
-
-            {/* Library — dimmed background context */}
-            <div style={{ ...glass, width: 280, flexShrink: 0, padding: "20px 16px", opacity: 0.4, overflow: "hidden" }}>
-              <div style={{ fontFamily: fonts.mono, fontSize: 10, letterSpacing: 2, color: `${colors.white}35`, textTransform: "uppercase" as const, marginBottom: 12 }}>Case Library</div>
-              <div style={{ fontFamily: fonts.body, fontSize: 15, fontWeight: 700, color: colors.oasis, padding: "8px 12px", borderRadius: 6, background: `${colors.oasis}14`, border: `1px solid ${colors.oasis}30` }}>
-                Pneumonia — Adult
+      {/* ════════════════════════════════════════════════════════════
+          BEAT 3 — LIBRARY BROWSE  (f334–480)
+          3 icon columns. Cards are line-stubs only.
+          Selection: glow + checkmark. No text.
+         ════════════════════════════════════════════════════════════ */}
+      {p3Op > 0 && (
+        <div style={{
+          position: "absolute", inset: 0,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          opacity: p3Op, pointerEvents: "none", zIndex: 10,
+        }}>
+          <div style={{ transform: `scale(${p3Zoom})`, display: "flex", gap: 20, alignItems: "flex-start" }}>
+            {CAT_ICONS.map((cat, ci) => (
+              <div key={ci} style={{ display: "flex", flexDirection: "column", gap: 14, width: 210 }}>
+                <div style={{
+                  height: 100, borderRadius: 18,
+                  background: `${cat.color}12`,
+                  border: `2.5px solid ${cat.color}40`,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  boxShadow: `0 0 24px ${cat.color}14`,
+                  opacity: interpolate(frame, [P3S + 8 + ci * 28, P3S + 24 + ci * 28], [0, 1], CE),
+                }}>
+                  {renderIcon(cat.icon, cat.color, 56)}
+                </div>
+                {Array.from({ length: B3_CARDS[ci] }, (_, ri) => {
+                  const isSelected = ci === 0 && ri === 0;
+                  const op   = cardOps[ci]?.[ri] ?? 0;
+                  const glow = isSelected ? selGlow : 0;
+                  return (
+                    <div key={ri} style={{
+                      height: 80, borderRadius: 14, opacity: op,
+                      background: isSelected
+                        ? `${cat.color}${Math.round(14 + glow * 16).toString(16).padStart(2, "0")}`
+                        : `${colors.white}07`,
+                      border: isSelected
+                        ? `2.5px solid ${cat.color}${Math.round(48 + glow * 40).toString(16).padStart(2, "0")}`
+                        : `1.5px solid ${colors.white}14`,
+                      boxShadow: isSelected ? `0 0 ${24 + glow * 28}px ${cat.color}30` : "none",
+                      display: "flex", alignItems: "center", justifyContent: "space-between",
+                      padding: "0 22px",
+                    }}>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                        <div style={{ width: 100, height: 10, borderRadius: 5, background: isSelected ? cat.color : `${colors.white}20`, opacity: 0.75 }} />
+                        <div style={{ width: 70, height: 10, borderRadius: 5, background: isSelected ? cat.color : `${colors.white}14`, opacity: 0.55 }} />
+                      </div>
+                      {isSelected && checkOp > 0.02 && (
+                        <div style={{ opacity: checkOp }}>
+                          <ICheck c={cat.color} s={34} />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
-            </div>
+            ))}
+          </div>
+        </div>
+      )}
 
-            {/* Template — prominent, bordered, alive */}
+      {/* ════════════════════════════════════════════════════════════
+          BEAT 4 — TEMPLATE SELECTION  (f472–578)
+          6 section icons check in. Max text: "Template Selected"
+          then "AI Generating" — never more than 2 words at once
+         ════════════════════════════════════════════════════════════ */}
+      {p4Op > 0 && (
+        <div style={{
+          position: "absolute", inset: 0,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          opacity: p4Op, pointerEvents: "none", zIndex: 10,
+        }}>
+          <div style={{ transform: `scale(${p4Zoom})`, display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
             <div style={{
+              width: 700,
               ...glass,
-              flex: 1, padding: "24px 32px",
-              border: `1.5px solid ${colors.oasis}45`,
-              boxShadow: `0 0 48px ${colors.oasis}12`,
-              display: "flex", flexDirection: "column", gap: 18,
+              border: `2.5px solid ${colors.oasis}55`,
+              padding: "20px 32px",
+              boxShadow: `0 0 80px ${colors.oasis}18, 0 28px 72px rgba(0,0,0,0.48)`,
             }}>
-              <div>
-                <div style={{ fontFamily: fonts.mono, fontSize: 10, letterSpacing: 2, color: `${colors.oasis}75`, textTransform: "uppercase" as const, marginBottom: 6 }}>
+              <div style={{
+                display: "flex", alignItems: "center", gap: 16,
+                marginBottom: 14, paddingBottom: 12,
+                borderBottom: `1px solid ${colors.oasis}20`,
+              }}>
+                <div style={{ width: 10, height: 38, borderRadius: 5, background: colors.oasis, opacity: 0.8 }} />
+                <div style={{ fontFamily: fonts.heading, fontSize: 30, fontWeight: 700, color: colors.white }}>
                   Template Selected
                 </div>
-                <div style={{ fontFamily: fonts.heading, fontSize: 28, fontWeight: 700, color: colors.white }}>
-                  Pneumonia — Adult
-                </div>
-                <div style={{ fontFamily: fonts.body, fontSize: 14, color: `${colors.white}55`, marginTop: 4 }}>
-                  Community-Acquired Pneumonia · Intermediate difficulty
+                <div style={{ marginLeft: "auto" }}>
+                  <ILungs c={colors.oasis} s={28} />
                 </div>
               </div>
-
-              <div style={{ height: 1, background: `${colors.white}10` }} />
-
-              {/* Template sections — one appears every 12 frames */}
-              <div>
-                <div style={{ fontFamily: fonts.mono, fontSize: 12, color: `${colors.white}45`, letterSpacing: 1.5, marginBottom: 14, textTransform: "uppercase" as const }}>
-                  Sections Included
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px 20px" }}>
-                  {templateSections.map((sec, i) => (
-                    <div key={sec} style={{
-                      display: "flex", alignItems: "center", gap: 10,
-                      opacity: templateSectOps[i],
-                      transform: `translateY(${interpolate(templateSectOps[i], [0, 1], [8, 0])}px)`,
-                    }}>
-                      <div style={{
-                        width: 18, height: 18, borderRadius: 4, flexShrink: 0,
-                        background: `${colors.vitalsNormal}25`,
-                        border: `1.5px solid ${colors.vitalsNormal}60`,
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                      }}>
-                        <div style={{ width: 8, height: 8, borderRadius: 2, background: colors.vitalsNormal }} />
-                      </div>
-                      <span style={{ fontFamily: fonts.body, fontSize: 15, color: `${colors.white}85` }}>
-                        {sec}
-                      </span>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 18 }}>
+                {SECT_ICONS.map((s, i) => (
+                  <div key={i} style={{
+                    opacity: sectOps[i],
+                    transform: `translateY(${interpolate(sectOps[i], [0, 1], [14, 0])}px)`,
+                    padding: "18px 14px",
+                    borderRadius: 12,
+                    background: `${s.color}0e`,
+                    border: `2px solid ${s.color}${sectChk[i] > 0.5 ? "55" : "28"}`,
+                    display: "flex", alignItems: "center", justifyContent: "space-between",
+                    boxShadow: sectChk[i] > 0.5 ? `0 0 16px ${s.color}16` : "none",
+                  }}>
+                    {renderIcon(s.icon, s.color, 44)}
+                    <div style={{ opacity: sectChk[i] }}>
+                      <ICheck c={s.color} s={26} />
                     </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Generate trigger — appears and holds before AI gen starts */}
-              <div style={{ marginTop: "auto", opacity: generateBtnOp }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <PulsingDot color={colors.oasis} size={9} delay={P4S + 76} />
-                  <span style={{ fontFamily: fonts.mono, fontSize: 13, color: colors.oasis, letterSpacing: 1 }}>
-                    Initiating AI generation…
-                  </span>
-                </div>
+                  </div>
+                ))}
               </div>
             </div>
+            {aiDotOp > 0.01 && (
+              <div style={{
+                opacity: aiDotOp,
+                display: "flex", alignItems: "center", gap: 14,
+                background: `${colors.oasis}12`,
+                border: `1px solid ${colors.oasis}40`,
+                borderRadius: 12, padding: "14px 28px",
+                boxShadow: `0 0 32px ${colors.oasis}20`,
+              }}>
+                <div style={{
+                  width: 11, height: 11, borderRadius: "50%",
+                  background: colors.oasis,
+                  boxShadow: `0 0 12px ${colors.oasis}`,
+                  opacity: 0.68 + 0.32 * pulse,
+                }} />
+                <span style={{
+                  fontFamily: fonts.mono, fontSize: 22, fontWeight: 700,
+                  color: colors.oasis, letterSpacing: 3, textTransform: "uppercase",
+                }}>
+                  AI Generating
+                </span>
+              </div>
+            )}
           </div>
         </div>
       )}
 
-      {/* ════════════════════════════════════════════════════════════════
-          BEAT D — AI GENERATION  (f570–775)
-          Four sequential focused panels. Each section:
-            → appears with 16-frame fade-in
-            → FILL_DELAY (12f) pause before AI begins typing
-            → fields type in one at a time (FIELD_GAP=12, FIELD_TIME=12)
-            → section held complete ~8 frames before cross-fading to next
-          This pacing gives the viewer time to read each value as it
-          appears, then follow to the next section.
-         ════════════════════════════════════════════════════════════════ */}
-      {frame >= P5S && frame < P5E + 10 && aiSections.map((sec, si) => {
-        const op = secOps[si];
+      {/* ════════════════════════════════════════════════════════════
+          BEAT 5 — AI GENERATION  (f570–775)
+          4 sequential icon + data-bar panels. Progress dots only.
+          Max text per panel: "AI Generating" or "Complete" — 2 words
+         ════════════════════════════════════════════════════════════ */}
+      {frame >= P5S && frame < P5E + 10 && AI_PANELS.map((panel, si) => {
+        const op   = secOps[si];
         if (op < 0.02) return null;
-
-        const fillStart = SEC_WINDOWS[si][0] + FILL_DELAY;
-        const lastFieldDone = fillStart + (sec.fields.length - 1) * FIELD_GAP + FIELD_TIME;
-        const cardGenerating = frame >= fillStart && frame < lastFieldDone;
-
+        const prog = secProg[si];
+        const done = secDone[si];
         return (
-          <div key={si} style={{ ...phWrap(op), zIndex: 12 + si }}>
-            <div style={{ width: "100%", maxWidth: 860 }}>
+          <div key={si} style={{
+            position: "absolute", inset: 0,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            padding: "20px 40px 16px",
+            opacity: op, pointerEvents: "none", zIndex: 12 + si,
+          }}>
+            <div style={{ width: "100%", maxWidth: 820, display: "flex", flexDirection: "column", gap: 16 }}>
 
-              {/* Section progress indicator — larger dots for legibility */}
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 22, justifyContent: "center" }}>
-                {aiSections.map((_, di) => (
+              {/* Progress dots — no text */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 14 }}>
+                {AI_PANELS.map((_, di) => (
                   <div key={di} style={{
-                    width:  di === si ? 32 : 16,
-                    height: 16,
-                    borderRadius: 8,
+                    width: di === si ? 44 : 22, height: 16, borderRadius: 8,
                     background: secDone[di]
                       ? colors.vitalsNormal
-                      : di === si
-                        ? aiSections[si].color
-                        : `${colors.white}20`,
-                    transition: "width 0.25s",
-                    boxShadow: di === si ? `0 0 10px ${aiSections[si].color}60` : "none",
+                      : di === si ? panel.color : `${colors.white}18`,
+                    boxShadow: di === si ? `0 0 14px ${panel.color}65` : "none",
                   }} />
                 ))}
-                <div style={{ fontFamily: fonts.mono, fontSize: 12, color: `${colors.white}50`, marginLeft: 8, letterSpacing: 1 }}>
-                  {si + 1} / {aiSections.length}
-                </div>
               </div>
 
-              {/* Section panel */}
+              {/* Panel */}
               <div style={{
-                background: "rgba(10, 28, 64, 0.88)",
-                backdropFilter: "blur(18px)",
-                WebkitBackdropFilter: "blur(18px)",
-                borderRadius: 16,
-                border: `1.5px solid ${sec.color}45`,
-                padding: "32px 40px",
-                boxShadow: `0 8px 40px rgba(0,0,0,0.4), 0 0 48px ${sec.color}12`,
+                background: "rgba(6, 18, 48, 0.92)",
+                backdropFilter: "blur(20px)",
+                borderRadius: 22,
+                border: `2.5px solid ${panel.color}${done ? "70" : "50"}`,
+                padding: "28px 40px",
+                display: "flex", alignItems: "center", gap: 36,
+                minHeight: 200,
+                boxShadow: `0 0 ${done ? 60 : 28 + pulse * 14}px ${panel.color}${done ? "22" : "12"}, 0 24px 64px rgba(0,0,0,0.44)`,
               }}>
-                {/* Card header */}
-                <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 30, paddingBottom: 20, borderBottom: `1px solid ${sec.color}22` }}>
-                  <div style={{ width: 6, height: 32, background: sec.color, borderRadius: 3, flexShrink: 0 }} />
-                  <div style={{ fontFamily: fonts.heading, fontSize: 30, fontWeight: 800, color: colors.white }}>
-                    {sec.title}
-                  </div>
-                  {cardGenerating && (
-                    <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8 }}>
-                      <PulsingDot color={sec.color} size={9} delay={SEC_WINDOWS[si][0]} />
-                      <span style={{ fontFamily: fonts.mono, fontSize: 13, color: sec.color }}>
-                        AI Generating
-                      </span>
-                    </div>
-                  )}
-                  {!cardGenerating && secDone[si] && (
-                    <div style={{ marginLeft: "auto", fontFamily: fonts.mono, fontSize: 14, color: colors.vitalsNormal, letterSpacing: 1 }}>
-                      ✓ Complete
-                    </div>
-                  )}
+                {/* Icon */}
+                <div style={{
+                  width: 200, height: 200, flexShrink: 0, borderRadius: 30,
+                  background: `${panel.color}12`,
+                  border: `3px solid ${panel.color}${done ? "72" : "42"}`,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  boxShadow: done
+                    ? `0 0 48px ${panel.color}35`
+                    : `0 0 ${16 + pulse * 16}px ${panel.color}18`,
+                }}>
+                  {panel.icon === "heart"
+                    ? <IHeart c={panel.color} s={88} pulse={done ? 0 : pulse * 0.6} />
+                    : panel.icon === "scan"
+                      ? <IScan c={panel.color} s={88} prog={prog} />
+                      : renderIcon(panel.icon, panel.color, 88)}
                 </div>
 
-                {/* Fields */}
-                <div style={{
-                  display: "grid",
-                  gridTemplateColumns: sec.fields.length === 4 ? "1fr 1fr" : "1fr",
-                  gap: sec.fields.length === 4 ? "26px 48px" : "28px",
-                }}>
-                  {sec.fields.map((field, fi) => {
-                    const revealed = secFieldOps[si][fi];
-                    const done     = isDone(si, fi);
-                    const typing   = isTyping(si, fi);
-                    const has      = revealed > 0;
-
-                    // Each field fades in 4 frames before it starts typing
-                    const fieldFadeOp = interpolate(frame,
-                      [SEC_WINDOWS[si][0] + FILL_DELAY + fi * FIELD_GAP - 4,
-                       SEC_WINDOWS[si][0] + FILL_DELAY + fi * FIELD_GAP + 4],
-                      [0, 1], clamp
-                    );
-
+                {/* Data bars */}
+                <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 14 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
+                    {done
+                      ? <ICheck c={colors.vitalsNormal} s={28} />
+                      : <div style={{
+                          width: 12, height: 12, borderRadius: "50%",
+                          background: panel.color,
+                          boxShadow: `0 0 ${8 + pulse * 10}px ${panel.color}`,
+                          opacity: 0.68 + 0.32 * pulse,
+                        }} />}
+                    <span style={{
+                      fontFamily: fonts.mono, fontSize: 20, fontWeight: 700,
+                      color: done ? colors.vitalsNormal : panel.color,
+                      letterSpacing: 2.5, textTransform: "uppercase",
+                    }}>
+                      {done ? "Complete" : "AI Generating"}
+                    </span>
+                  </div>
+                  {[0, 1, 2].map(ni => {
+                    const barP = interpolate(prog, [ni * 0.26, ni * 0.26 + 0.38], [0, 1], { ...CE, easing: eOut });
                     return (
-                      <div key={fi} style={{ opacity: fieldFadeOp }}>
+                      <div key={ni} style={{ display: "flex", alignItems: "center", gap: 14, opacity: barP }}>
                         <div style={{
-                          fontFamily: fonts.mono, fontSize: 12, fontWeight: 600,
-                          color: `${colors.white}45`, letterSpacing: 1.8,
-                          textTransform: "uppercase" as const, marginBottom: 8,
-                        }}>{field.label}</div>
-
-                        <div style={{
-                          fontFamily: fonts.heading, fontSize: 32, fontWeight: 700,
-                          color: done ? colors.white : typing ? `${colors.white}90` : `${colors.white}18`,
-                          lineHeight: 1.2, display: "flex", alignItems: "center", gap: 10, minHeight: 44,
-                        }}>
-                          {has ? (
-                            <>
-                              {field.value.slice(0, revealed)}
-                              {typing && <span style={{ color: sec.color, opacity: 0.85, fontWeight: 300 }}>▌</span>}
-                              {done && field.flag && (
-                                <span style={{
-                                  fontFamily: fonts.mono, fontSize: 13, fontWeight: 800,
-                                  color: field.flag === "H" ? colors.vitalsWarning : colors.vitalsCritical,
-                                  background: field.flag === "H" ? `${colors.vitalsWarning}20` : `${colors.vitalsCritical}20`,
-                                  padding: "2px 8px", borderRadius: 4,
-                                }}>{field.flag}</span>
-                              )}
-                            </>
-                          ) : (
-                            <span style={{ color: `${colors.white}12`, fontSize: 22 }}>—————</span>
-                          )}
+                          width: 13, height: 13, borderRadius: "50%", flexShrink: 0,
+                          background: panel.color, opacity: 0.65,
+                          boxShadow: `0 0 8px ${panel.color}60`,
+                        }} />
+                        <div style={{ flex: 1, height: 14, borderRadius: 7, background: `${panel.color}16` }}>
+                          <div style={{
+                            height: "100%", borderRadius: 7,
+                            background: `linear-gradient(90deg, ${panel.color}, ${panel.color}55)`,
+                            width: `${(40 + ni * 22) * barP}%`,
+                            boxShadow: `0 0 10px ${panel.color}60`,
+                          }} />
                         </div>
+                        {barP > 0.88 && (
+                          <div style={{ opacity: (barP - 0.88) / 0.12 }}>
+                            <ICheck c={panel.color} s={20} />
+                          </div>
+                        )}
                       </div>
                     );
                   })}
                 </div>
               </div>
-
-              {/* Section name below — readable opacity */}
-              <div style={{
-                textAlign: "center" as const, marginTop: 16,
-                fontFamily: fonts.mono, fontSize: 12, letterSpacing: 2,
-                color: `${colors.white}45`, textTransform: "uppercase" as const,
-              }}>
-                {sec.title} — {si + 1} of {aiSections.length}
-              </div>
             </div>
           </div>
         );
       })}
 
-      {/* ════════════════════════════════════════════════════════════════
-          BEAT E — CASE FINALIZED  (f765–810)
-          Four completed section cards appear in a 2×2 grid with an
-          8-frame stagger. The header shows "✓ Finalized" and
-          "Ready for Virtual Patient" — a clear completion signal.
-          This beat holds to the end of the scene.
-         ════════════════════════════════════════════════════════════════ */}
+      {/* ════════════════════════════════════════════════════════════
+          BEAT 6 — CASE FINALIZED  (f765–810)
+          2×2 icon grid + "Case Ready" badge — 2 words total
+         ════════════════════════════════════════════════════════════ */}
       {p6Op > 0 && (
-        <div style={phWrap(p6Op)}>
-          <div style={{ transform: `scale(${p6Zoom})`, width: "100%", maxWidth: 960, display: "flex", flexDirection: "column", gap: 14 }}>
-
-            {/* Finalized header */}
-            <div style={{
-              ...glass, padding: "16px 26px",
-              display: "flex", alignItems: "center", justifyContent: "space-between",
-              border: `1px solid ${colors.vitalsNormal}40`,
-              boxShadow: `0 0 32px ${colors.vitalsNormal}18`,
-            }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                <span style={{ fontFamily: fonts.heading, fontSize: 24, fontWeight: 700, color: colors.white }}>
-                  Pneumonia — Adult
-                </span>
-                <span style={{
-                  fontFamily: fonts.mono, fontSize: 13, fontWeight: 700,
-                  color: colors.vitalsNormal, background: `${colors.vitalsNormal}18`,
-                  padding: "4px 14px", borderRadius: 5, border: `1px solid ${colors.vitalsNormal}45`,
-                  letterSpacing: 1,
-                }}>
-                  ✓ Finalized
-                </span>
-              </div>
-              <span style={{
-                fontFamily: fonts.mono, fontSize: 14, color: `${colors.oasis}95`,
-                background: `${colors.oasis}18`, padding: "6px 20px", borderRadius: 7,
-                border: `1px solid ${colors.oasis}35`, letterSpacing: 0.5,
-              }}>
-                Ready for Virtual Patient
-              </span>
-            </div>
-
-            {/* 2×2 completed case cards */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gridTemplateRows: "1fr 1fr", gap: 14, flex: 1, height: 400 }}>
-              {aiSections.map((card, ci) => {
-                const cardOp = interpolate(frame, [P6S + 14 + ci * 8, P6S + 26 + ci * 8], [0, 1], clamp);
+        <div style={{
+          position: "absolute", inset: 0,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          padding: "20px 40px 16px",
+          opacity: p6Op, pointerEvents: "none", zIndex: 10,
+        }}>
+          <div style={{ transform: `scale(${p6Zoom})`, width: "100%", maxWidth: 920, display: "flex", flexDirection: "column", gap: 14 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18, height: 360 }}>
+              {AI_PANELS.map((panel, ci) => {
+                const cOp = interpolate(frame, [P6S + 8 + ci * 9, P6S + 24 + ci * 9], [0, 1], CE);
                 return (
                   <div key={ci} style={{
-                    background: "rgba(12, 35, 75, 0.80)",
-                    backdropFilter: "blur(14px)",
-                    WebkitBackdropFilter: "blur(14px)",
-                    border: `1px solid ${card.color}30`,
-                    borderRadius: 12, padding: "18px 22px",
-                    opacity: cardOp,
-                    transform: `translateY(${interpolate(cardOp, [0, 1], [10, 0])}px)`,
-                    display: "flex", flexDirection: "column",
+                    ...glass,
+                    border: `1px solid ${panel.color}38`,
+                    opacity: cOp,
+                    transform: `translateY(${interpolate(cOp, [0, 1], [12, 0])}px)`,
+                    display: "flex", alignItems: "center", gap: 24, padding: "24px 28px",
+                    boxShadow: `0 0 28px ${panel.color}12`,
                   }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14, paddingBottom: 12, borderBottom: `1px solid ${card.color}22` }}>
-                      <div style={{ width: 4, height: 22, background: card.color, borderRadius: 2 }} />
-                      <span style={{ fontFamily: fonts.heading, fontSize: 18, fontWeight: 700, color: colors.white }}>{card.title}</span>
-                      <span style={{ fontFamily: fonts.mono, fontSize: 12, color: colors.vitalsNormal, marginLeft: "auto" }}>✓</span>
+                    <div style={{
+                      width: 80, height: 80, borderRadius: 16, flexShrink: 0,
+                      background: `${panel.color}10`,
+                      border: `1.5px solid ${panel.color}38`,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                    }}>
+                      {renderIcon(panel.icon, panel.color, 42)}
                     </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 10, flex: 1 }}>
-                      {card.fields.map((field, fi) => (
-                        <div key={fi}>
-                          <div style={{ fontFamily: fonts.mono, fontSize: 10, color: `${colors.white}38`, letterSpacing: 1.5, marginBottom: 3, textTransform: "uppercase" as const }}>
-                            {field.label}
-                          </div>
-                          <div style={{ fontFamily: fonts.heading, fontSize: 20, fontWeight: 700, color: colors.white, display: "flex", alignItems: "center", gap: 6 }}>
-                            {field.value}
-                            {field.flag && (
-                              <span style={{
-                                fontFamily: fonts.mono, fontSize: 11, fontWeight: 700,
-                                color: field.flag === "H" ? colors.vitalsWarning : colors.vitalsCritical,
-                                background: field.flag === "H" ? `${colors.vitalsWarning}18` : `${colors.vitalsCritical}18`,
-                                padding: "1px 7px", borderRadius: 3,
-                              }}>{field.flag}</span>
-                            )}
-                          </div>
-                        </div>
+                    <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 9 }}>
+                      {[0.65, 0.42, 0.26].map((op, li) => (
+                        <div key={li} style={{
+                          height: 8, borderRadius: 4,
+                          background: panel.color,
+                          width: `${70 - li * 20}%`,
+                          opacity: op,
+                        }} />
                       ))}
+                    </div>
+                    <div style={{ opacity: bigChkOp * 0.9 }}>
+                      <ICheck c={colors.vitalsNormal} s={30} />
                     </div>
                   </div>
                 );
               })}
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Bottom completion label — appears with finalized beat */}
-      {frame >= P6S && frame < P6E && (
-        <div style={{
-          position: "absolute", left: "50%", bottom: 32, transform: "translateX(-50%)",
-          opacity: interpolate(frame, [P6S, P6S + 20, P6E - 14, P6E], [0, 1, 1, 0], clamp),
-          pointerEvents: "none", zIndex: 20, textAlign: "center" as const,
-        }}>
-          <div style={{ fontFamily: fonts.mono, fontSize: 11, color: `${colors.vitalsNormal}75`, letterSpacing: 2.5, textTransform: "uppercase" as const }}>
-            Case Finalized — Ready for Virtual Patient
+            <div style={{
+              display: "flex", alignItems: "center", justifyContent: "center",
+              opacity: bigChkOp,
+              transform: `scale(${bigChkSc})`,
+            }}>
+              <div style={{
+                display: "flex", alignItems: "center", gap: 16,
+                background: `${colors.vitalsNormal}10`,
+                    border: `2.5px solid ${colors.vitalsNormal}65`,
+                    borderRadius: 18, padding: "22px 44px",
+                    boxShadow: `0 0 72px ${colors.vitalsNormal}30`,
+              }}>
+                <ICheck c={colors.vitalsNormal} s={38} />
+                <div style={{
+                  fontFamily: fonts.heading, fontSize: 38, fontWeight: 800,
+                  color: colors.vitalsNormal, letterSpacing: 2,
+                }}>
+                  Case Ready
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}

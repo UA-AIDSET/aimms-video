@@ -56,6 +56,7 @@ const VOICE_SETTINGS_BY_TYPE = {
 };
 
 const SCENE_NAMES = {
+  0: 'ASTEC Building Reveal',
   1: 'Intro',
   2: 'Medical Case Creator',
   3: 'Faculty Assignment',
@@ -247,7 +248,8 @@ async function main() {
   console.log(`   Segments saved to:  public/audio/segments/`);
   console.log(`\n   Next steps:`);
   console.log(`   1. Listen to each clip and compare alternate takes (e.g. s4-07 vs s4-07b)`);
-  console.log(`   2. Combine chosen clips per scene in your audio editor`);
+  console.log(`   2. Scene 4:  npm run voiceover:stitch-4  (ffmpeg → public/audio/scene4_vp.mp3)`);
+  console.log(`      Other scenes: combine clips in your audio editor`);
   console.log(`   3. Export as:  public/audio/scene{N}_{name}.mp3`);
   console.log(`${'─'.repeat(60)}\n`);
 }

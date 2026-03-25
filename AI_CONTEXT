@@ -1,3 +1,17 @@
+2026-03-24
+- Scene1_Intro.tsx completely rebuilt (visual-verb pillar system):
+  - Beat 0 (f0-130): ASTEC logo + large AIMMS (100px) + large subtitle (32px) + minimal tagline. No paragraph copy.
+  - Expansion ring bridge (f110-162): radial ring expands outward transitioning into pillar beats.
+  - Beat 1 (f128-255): "Building Cases" — 4 paper documents (Patient History, Vital Signs, Exam Findings, Lab Results) fly from corners, converge, assemble into a case panel. "CASE READY" badge confirms.
+  - Beat 2 (f245-368): "Running Simulations" — SVG patient silhouette with animated scan ring, crosshairs, monitor brackets; 3 live vital panels (HR, SpO₂, BP) appear to sides; "SIMULATION ACTIVE" badge.
+  - Beat 3 (f358-460): "Evaluating Students" — large score arc (r=120, fills to 87), 4 competency bars animate, rubric checkmarks resolve, "EVALUATION COMPLETE" badge.
+  - Beat 4 (f450-535): Unified 3-card layout with SVG icons per pillar, connecting arrows, "One Connected Platform" header.
+  - AnimatedBox dependency removed; all animation is frame-based interpolate/spring.
+- Scene6_FlowRecap.tsx: replaced "Simulation Capabilities" pills (IV lines, intubation etc.) with AIMMS-aligned "Data-Driven · Built to Scale" pillars matching s6-03 narration.
+- ShotS402.tsx: rebuilt as dominant 54/41% two-column split — patient viewport left, live vital signs right with pulsing alert badge.
+- ShotS408.tsx: rebuilt as two-column layout — 3 ranked DX rows with likelihood bars and rationale left; WORKUP ORDERED column right.
+- Scene5_AIMHEI.tsx: Phase 1 maxWidth 680→900, heading 30→38px, transcript lines 15→17px, 6th line added. Phase 2 maxWidth 860→1000, score circle r=90→108 (strokeLen updated), score number 62→76px, stat values 20→24px.
+
 2026-03-06
 - Readability pass applied across all scenes + shared components:
   - GlassPanel bg opacity 0.65→0.78 (better text contrast)
@@ -9,6 +23,49 @@
   - ParticleField counts reduced ~40-50% across all scenes, opacity lowered
   - Scene titles/headings bumped (Scene6 pipeline 32→38, close 36→42; Scene4 header 28→32; etc.)
   - Vitals strip in Scene4: values 16→20px, labels 10→12px, height 42→48px
+
+2026-03-25 (Scene0)
+- NEW: Scene0_ASTEC.tsx — cinematic pre-intro building reveal (390 frames = 13s)
+  - Building photo (astec_building.png → public/screenshots/) with Ken Burns zoom (1.0→1.22 scale + pan)
+  - Dark layered overlays: bottom gradient, top sky toning, vignette, arizona red tint
+  - Beat 1 (f40-215): "Health Sciences / Education Center" 76px heading + location pill + stat badges
+  - Beat 2 (f190-372): "Arizona Simulation Technology & Education Center" 56px heading + oasis pill + 3 capability badges (Simulation-Based Training, Interprofessional Education, AI-Powered Assessment) + caption
+  - Corner brackets (matching Scene1 visual language), horizontal scan accent line
+  - Fades in (f0-22) and out (f355-390) to black
+  - Wired into AimmsFlow.tsx as first TransitionSeries.Sequence before Scene1
+  - Root.tsx total updated: 5250 → 5625 frames (adds 390 frames + 1 transition)
+  - Narration: voiceover.md updated with s0-01/s0-02/s0-03 segments → public/audio/scene0_astec.mp3
+  - TypeScript: clean compile verified (0 errors)
+
+2026-03-25
+- GLOBAL VISUAL WEIGHT UPGRADE applied to all scenes (readable from across a room):
+  - Lines/borders: 1px → 2.5-3px throughout; SVG strokeWidths +2-3x
+  - Score arcs: strokeWidth 14 → 20-22 (Scene1, Scene5)
+  - Competency bars: height 10-12px → 16-18px
+  - Icons: containers 10-20% larger; stroke weights +50-100%
+  - Text: small mono labels 11-13px → 16-18px; body 14-16px → 18-21px
+  - Panels: padding +25%; border → 2-2.5px; glow shadows increased
+  - Scene1: corner brackets CS=60→72, CT=2→3.5; side lines w=1→3; divider h=2→4
+  - Scene2: scan line h=4→8; category icons 168→200px; library cards h=62→80px; AI panel bars h=9→14px
+  - Scene3: connection lines 3→5px; junctions r=6→9; column labels 13→18px; stopwatch ticks 3/1.5→5/2.5px; arc track 14→18px; pipeline steps 32→44px circles
+  - Scene4 designSystem: type sizes +4-8px; panel glass border 1→2px; Scene4FocusPanel 1→2px border
+  - Scene5: progress bar h=10→16px; score arc 14→22px; competency bars h=12→18px; big check strokeWidths 6→10, 8→14; final icons 72→88px
+  - Scene6: pipeline step circles 36→48px; card border 1→2px, borderTop 3→5px; step title 20→26px; arrows 1.5→3px; closing text 42→56px; pillar pills 12→16px, border 1→2px; closing rings 1→3px
+  - InterstitialCard: ring borders 1→3px; step pill text 17→22px; title 72→92px; subtitle 24→32px
+  - SceneShell section badge: border 1→2px; font 17→20px
+  - TypeScript: clean compile verified (0 errors)
+
+2026-03-24
+- Scene5_AIMHEI.tsx FULL REBUILD (icon-only, max 15 words/frame):
+  - P1 (f65-185): pulsing dot + "Analyzing" (1 word) + progress bar + 7 abstract chat bubbles (no text), data streams bg
+  - P2 (f185-305): dominant score arc (r=110, 380×380 SVG) counts to 87, "Score" (1 word), 4 icon nodes (trophy/question/clock/doc)
+  - P3 (f305-420): 5 competency bars, each with icon (clipboard/scope/speech/hands/heart), dual track (cohort vs student), delta arrows (↑/↓), no text
+  - P4 (f420-530): 2×2 rubric grid, each panel shows check/cross icon rows + color stub lines, spotlight cycles, "Review" (1 word)
+  - P5 (f530-620): pencil+dot edit indicator, row1 cross→check animated flip, row2 cross stays, score arc (r=52) ticks 87→89, "Adjusted" (1 word)
+  - P6 (f620-715): 220px animated check (arc+path strokeDashoffset draws), glow pulse rings, "Finalized" (1 word), 4 icon nodes fade in
+  - All 12 icon components inline SVG (ICheck, ICross, IClipboard, IScope, ISpeech, IHands, IHeart, ITrophy, IClock, IQuestion, IPerson, IDoc, ICalendar, IPencil)
+  - 0 sentences, 0 labels, 0 percentages; ONLY: "Analyzing", "Score", "Review", "Adjusted", "Finalized" + score numbers
+  - TypeScript: clean compile verified
 
 2026-03-05
 - ElevenLabs automation is now wired into project scripts:

@@ -70,7 +70,7 @@ export const InterstitialCard: React.FC<InterstitialCardProps> = ({
             width: ring.size,
             height: ring.size,
             borderRadius: "50%",
-            border: `1px solid ${ring.color}`,
+            border: `3px solid ${ring.color}`,
             transform: `translate(-50%, -50%) scale(${ring.scale})`,
             opacity: ring.op,
             pointerEvents: "none",
@@ -82,10 +82,10 @@ export const InterstitialCard: React.FC<InterstitialCardProps> = ({
       <div
         style={{
           backgroundColor: `${accentColor}30`,
-          border: `1px solid ${accentColor}60`,
-          borderRadius: 20,
-          padding: "6px 20px",
-          marginBottom: 16,
+          border: `2.5px solid ${accentColor}70`,
+          borderRadius: 24,
+          padding: "10px 32px",
+          marginBottom: 20,
           position: "relative",
           zIndex: 1,
         }}
@@ -93,10 +93,10 @@ export const InterstitialCard: React.FC<InterstitialCardProps> = ({
         <span
           style={{
             color: colors.white,
-            fontSize: 17,
+            fontSize: 22,
             fontFamily: fonts.body,
-            fontWeight: 600,
-            letterSpacing: 3,
+            fontWeight: 700,
+            letterSpacing: 4,
             textTransform: "uppercase",
           }}
         >
@@ -122,14 +122,15 @@ export const InterstitialCard: React.FC<InterstitialCardProps> = ({
       <span
         style={{
           color: colors.white,
-          fontSize: 72,
+          fontSize: 92,
           fontFamily: fonts.heading,
           fontWeight: 800,
           letterSpacing: -2,
           textAlign: "center",
-          lineHeight: 1.1,
+          lineHeight: 1.05,
           position: "relative",
           zIndex: 1,
+          textShadow: `0 0 60px ${accentColor}40`,
         }}
       >
         {title}
@@ -138,13 +139,13 @@ export const InterstitialCard: React.FC<InterstitialCardProps> = ({
       {/* Subtitle */}
       <span
         style={{
-          color: `${colors.slate200}B8`,
-          fontSize: 24,
+          color: `${colors.slate200}CC`,
+          fontSize: 32,
           fontFamily: fonts.body,
-          fontWeight: 400,
-          marginTop: 10,
+          fontWeight: 500,
+          marginTop: 14,
           textAlign: "center",
-          maxWidth: 700,
+          maxWidth: 800,
           position: "relative",
           zIndex: 1,
         }}

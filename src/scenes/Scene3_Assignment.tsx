@@ -288,40 +288,40 @@ export const Scene3_Assignment: React.FC = () => {
           style={{ position: "absolute", inset: 0, zIndex: 5 }}>
           {/* Case → spine horizontal */}
           <path d={`M ${CASE_RIGHT},${CASE_MID_Y} H ${SPINE_X}`}
-            fill="none" stroke={`${colors.oasis}80`} strokeWidth={3}
+            fill="none" stroke={`${colors.oasis}90`} strokeWidth={5}
             strokeDasharray={L_MAIN} strokeDashoffset={L_MAIN * (1 - pHoriz)}
             strokeLinecap="round" opacity={Math.min(lineAOp, 1)} />
           {/* Vertical spine */}
           <path d={`M ${SPINE_X},${CLS_MID_YS[0]} V ${CLS_MID_YS[2]}`}
-            fill="none" stroke={`${colors.oasis}35`} strokeWidth={2}
+            fill="none" stroke={`${colors.oasis}50`} strokeWidth={3}
             strokeDasharray={L_SPINE} strokeDashoffset={L_SPINE * (1 - pSpine)}
             strokeLinecap="round" opacity={Math.min(lineAOp, 1)} />
           {/* Branch lines: spine → classes */}
           {[0, 1, 2].map(i => (
             <path key={`ba-${i}`}
               d={`M ${SPINE_X},${CLS_MID_YS[i]} H ${CLS_L}`}
-              fill="none" stroke={`${CLASSES[i].color}80`} strokeWidth={3}
+              fill="none" stroke={`${CLASSES[i].color}90`} strokeWidth={5}
               strokeDasharray={L_BRANCH} strokeDashoffset={L_BRANCH * (1 - pBranch)}
               strokeLinecap="round" opacity={Math.min(lineAOp, 1)} />
           ))}
           {/* Junction dots on spine */}
           {[0, 1, 2].map(i => (
             <circle key={`jd-${i}`}
-              cx={SPINE_X} cy={CLS_MID_YS[i]} r={6}
+              cx={SPINE_X} cy={CLS_MID_YS[i]} r={9}
               fill={CLASSES[i].color} opacity={pBranch * Math.min(lineAOp, 0.9)} />
           ))}
           {/* Class → student grid lines */}
           {[0, 1, 2].map(i => (
             <path key={`cg-${i}`}
               d={`M ${CLS_RIGHT},${CLS_MID_YS[i]} H ${GRP_L}`}
-              fill="none" stroke={`${CLASSES[i].color}70`} strokeWidth={3}
+              fill="none" stroke={`${CLASSES[i].color}80`} strokeWidth={5}
               strokeDasharray={L_CG} strokeDashoffset={L_CG * (1 - linesB[i])}
               strokeLinecap="round" opacity={Math.min(lineBOp, 1)} />
           ))}
           {/* Entry dots at student grids */}
           {[0, 1, 2].map(i => (
             <circle key={`gd-${i}`}
-              cx={GRP_L} cy={CLS_MID_YS[i]} r={6}
+              cx={GRP_L} cy={CLS_MID_YS[i]} r={9}
               fill={CLASSES[i].color} opacity={linesB[i] * Math.min(lineBOp, 0.9)} />
           ))}
         </svg>
@@ -336,9 +336,9 @@ export const Scene3_Assignment: React.FC = () => {
         ].map(col => (
           <div key={col.label} style={{
             position: "absolute",
-            left: col.cx - 90, top: 218,
-            width: 180, textAlign: "center" as const,
-            fontFamily: fonts.mono, fontSize: 13, fontWeight: 700,
+            left: col.cx - 110, top: 210,
+            width: 220, textAlign: "center" as const,
+            fontFamily: fonts.mono, fontSize: 18, fontWeight: 700,
             color: col.color, letterSpacing: 4,
             opacity: col.op, zIndex: 12,
             textShadow: col.glow > 0
@@ -436,11 +436,12 @@ export const Scene3_Assignment: React.FC = () => {
                 {assignedOp > 0 && (
                   <div style={{
                     position: "absolute", top: 10, right: 14,
-                    fontFamily: fonts.mono, fontSize: 11, fontWeight: 700,
-                    color: colors.vitalsNormal, background: `${colors.vitalsNormal}18`,
-                    border: `1px solid ${colors.vitalsNormal}40`,
-                    padding: "3px 10px", borderRadius: 20,
-                    opacity: assignedOp, letterSpacing: 1,
+                    fontFamily: fonts.mono, fontSize: 15, fontWeight: 700,
+                    color: colors.vitalsNormal, background: `${colors.vitalsNormal}20`,
+                    border: `2px solid ${colors.vitalsNormal}55`,
+                    padding: "6px 14px", borderRadius: 24,
+                    opacity: assignedOp, letterSpacing: 1.5,
+                    boxShadow: `0 0 16px ${colors.vitalsNormal}22`,
                   }}>
                     ✓ Assigned
                   </div>
@@ -519,8 +520,8 @@ export const Scene3_Assignment: React.FC = () => {
             opacity: caseGlowPulse, zIndex: 12,
           }}>
             <div style={{
-              fontFamily: fonts.mono, fontSize: 12, color: `${colors.arizonaRed}80`,
-              letterSpacing: 2.2, textTransform: "uppercase" as const,
+              fontFamily: fonts.mono, fontSize: 16, color: `${colors.arizonaRed}90`,
+              letterSpacing: 2.5, textTransform: "uppercase" as const,
             }}>
               Origin Case
             </div>
@@ -536,8 +537,8 @@ export const Scene3_Assignment: React.FC = () => {
             opacity: classGlowPulse, zIndex: 12,
           }}>
             <div style={{
-              fontFamily: fonts.mono, fontSize: 12, color: `${colors.azurite}80`,
-              letterSpacing: 2.2, textTransform: "uppercase" as const,
+              fontFamily: fonts.mono, fontSize: 16, color: `${colors.azurite}90`,
+              letterSpacing: 2.5, textTransform: "uppercase" as const,
             }}>
               Assigned to 3 Classes
             </div>
@@ -553,8 +554,8 @@ export const Scene3_Assignment: React.FC = () => {
             opacity: studentGlowPulse, zIndex: 12,
           }}>
             <div style={{
-              fontFamily: fonts.mono, fontSize: 12, color: `${colors.oasis}80`,
-              letterSpacing: 2.2, textTransform: "uppercase" as const,
+              fontFamily: fonts.mono, fontSize: 16, color: `${colors.oasis}90`,
+              letterSpacing: 2.5, textTransform: "uppercase" as const,
             }}>
               74 Students Reached
             </div>
@@ -572,18 +573,18 @@ export const Scene3_Assignment: React.FC = () => {
         }}>
           {confirmedOp > 0 ? (
             <div style={{
-              fontFamily: fonts.mono, fontSize: 13, fontWeight: 700,
-              color: colors.vitalsNormal, letterSpacing: 2,
+              fontFamily: fonts.mono, fontSize: 18, fontWeight: 700,
+              color: colors.vitalsNormal, letterSpacing: 2.5,
               textTransform: "uppercase" as const,
               opacity: confirmedOp,
-              textShadow: `0 0 18px ${colors.vitalsNormal}55`,
+              textShadow: `0 0 24px ${colors.vitalsNormal}65`,
             }}>
               Distributed · 74 Students · 3 Classes · Access Granted
             </div>
           ) : (
             <div style={{
-              fontFamily: fonts.body, fontSize: 14,
-              color: `${colors.white}38`,
+              fontFamily: fonts.body, fontSize: 18,
+              color: `${colors.white}45`,
               letterSpacing: 2, textTransform: "uppercase" as const,
             }}>
               Scales case distribution across learners
@@ -687,9 +688,9 @@ export const Scene3_Assignment: React.FC = () => {
             }}>
               {["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map(d => (
                 <div key={d} style={{
-                  fontFamily: fonts.mono, fontSize: 13, fontWeight: 600,
-                  color: `${colors.white}32`, textAlign: "center" as const,
-                  letterSpacing: 1,
+                  fontFamily: fonts.mono, fontSize: 17, fontWeight: 700,
+                  color: `${colors.white}48`, textAlign: "center" as const,
+                  letterSpacing: 1.5,
                 }}>{d}</div>
               ))}
             </div>
@@ -711,7 +712,7 @@ export const Scene3_Assignment: React.FC = () => {
                     height: 72,
                     display: "flex", alignItems: "center", justifyContent: "center",
                     fontFamily: isSelected ? fonts.heading : fonts.mono,
-                    fontSize: isSelected ? 30 : 19,
+                    fontSize: isSelected ? 36 : 24,
                     fontWeight: isSelected ? 900 : isPast ? 300 : 500,
                     color: isSelected
                       ? colors.midnight
@@ -948,25 +949,25 @@ export const Scene3_Assignment: React.FC = () => {
                   { label: "Assessment & Plan",      note: "Management Strategy" },
                 ].map((sec, si) => (
                   <div key={si} style={{
-                    display: "flex", alignItems: "center", gap: 18,
-                    padding: "16px 20px",
-                    background: "rgba(255,255,255,0.025)",
-                    border: `1px solid ${colors.oasis}10`,
-                    borderRadius: 12,
+                    display: "flex", alignItems: "center", gap: 20,
+                    padding: "20px 24px",
+                    background: "rgba(255,255,255,0.03)",
+                    border: `2px solid ${colors.oasis}18`,
+                    borderRadius: 14,
                   }}>
                     <div style={{
-                      width: 32, height: 32, borderRadius: "50%", flexShrink: 0,
-                      border: `1.5px solid ${colors.oasis}32`,
+                      width: 42, height: 42, borderRadius: "50%", flexShrink: 0,
+                      border: `2.5px solid ${colors.oasis}45`,
                       display: "flex", alignItems: "center", justifyContent: "center",
-                      fontFamily: fonts.mono, fontSize: 13,
-                      color: `${colors.oasis}65`,
+                      fontFamily: fonts.mono, fontSize: 17, fontWeight: 700,
+                      color: `${colors.oasis}80`,
                     }}>
                       {si + 1}
                     </div>
                     <div style={{ flex: 1 }}>
                       <div style={{
-                        fontFamily: fonts.body, fontSize: 17, fontWeight: 600,
-                        color: colors.white, marginBottom: 3,
+                        fontFamily: fonts.body, fontSize: 21, fontWeight: 700,
+                        color: colors.white, marginBottom: 4,
                       }}>
                         {sec.label}
                       </div>
@@ -1056,13 +1057,13 @@ export const Scene3_Assignment: React.FC = () => {
                 {Array.from({ length: 60 }).map((_, ti) => {
                   const isMajor = ti % 5 === 0;
                   const a = (ti * 6 - 90) * (Math.PI / 180);
-                  const oR = 186, iR = isMajor ? 172 : 179;
+                  const oR = 186, iR = isMajor ? 168 : 178;
                   return (
                     <line key={ti}
                       x1={200 + oR * Math.cos(a)} y1={200 + oR * Math.sin(a)}
                       x2={200 + iR * Math.cos(a)} y2={200 + iR * Math.sin(a)}
-                      stroke={isMajor ? `${colors.oasis}55` : `${colors.oasis}20`}
-                      strokeWidth={isMajor ? 3 : 1.5}
+                      stroke={isMajor ? `${colors.oasis}70` : `${colors.oasis}30`}
+                      strokeWidth={isMajor ? 5 : 2.5}
                       strokeLinecap="round"
                     />
                   );
@@ -1070,11 +1071,11 @@ export const Scene3_Assignment: React.FC = () => {
 
                 {/* Background track */}
                 <circle cx={200} cy={200} r={SW_R}
-                  fill="none" stroke={`${colors.oasis}10`} strokeWidth={14} />
+                  fill="none" stroke={`${colors.oasis}14`} strokeWidth={18} />
 
                 {/* Sweep arc */}
                 <circle cx={200} cy={200} r={SW_R}
-                  fill="none" stroke={colors.oasis} strokeWidth={14}
+                  fill="none" stroke={colors.oasis} strokeWidth={18}
                   strokeLinecap="round"
                   strokeDasharray={SW_CIRCUM}
                   strokeDashoffset={swDashOff}
@@ -1083,16 +1084,16 @@ export const Scene3_Assignment: React.FC = () => {
                 />
 
                 {/* Center pivot */}
-                <circle cx={200} cy={200} r={12}
+                <circle cx={200} cy={200} r={14}
                   fill={colors.oasis} opacity={0.95}
-                  style={{ filter: `drop-shadow(0 0 10px ${colors.oasis}80)` }}
+                  style={{ filter: `drop-shadow(0 0 14px ${colors.oasis}90)` }}
                 />
 
                 {/* Sweep hand */}
                 <line
                   x1={200} y1={200} x2={swHX} y2={swHY}
-                  stroke={colors.oasis} strokeWidth={3.5}
-                  strokeLinecap="round" opacity={0.88}
+                  stroke={colors.oasis} strokeWidth={5}
+                  strokeLinecap="round" opacity={0.90}
                 />
               </svg>
 
@@ -1142,15 +1143,15 @@ export const Scene3_Assignment: React.FC = () => {
                     alignItems: "center", gap: 10,
                   }}>
                     <div style={{
-                      width: 32, height: 32, borderRadius: "50%",
+                      width: 44, height: 44, borderRadius: "50%",
                       background: step.done ? colors.oasis : `${colors.oasis}18`,
-                      border: `2px solid ${step.done ? colors.oasis : `${colors.oasis}32`}`,
+                      border: `3px solid ${step.done ? colors.oasis : `${colors.oasis}40`}`,
                       display: "flex", alignItems: "center", justifyContent: "center",
-                      boxShadow: step.done ? `0 0 20px ${colors.oasis}65` : "none",
+                      boxShadow: step.done ? `0 0 28px ${colors.oasis}70` : "none",
                     }}>
                       {step.done && (
                         <div style={{
-                          fontFamily: fonts.mono, fontSize: 14,
+                          fontFamily: fonts.mono, fontSize: 18,
                           color: colors.midnight, fontWeight: 900,
                         }}>
                           ✓
@@ -1158,8 +1159,8 @@ export const Scene3_Assignment: React.FC = () => {
                       )}
                     </div>
                     <div style={{
-                      fontFamily: fonts.mono, fontSize: 11,
-                      color: step.done ? `${colors.white}68` : `${colors.white}25`,
+                      fontFamily: fonts.mono, fontSize: 15,
+                      color: step.done ? `${colors.white}78` : `${colors.white}32`,
                       letterSpacing: 1.5, textTransform: "uppercase" as const,
                       whiteSpace: "nowrap" as const,
                     }}>
@@ -1168,10 +1169,10 @@ export const Scene3_Assignment: React.FC = () => {
                   </div>
                   {si < 3 && (
                     <div style={{
-                      width: 72, height: 2, flexShrink: 0,
+                      width: 72, height: 4, flexShrink: 0,
                       background: step.done
-                        ? `linear-gradient(90deg, ${colors.oasis}70, ${colors.oasis}28)`
-                        : `${colors.oasis}12`,
+                        ? `linear-gradient(90deg, ${colors.oasis}80, ${colors.oasis}35)`
+                        : `${colors.oasis}18`,
                       marginBottom: 26,
                     }} />
                   )}
