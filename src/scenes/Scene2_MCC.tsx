@@ -29,119 +29,134 @@ const eIO  = Easing.inOut(Easing.cubic);
 const eOut = Easing.out(Easing.cubic);
 
 /* ════════════════════════════════════════════════════════════════════
-   ICONS
+   ICONS — thick strokes, strong fill opacity, readable at distance
+   All primary outlines: strokeWidth 3.5+
+   All secondary lines:  strokeWidth 2.5–3
+   Fill opacities doubled vs. previous for contrast on dark backgrounds
    ════════════════════════════════════════════════════════════════════ */
 const IDoc: React.FC<{ c: string; s?: number }> = ({ c, s = 64 }) => (
   <svg width={s} height={s} viewBox="0 0 64 64" fill="none">
-    <rect x={10} y={6} width={36} height={48} rx={4} stroke={c} strokeWidth={2.5} />
-    <path d="M 36 6 L 46 16 L 36 16 Z" fill={c} fillOpacity={0.25} stroke={c} strokeWidth={1.5} strokeLinejoin="round" />
-    <rect x={16} y={24} width={22} height={3} rx={1.5} fill={c} opacity={0.45} />
-    <rect x={16} y={31} width={17} height={3} rx={1.5} fill={c} opacity={0.35} />
-    <rect x={16} y={38} width={20} height={3} rx={1.5} fill={c} opacity={0.35} />
-    <rect x={16} y={45} width={14} height={3} rx={1.5} fill={c} opacity={0.25} />
+    <rect x={10} y={6} width={36} height={48} rx={4} stroke={c} strokeWidth={3.5} />
+    <path d="M 36 6 L 46 16 L 36 16 Z" fill={c} fillOpacity={0.50} stroke={c} strokeWidth={2.5} strokeLinejoin="round" />
+    <rect x={16} y={24} width={22} height={5} rx={2.5} fill={c} opacity={0.72} />
+    <rect x={16} y={32} width={17} height={5} rx={2.5} fill={c} opacity={0.58} />
+    <rect x={16} y={40} width={20} height={5} rx={2.5} fill={c} opacity={0.52} />
+    <rect x={16} y={48} width={14} height={5} rx={2.5} fill={c} opacity={0.42} />
   </svg>
 );
+
 const IFlask: React.FC<{ c: string; s?: number }> = ({ c, s = 64 }) => (
   <svg width={s} height={s} viewBox="0 0 64 64" fill="none">
     <path d="M 24 8 L 24 28 L 12 50 Q 10 56 20 56 L 44 56 Q 54 56 52 50 L 40 28 L 40 8 Z"
-      stroke={c} strokeWidth={2.5} strokeLinejoin="round" />
-    <line x1={20} y1={8} x2={44} y2={8} stroke={c} strokeWidth={2.5} strokeLinecap="round" />
-    <line x1={15} y1={44} x2={49} y2={44} stroke={c} strokeWidth={1.5} strokeLinecap="round" opacity={0.4} />
-    <circle cx={30} cy={49} r={3} fill={c} opacity={0.55} />
-    <circle cx={39} cy={46} r={2} fill={c} opacity={0.35} />
+      stroke={c} strokeWidth={3.5} strokeLinejoin="round" fill={c} fillOpacity={0.18} />
+    <line x1={20} y1={8} x2={44} y2={8} stroke={c} strokeWidth={3.5} strokeLinecap="round" />
+    <line x1={15} y1={44} x2={49} y2={44} stroke={c} strokeWidth={2.5} strokeLinecap="round" opacity={0.65} />
+    <circle cx={30} cy={49} r={4} fill={c} opacity={0.82} />
+    <circle cx={39} cy={46} r={3} fill={c} opacity={0.58} />
   </svg>
 );
+
 const IPill: React.FC<{ c: string; s?: number }> = ({ c, s = 64 }) => (
   <svg width={s} height={s} viewBox="0 0 64 64" fill="none">
-    <rect x={8} y={22} width={48} height={20} rx={10} stroke={c} strokeWidth={2.5} />
-    <line x1={32} y1={22} x2={32} y2={42} stroke={c} strokeWidth={2} opacity={0.6} />
-    <rect x={8} y={22} width={24} height={20} rx={10} fill={c} opacity={0.18} />
+    <rect x={8} y={22} width={48} height={20} rx={10} stroke={c} strokeWidth={3.5} />
+    <line x1={32} y1={22} x2={32} y2={42} stroke={c} strokeWidth={3} opacity={0.78} />
+    <rect x={8} y={22} width={24} height={20} rx={10} fill={c} opacity={0.32} />
   </svg>
 );
+
 const IArrows: React.FC<{ c: string; s?: number }> = ({ c, s = 64 }) => (
   <svg width={s} height={s} viewBox="0 0 64 64" fill="none">
-    <circle cx={16} cy={32} r={10} stroke={c} strokeWidth={2} />
-    <circle cx={48} cy={32} r={10} stroke={c} strokeWidth={2} />
+    <circle cx={16} cy={32} r={10} stroke={c} strokeWidth={3} fill={c} fillOpacity={0.20} />
+    <circle cx={48} cy={32} r={10} stroke={c} strokeWidth={3} fill={c} fillOpacity={0.20} />
     <path d="M 26 32 L 38 32 M 34 27 L 39 32 L 34 37"
-      stroke={c} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+      stroke={c} strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
+
 const IClip: React.FC<{ c: string; s?: number }> = ({ c, s = 64 }) => (
   <svg width={s} height={s} viewBox="0 0 64 64" fill="none">
-    <rect x={10} y={12} width={44} height={48} rx={4} stroke={c} strokeWidth={2.5} />
-    <rect x={22} y={8} width={20} height={10} rx={5} stroke={c} strokeWidth={2} />
-    <rect x={18} y={26} width={28} height={3} rx={1.5} fill={c} opacity={0.45} />
-    <rect x={18} y={33} width={22} height={3} rx={1.5} fill={c} opacity={0.40} />
-    <rect x={18} y={40} width={24} height={3} rx={1.5} fill={c} opacity={0.35} />
-    <rect x={18} y={47} width={16} height={3} rx={1.5} fill={c} opacity={0.25} />
+    <rect x={10} y={12} width={44} height={48} rx={4} stroke={c} strokeWidth={3.5} />
+    <rect x={22} y={8} width={20} height={10} rx={5} stroke={c} strokeWidth={3} />
+    <rect x={18} y={26} width={28} height={5} rx={2.5} fill={c} opacity={0.68} />
+    <rect x={18} y={34} width={22} height={5} rx={2.5} fill={c} opacity={0.58} />
+    <rect x={18} y={42} width={24} height={5} rx={2.5} fill={c} opacity={0.52} />
+    <rect x={18} y={50} width={16} height={5} rx={2.5} fill={c} opacity={0.42} />
   </svg>
 );
+
 const ILungs: React.FC<{ c: string; s?: number }> = ({ c, s = 64 }) => (
   <svg width={s} height={s} viewBox="0 0 64 64" fill="none">
-    <line x1={32} y1={10} x2={32} y2={22} stroke={c} strokeWidth={2.5} strokeLinecap="round" />
+    <line x1={32} y1={10} x2={32} y2={22} stroke={c} strokeWidth={3.5} strokeLinecap="round" />
     <path d="M 32 22 Q 20 22 14 30 Q 8 38 10 48 Q 12 56 22 54 Q 28 52 28 46 L 28 26 Q 28 22 32 22"
-      stroke={c} strokeWidth={2.2} strokeLinecap="round" fill={c} fillOpacity={0.08} />
+      stroke={c} strokeWidth={3.5} strokeLinecap="round" fill={c} fillOpacity={0.22} />
     <path d="M 32 22 Q 44 22 50 30 Q 56 38 54 48 Q 52 56 42 54 Q 36 52 36 46 L 36 26 Q 36 22 32 22"
-      stroke={c} strokeWidth={2.2} strokeLinecap="round" fill={c} fillOpacity={0.08} />
+      stroke={c} strokeWidth={3.5} strokeLinecap="round" fill={c} fillOpacity={0.22} />
   </svg>
 );
+
 const IHeart: React.FC<{ c: string; s?: number; pulse?: number }> = ({ c, s = 64, pulse = 0 }) => (
   <svg width={s} height={s} viewBox="0 0 64 64" fill="none">
     <path d="M 32 52 Q 8 36 8 22 Q 8 10 20 10 Q 28 10 32 20 Q 36 10 44 10 Q 56 10 56 22 Q 56 36 32 52 Z"
-      stroke={c} strokeWidth={2.5} fill={c} fillOpacity={0.12} />
+      stroke={c} strokeWidth={3.5} fill={c} fillOpacity={0.24} />
     <path d={`M 14 32 L 20 ${28 - pulse * 4} L 26 ${36 + pulse * 5} L 32 ${20 - pulse * 6} L 38 ${40 + pulse * 5} L 44 ${28 - pulse * 3} L 50 32`}
-      stroke={c} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" opacity={0.75} />
+      stroke={c} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" opacity={0.88} />
   </svg>
 );
+
 const IMol: React.FC<{ c: string; s?: number }> = ({ c, s = 64 }) => (
   <svg width={s} height={s} viewBox="0 0 64 64" fill="none">
-    <circle cx={32} cy={32} r={7} stroke={c} strokeWidth={2.2} fill={c} fillOpacity={0.2} />
-    <circle cx={14} cy={18} r={5} stroke={c} strokeWidth={2} fill={c} fillOpacity={0.15} />
-    <circle cx={50} cy={18} r={5} stroke={c} strokeWidth={2} fill={c} fillOpacity={0.15} />
-    <circle cx={14} cy={46} r={5} stroke={c} strokeWidth={2} fill={c} fillOpacity={0.15} />
-    <circle cx={50} cy={46} r={5} stroke={c} strokeWidth={2} fill={c} fillOpacity={0.15} />
-    <line x1={27} y1={27} x2={19} y2={23} stroke={c} strokeWidth={1.5} />
-    <line x1={37} y1={27} x2={45} y2={23} stroke={c} strokeWidth={1.5} />
-    <line x1={27} y1={37} x2={19} y2={41} stroke={c} strokeWidth={1.5} />
-    <line x1={37} y1={37} x2={45} y2={41} stroke={c} strokeWidth={1.5} />
+    <circle cx={32} cy={32} r={7} stroke={c} strokeWidth={3.5} fill={c} fillOpacity={0.38} />
+    <circle cx={14} cy={18} r={5} stroke={c} strokeWidth={3} fill={c} fillOpacity={0.30} />
+    <circle cx={50} cy={18} r={5} stroke={c} strokeWidth={3} fill={c} fillOpacity={0.30} />
+    <circle cx={14} cy={46} r={5} stroke={c} strokeWidth={3} fill={c} fillOpacity={0.30} />
+    <circle cx={50} cy={46} r={5} stroke={c} strokeWidth={3} fill={c} fillOpacity={0.30} />
+    <line x1={27} y1={27} x2={19} y2={23} stroke={c} strokeWidth={2.5} />
+    <line x1={37} y1={27} x2={45} y2={23} stroke={c} strokeWidth={2.5} />
+    <line x1={27} y1={37} x2={19} y2={41} stroke={c} strokeWidth={2.5} />
+    <line x1={37} y1={37} x2={45} y2={41} stroke={c} strokeWidth={2.5} />
   </svg>
 );
+
 const IPerson: React.FC<{ c: string; s?: number }> = ({ c, s = 64 }) => (
   <svg width={s} height={s} viewBox="0 0 64 64" fill="none">
-    <circle cx={32} cy={18} r={10} stroke={c} strokeWidth={2.5} fill={c} fillOpacity={0.12} />
+    <circle cx={32} cy={18} r={10} stroke={c} strokeWidth={3.5} fill={c} fillOpacity={0.28} />
     <path d="M 12 56 Q 14 36 32 36 Q 50 36 52 56"
-      stroke={c} strokeWidth={2.5} strokeLinecap="round" />
+      stroke={c} strokeWidth={3.5} strokeLinecap="round" />
   </svg>
 );
+
 const IScope: React.FC<{ c: string; s?: number }> = ({ c, s = 64 }) => (
   <svg width={s} height={s} viewBox="0 0 64 64" fill="none">
-    <circle cx={44} cy={44} r={10} stroke={c} strokeWidth={2.5} fill={c} fillOpacity={0.1} />
-    <line x1={16} y1={12} x2={28} y2={12} stroke={c} strokeWidth={2.5} strokeLinecap="round" />
+    <circle cx={44} cy={44} r={10} stroke={c} strokeWidth={3.5} fill={c} fillOpacity={0.22} />
+    <line x1={16} y1={12} x2={28} y2={12} stroke={c} strokeWidth={3.5} strokeLinecap="round" />
     <path d="M 16 12 L 16 32 Q 16 46 32 46 L 34 46"
-      stroke={c} strokeWidth={2.5} strokeLinecap="round" />
+      stroke={c} strokeWidth={3.5} strokeLinecap="round" />
     <path d="M 28 12 L 28 32 Q 28 46 32 46"
-      stroke={c} strokeWidth={2.5} strokeLinecap="round" />
+      stroke={c} strokeWidth={3.5} strokeLinecap="round" />
   </svg>
 );
+
 const IScan: React.FC<{ c: string; s?: number; prog?: number }> = ({ c, s = 64, prog = 0.5 }) => (
   <svg width={s} height={s} viewBox="0 0 64 64" fill="none">
-    <rect x={8} y={8} width={48} height={48} rx={6} stroke={c} strokeWidth={1.5} opacity={0.4} />
-    <path d="M 8 20 L 8 8 L 20 8"  stroke={c} strokeWidth={2.5} strokeLinecap="round" />
-    <path d="M 44 8 L 56 8 L 56 20" stroke={c} strokeWidth={2.5} strokeLinecap="round" />
-    <path d="M 8 44 L 8 56 L 20 56" stroke={c} strokeWidth={2.5} strokeLinecap="round" />
-    <path d="M 44 56 L 56 56 L 56 44" stroke={c} strokeWidth={2.5} strokeLinecap="round" />
+    <rect x={8} y={8} width={48} height={48} rx={6} stroke={c} strokeWidth={2.5} opacity={0.58} />
+    <path d="M 8 20 L 8 8 L 20 8"  stroke={c} strokeWidth={3.5} strokeLinecap="round" />
+    <path d="M 44 8 L 56 8 L 56 20" stroke={c} strokeWidth={3.5} strokeLinecap="round" />
+    <path d="M 8 44 L 8 56 L 20 56" stroke={c} strokeWidth={3.5} strokeLinecap="round" />
+    <path d="M 44 56 L 56 56 L 56 44" stroke={c} strokeWidth={3.5} strokeLinecap="round" />
     <line x1={8} y1={8 + prog * 48} x2={56} y2={8 + prog * 48}
-      stroke={c} strokeWidth={2} opacity={0.9} />
-    <rect x={16} y={20} width={32} height={4} rx={2} fill={c} opacity={0.18} />
-    <rect x={16} y={28} width={24} height={3} rx={1.5} fill={c} opacity={0.14} />
-    <rect x={16} y={35} width={28} height={3} rx={1.5} fill={c} opacity={0.14} />
+      stroke={c} strokeWidth={2.5} opacity={0.95} />
+    <rect x={16} y={20} width={32} height={5} rx={2.5} fill={c} opacity={0.30} />
+    <rect x={16} y={29} width={24} height={4} rx={2} fill={c} opacity={0.22} />
+    <rect x={16} y={37} width={28} height={4} rx={2} fill={c} opacity={0.22} />
   </svg>
 );
-const ICheck: React.FC<{ c: string; s?: number }> = ({ c, s = 32 }) => (
-  <svg width={s} height={s} viewBox="0 0 32 32" fill="none">
-    <circle cx={16} cy={16} r={14} stroke={c} strokeWidth={2} fill={c} fillOpacity={0.15} />
-    <path d="M 8 16 L 13 21 L 24 10"
-      stroke={c} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+
+/* ICheck — viewBox 40×40 for larger geometry at any render size */
+const ICheck: React.FC<{ c: string; s?: number }> = ({ c, s = 40 }) => (
+  <svg width={s} height={s} viewBox="0 0 40 40" fill="none">
+    <circle cx={20} cy={20} r={18} stroke={c} strokeWidth={3} fill={c} fillOpacity={0.24} />
+    <path d="M 10 20 L 16 26 L 30 12"
+      stroke={c} strokeWidth={4} strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 
@@ -163,12 +178,21 @@ function renderIcon(name: string, color: string, size = 64): React.ReactNode {
 }
 
 /* ── STATIC DATA ────────────────────────────────────────────────── */
+/*
+ * Beat 1 card grid — verified non-overlapping for 1920×1080:
+ *   TL/TR face:   x 80–260 / 1640–1820,  y 100–280
+ *   Center face:  x 760–1140,             y 300–680
+ *   BL/BR face:   x 80–260 / 1640–1820,  y 700–880
+ *   "Manual" text: y ≈ 948–1020  (below all cards, above bottom edge)
+ *   x-separation between corners and center: 500px — zero chance of overlap
+ *   No card rotation — all elements axis-aligned for professional readability
+ */
 const STACKS = [
-  { icon: "doc",    color: colors.azurite,      left: 200,  top: 140, w: 190, h: 190, rot: -2.5, si: 0 },
-  { icon: "flask",  color: "#16a34a",             left: 1530, top: 130, w: 190, h: 190, rot:  3.0, si: 2 },
-  { icon: "pill",   color: colors.vitalsWarning,  left: 210,  top: 680, w: 170, h: 170, rot:  1.5, si: 3 },
-  { icon: "arrows", color: "#06b6d4",              left: 1540, top: 690, w: 170, h: 170, rot: -2.0, si: 4 },
-  { icon: "clip",   color: colors.arizonaRed,     left: 760,  top: 310, w: 400, h: 400, rot: -0.5, si: 1 },
+  { icon: "doc",    color: colors.azurite,      left:   80, top: 100, w: 200, h: 200, si: 0 },
+  { icon: "flask",  color: "#16a34a",             left: 1640, top: 100, w: 200, h: 200, si: 2 },
+  { icon: "pill",   color: colors.vitalsWarning,  left:   80, top: 700, w: 200, h: 200, si: 3 },
+  { icon: "arrows", color: "#06b6d4",              left: 1640, top: 700, w: 200, h: 200, si: 4 },
+  { icon: "clip",   color: colors.arizonaRed,     left:  760, top: 300, w: 400, h: 400, si: 1 },
 ] as const;
 
 const CAT_ICONS = [
@@ -316,11 +340,12 @@ export const Scene2_MCC: React.FC = () => {
     </>
   );
 
+  /* Reduced blur — heavy blur obscures contrast at presentation scale */
   const glass: React.CSSProperties = {
-    background: "rgba(10, 28, 64, 0.84)",
-    backdropFilter: "blur(16px)",
-    WebkitBackdropFilter: "blur(16px)",
-    border: `1px solid ${colors.oasis}28`,
+    background: "rgba(10, 28, 64, 0.90)",
+    backdropFilter: "blur(10px)",
+    WebkitBackdropFilter: "blur(10px)",
+    border: `2px solid ${colors.oasis}55`,
     borderRadius: 16,
   };
 
@@ -334,7 +359,8 @@ export const Scene2_MCC: React.FC = () => {
       {/* ════════════════════════════════════════════════════════════
           BEAT 1 — MANUAL BURDEN  (f65–192)
           5 icon stacks spring onto screen with depth layers.
-          Max text on screen: "Manual" — 1 word
+          Icons scaled 2.2× (center) and 1.8× (corners) for dominance.
+          "Manual" label: 60px, full-brightness white — legible far away.
          ════════════════════════════════════════════════════════════ */}
       {frame >= P1S && frame < 248 && STACKS.map((s, pi) => {
         const sp      = springs[s.si] ?? 0;
@@ -347,7 +373,7 @@ export const Scene2_MCC: React.FC = () => {
             left: s.left, top: s.top, width: s.w, height: s.h,
             zIndex: pi === 4 ? 8 : 4,
             pointerEvents: "none",
-            transform: `rotate(${s.rot}deg) scale(${spScale * exitScale}) translateY(${spY}px)`,
+            transform: `scale(${spScale * exitScale}) translateY(${spY}px)`,
             opacity: spOp * exitOp,
             transformOrigin: "center center",
           }}>
@@ -364,7 +390,7 @@ export const Scene2_MCC: React.FC = () => {
                 opacity: 0.55 - (d - 1) * 0.14,
               }} />
             ))}
-            {/* Top face */}
+            {/* Top face — icon scaled 2.2× center, 1.8× corners */}
             <div style={{
               position: "absolute",
               width: s.w - 20, height: s.h - 20,
@@ -375,33 +401,35 @@ export const Scene2_MCC: React.FC = () => {
               display: "flex", alignItems: "center", justifyContent: "center",
               zIndex: 3,
             }}>
-              <div style={{ transform: `scale(${pi === 4 ? 1.8 : 1.4})` }}>
-                {renderIcon(s.icon, s.color, 56)}
+              <div style={{ transform: `scale(${pi === 4 ? 2.2 : 1.8})` }}>
+                {renderIcon(s.icon, s.color, 64)}
               </div>
               <div style={{
                 position: "absolute", top: 8, right: 8,
-                width: 22, height: 22, borderRadius: "50%",
+                width: 26, height: 26, borderRadius: "50%",
                 background: s.color,
                 display: "flex", alignItems: "center", justifyContent: "center",
-                boxShadow: `0 0 8px ${s.color}80`,
+                boxShadow: `0 0 10px ${s.color}AA`,
               }}>
-                <div style={{ width: 7, height: 7, borderRadius: "50%", background: "white" }} />
+                <div style={{ width: 9, height: 9, borderRadius: "50%", background: "white" }} />
               </div>
             </div>
           </div>
         );
       })}
 
-      {/* 1 word */}
+      {/* "Manual" label — 52px, bottom safe zone (y≈948+), clear of all cards */}
       {frame >= 104 && frame < 212 && (
         <div style={{
-          position: "absolute", left: "50%", bottom: 38, transform: "translateX(-50%)",
+          position: "absolute", left: 0, right: 0, bottom: 48,
           opacity: interpolate(frame, [104, 124, 188, 212], [0, 1, 1, 0], CE),
-          pointerEvents: "none", zIndex: 5, textAlign: "center",
+          pointerEvents: "none", zIndex: 5,
+          display: "flex", justifyContent: "center", alignItems: "center",
         }}>
           <div style={{
-            fontFamily: fonts.heading, fontSize: 40, fontWeight: 700,
-            color: `${colors.white}55`, letterSpacing: 5, textTransform: "uppercase",
+            fontFamily: fonts.heading, fontSize: 52, fontWeight: 800,
+            color: `${colors.white}BB`, letterSpacing: 8, textTransform: "uppercase",
+            whiteSpace: "nowrap",
           }}>
             Manual
           </div>
@@ -432,8 +460,9 @@ export const Scene2_MCC: React.FC = () => {
       )}
 
       {/* ════════════════════════════════════════════════════════════
-          BEAT 2 — INTERFACE OVERVIEW  (f226–340)
-          Three large category icons reveal.
+          BEAT 2 — CASE LIBRARY OVERVIEW  (f226–340)
+          Three large category icons.
+          Containers: 260×260. Icons: 148px. Label: 34px bold.
           Max text: "Case Library" — 2 words
          ════════════════════════════════════════════════════════════ */}
       {p2Op > 0 && (
@@ -442,35 +471,35 @@ export const Scene2_MCC: React.FC = () => {
           display: "flex", alignItems: "center", justifyContent: "center",
           opacity: p2Op, pointerEvents: "none", zIndex: 10,
         }}>
-          <div style={{ transform: `scale(${p2Zoom})`, display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
+          <div style={{ transform: `scale(${p2Zoom})`, display: "flex", flexDirection: "column", alignItems: "center", gap: 32 }}>
             <div style={{
-              fontFamily: fonts.mono, fontSize: 18, letterSpacing: 6,
-              color: `${colors.oasis}75`, textTransform: "uppercase",
+              fontFamily: fonts.mono, fontSize: 34, letterSpacing: 8,
+              color: colors.oasis, textTransform: "uppercase", fontWeight: 700,
               opacity: interpolate(frame, [P2S + 8, P2S + 24], [0, 1], CE),
             }}>
               Case Library
             </div>
-            <div style={{ display: "flex", gap: 28, alignItems: "center" }}>
+            <div style={{ display: "flex", gap: 52, alignItems: "center" }}>
               {CAT_ICONS.map((cat, i) => (
                 <div key={i} style={{
                   opacity: catOps[i],
                   transform: `scale(${interpolate(catOps[i], [0, 1], [0.65, 1])}) translateY(${interpolate(catOps[i], [0, 1], [24, 0])}px)`,
-                  display: "flex", flexDirection: "column", alignItems: "center", gap: 18,
+                  display: "flex", flexDirection: "column", alignItems: "center", gap: 24,
                 }}>
                   <div style={{
-                    width: 200, height: 200, borderRadius: 30,
-                    background: `${cat.color}12`,
-                    border: `3px solid ${cat.color}42`,
+                    width: 260, height: 260, borderRadius: 32,
+                    background: `${cat.color}20`,
+                    border: `3px solid ${cat.color}68`,
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    boxShadow: `0 0 60px ${cat.color}22, 0 20px 50px rgba(0,0,0,0.35)`,
+                    boxShadow: `0 0 90px ${cat.color}32, 0 28px 64px rgba(0,0,0,0.44)`,
                   }}>
-                    {renderIcon(cat.icon, cat.color, 104)}
+                    {renderIcon(cat.icon, cat.color, 148)}
                   </div>
-                  <div style={{ display: "flex", gap: 7 }}>
+                  <div style={{ display: "flex", gap: 12 }}>
                     {[0, 1, 2].map(d => (
                       <div key={d} style={{
-                        width: 9, height: 9, borderRadius: "50%",
-                        background: cat.color, opacity: 0.28 + d * 0.14,
+                        width: 12, height: 12, borderRadius: "50%",
+                        background: cat.color, opacity: 0.42 + d * 0.22,
                       }} />
                     ))}
                   </div>
@@ -483,8 +512,9 @@ export const Scene2_MCC: React.FC = () => {
 
       {/* ════════════════════════════════════════════════════════════
           BEAT 3 — LIBRARY BROWSE  (f334–480)
-          3 icon columns. Cards are line-stubs only.
-          Selection: glow + checkmark. No text.
+          3 icon columns. Column headers: 260×140 containers, 88px icons.
+          Cards: 110px tall. Line-stubs: 14px height — clearly visible.
+          Selected card: strong glow + 48px checkmark.
          ════════════════════════════════════════════════════════════ */}
       {p3Op > 0 && (
         <div style={{
@@ -492,18 +522,18 @@ export const Scene2_MCC: React.FC = () => {
           display: "flex", alignItems: "center", justifyContent: "center",
           opacity: p3Op, pointerEvents: "none", zIndex: 10,
         }}>
-          <div style={{ transform: `scale(${p3Zoom})`, display: "flex", gap: 20, alignItems: "flex-start" }}>
+          <div style={{ transform: `scale(${p3Zoom})`, display: "flex", gap: 26, alignItems: "flex-start" }}>
             {CAT_ICONS.map((cat, ci) => (
-              <div key={ci} style={{ display: "flex", flexDirection: "column", gap: 14, width: 210 }}>
+              <div key={ci} style={{ display: "flex", flexDirection: "column", gap: 16, width: 260 }}>
                 <div style={{
-                  height: 100, borderRadius: 18,
-                  background: `${cat.color}12`,
-                  border: `2.5px solid ${cat.color}40`,
+                  height: 140, borderRadius: 22,
+                  background: `${cat.color}20`,
+                  border: `3px solid ${cat.color}58`,
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  boxShadow: `0 0 24px ${cat.color}14`,
+                  boxShadow: `0 0 40px ${cat.color}22`,
                   opacity: interpolate(frame, [P3S + 8 + ci * 28, P3S + 24 + ci * 28], [0, 1], CE),
                 }}>
-                  {renderIcon(cat.icon, cat.color, 56)}
+                  {renderIcon(cat.icon, cat.color, 88)}
                 </div>
                 {Array.from({ length: B3_CARDS[ci] }, (_, ri) => {
                   const isSelected = ci === 0 && ri === 0;
@@ -511,24 +541,24 @@ export const Scene2_MCC: React.FC = () => {
                   const glow = isSelected ? selGlow : 0;
                   return (
                     <div key={ri} style={{
-                      height: 80, borderRadius: 14, opacity: op,
+                      height: 110, borderRadius: 16, opacity: op,
                       background: isSelected
-                        ? `${cat.color}${Math.round(14 + glow * 16).toString(16).padStart(2, "0")}`
-                        : `${colors.white}07`,
+                        ? `${cat.color}${Math.round(22 + glow * 22).toString(16).padStart(2, "0")}`
+                        : `${colors.white}09`,
                       border: isSelected
-                        ? `2.5px solid ${cat.color}${Math.round(48 + glow * 40).toString(16).padStart(2, "0")}`
-                        : `1.5px solid ${colors.white}14`,
-                      boxShadow: isSelected ? `0 0 ${24 + glow * 28}px ${cat.color}30` : "none",
+                        ? `3px solid ${cat.color}${Math.round(70 + glow * 50).toString(16).padStart(2, "0")}`
+                        : `2px solid ${colors.white}1A`,
+                      boxShadow: isSelected ? `0 0 ${30 + glow * 40}px ${cat.color}38` : "none",
                       display: "flex", alignItems: "center", justifyContent: "space-between",
-                      padding: "0 22px",
+                      padding: "0 28px",
                     }}>
-                      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                        <div style={{ width: 100, height: 10, borderRadius: 5, background: isSelected ? cat.color : `${colors.white}20`, opacity: 0.75 }} />
-                        <div style={{ width: 70, height: 10, borderRadius: 5, background: isSelected ? cat.color : `${colors.white}14`, opacity: 0.55 }} />
+                      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                        <div style={{ width: 130, height: 14, borderRadius: 7, background: isSelected ? cat.color : `${colors.white}28`, opacity: 0.82 }} />
+                        <div style={{ width: 90,  height: 14, borderRadius: 7, background: isSelected ? cat.color : `${colors.white}1A`, opacity: 0.62 }} />
                       </div>
                       {isSelected && checkOp > 0.02 && (
                         <div style={{ opacity: checkOp }}>
-                          <ICheck c={cat.color} s={34} />
+                          <ICheck c={cat.color} s={48} />
                         </div>
                       )}
                     </div>
@@ -542,8 +572,9 @@ export const Scene2_MCC: React.FC = () => {
 
       {/* ════════════════════════════════════════════════════════════
           BEAT 4 — TEMPLATE SELECTION  (f472–578)
-          6 section icons check in. Max text: "Template Selected"
-          then "AI Generating" — never more than 2 words at once
+          Panel: 880px wide. Title: 40px. Header icon: 52px.
+          Section cells: 68px icons + 40px checks in 3×2 grid.
+          "AI Generating" badge: 30px mono text.
          ════════════════════════════════════════════════════════════ */}
       {p4Op > 0 && (
         <div style={{
@@ -551,42 +582,42 @@ export const Scene2_MCC: React.FC = () => {
           display: "flex", alignItems: "center", justifyContent: "center",
           opacity: p4Op, pointerEvents: "none", zIndex: 10,
         }}>
-          <div style={{ transform: `scale(${p4Zoom})`, display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
+          <div style={{ transform: `scale(${p4Zoom})`, display: "flex", flexDirection: "column", alignItems: "center", gap: 18 }}>
             <div style={{
-              width: 700,
+              width: 880,
               ...glass,
-              border: `2.5px solid ${colors.oasis}55`,
-              padding: "20px 32px",
-              boxShadow: `0 0 80px ${colors.oasis}18, 0 28px 72px rgba(0,0,0,0.48)`,
+              border: `3px solid ${colors.oasis}68`,
+              padding: "26px 36px",
+              boxShadow: `0 0 110px ${colors.oasis}22, 0 36px 88px rgba(0,0,0,0.54)`,
             }}>
               <div style={{
-                display: "flex", alignItems: "center", gap: 16,
-                marginBottom: 14, paddingBottom: 12,
-                borderBottom: `1px solid ${colors.oasis}20`,
+                display: "flex", alignItems: "center", gap: 20,
+                marginBottom: 22, paddingBottom: 16,
+                borderBottom: `1.5px solid ${colors.oasis}30`,
               }}>
-                <div style={{ width: 10, height: 38, borderRadius: 5, background: colors.oasis, opacity: 0.8 }} />
-                <div style={{ fontFamily: fonts.heading, fontSize: 30, fontWeight: 700, color: colors.white }}>
+                <div style={{ width: 14, height: 54, borderRadius: 7, background: colors.oasis, opacity: 0.92 }} />
+                <div style={{ fontFamily: fonts.heading, fontSize: 40, fontWeight: 800, color: colors.white }}>
                   Template Selected
                 </div>
                 <div style={{ marginLeft: "auto" }}>
-                  <ILungs c={colors.oasis} s={28} />
+                  <ILungs c={colors.oasis} s={52} />
                 </div>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 18 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 22 }}>
                 {SECT_ICONS.map((s, i) => (
                   <div key={i} style={{
                     opacity: sectOps[i],
                     transform: `translateY(${interpolate(sectOps[i], [0, 1], [14, 0])}px)`,
-                    padding: "18px 14px",
-                    borderRadius: 12,
-                    background: `${s.color}0e`,
-                    border: `2px solid ${s.color}${sectChk[i] > 0.5 ? "55" : "28"}`,
+                    padding: "22px 20px",
+                    borderRadius: 14,
+                    background: `${s.color}16`,
+                    border: `2.5px solid ${s.color}${sectChk[i] > 0.5 ? "68" : "38"}`,
                     display: "flex", alignItems: "center", justifyContent: "space-between",
-                    boxShadow: sectChk[i] > 0.5 ? `0 0 16px ${s.color}16` : "none",
+                    boxShadow: sectChk[i] > 0.5 ? `0 0 28px ${s.color}22` : "none",
                   }}>
-                    {renderIcon(s.icon, s.color, 44)}
+                    {renderIcon(s.icon, s.color, 68)}
                     <div style={{ opacity: sectChk[i] }}>
-                      <ICheck c={s.color} s={26} />
+                      <ICheck c={s.color} s={40} />
                     </div>
                   </div>
                 ))}
@@ -595,21 +626,21 @@ export const Scene2_MCC: React.FC = () => {
             {aiDotOp > 0.01 && (
               <div style={{
                 opacity: aiDotOp,
-                display: "flex", alignItems: "center", gap: 14,
-                background: `${colors.oasis}12`,
-                border: `1px solid ${colors.oasis}40`,
-                borderRadius: 12, padding: "14px 28px",
-                boxShadow: `0 0 32px ${colors.oasis}20`,
+                display: "flex", alignItems: "center", gap: 18,
+                background: `${colors.oasis}18`,
+                border: `2px solid ${colors.oasis}58`,
+                borderRadius: 14, padding: "18px 40px",
+                boxShadow: `0 0 56px ${colors.oasis}30`,
               }}>
                 <div style={{
-                  width: 11, height: 11, borderRadius: "50%",
+                  width: 18, height: 18, borderRadius: "50%",
                   background: colors.oasis,
-                  boxShadow: `0 0 12px ${colors.oasis}`,
+                  boxShadow: `0 0 18px ${colors.oasis}`,
                   opacity: 0.68 + 0.32 * pulse,
                 }} />
                 <span style={{
-                  fontFamily: fonts.mono, fontSize: 22, fontWeight: 700,
-                  color: colors.oasis, letterSpacing: 3, textTransform: "uppercase",
+                  fontFamily: fonts.mono, fontSize: 30, fontWeight: 700,
+                  color: colors.oasis, letterSpacing: 4, textTransform: "uppercase",
                 }}>
                   AI Generating
                 </span>
@@ -621,8 +652,9 @@ export const Scene2_MCC: React.FC = () => {
 
       {/* ════════════════════════════════════════════════════════════
           BEAT 5 — AI GENERATION  (f570–775)
-          4 sequential icon + data-bar panels. Progress dots only.
-          Max text per panel: "AI Generating" or "Complete" — 2 words
+          4 sequential panels. Icon containers: 260×260, icons: 128px.
+          Progress dots: 60px wide (active), 32px (inactive), 20px tall.
+          Status text: 28px mono. Data bars: 20px tall. 
          ════════════════════════════════════════════════════════════ */}
       {frame >= P5S && frame < P5E + 10 && AI_PANELS.map((panel, si) => {
         const op   = secOps[si];
@@ -636,64 +668,64 @@ export const Scene2_MCC: React.FC = () => {
             padding: "20px 40px 16px",
             opacity: op, pointerEvents: "none", zIndex: 12 + si,
           }}>
-            <div style={{ width: "100%", maxWidth: 820, display: "flex", flexDirection: "column", gap: 16 }}>
+            <div style={{ width: "100%", maxWidth: 900, display: "flex", flexDirection: "column", gap: 22 }}>
 
               {/* Progress dots — no text */}
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 14 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 20 }}>
                 {AI_PANELS.map((_, di) => (
                   <div key={di} style={{
-                    width: di === si ? 44 : 22, height: 16, borderRadius: 8,
+                    width: di === si ? 60 : 32, height: 20, borderRadius: 10,
                     background: secDone[di]
                       ? colors.vitalsNormal
-                      : di === si ? panel.color : `${colors.white}18`,
-                    boxShadow: di === si ? `0 0 14px ${panel.color}65` : "none",
+                      : di === si ? panel.color : `${colors.white}20`,
+                    boxShadow: di === si ? `0 0 20px ${panel.color}80` : "none",
                   }} />
                 ))}
               </div>
 
               {/* Panel */}
               <div style={{
-                background: "rgba(6, 18, 48, 0.92)",
-                backdropFilter: "blur(20px)",
-                borderRadius: 22,
-                border: `2.5px solid ${panel.color}${done ? "70" : "50"}`,
-                padding: "28px 40px",
-                display: "flex", alignItems: "center", gap: 36,
-                minHeight: 200,
-                boxShadow: `0 0 ${done ? 60 : 28 + pulse * 14}px ${panel.color}${done ? "22" : "12"}, 0 24px 64px rgba(0,0,0,0.44)`,
+                background: "rgba(6, 18, 48, 0.94)",
+                backdropFilter: "blur(14px)",
+                borderRadius: 26,
+                border: `3px solid ${panel.color}${done ? "85" : "60"}`,
+                padding: "36px 48px",
+                display: "flex", alignItems: "center", gap: 48,
+                minHeight: 270,
+                boxShadow: `0 0 ${done ? 80 : 36 + pulse * 20}px ${panel.color}${done ? "2A" : "18"}, 0 32px 80px rgba(0,0,0,0.50)`,
               }}>
-                {/* Icon */}
+                {/* Icon — 260×260 container, 128px render size */}
                 <div style={{
-                  width: 200, height: 200, flexShrink: 0, borderRadius: 30,
-                  background: `${panel.color}12`,
-                  border: `3px solid ${panel.color}${done ? "72" : "42"}`,
+                  width: 260, height: 260, flexShrink: 0, borderRadius: 32,
+                  background: `${panel.color}1A`,
+                  border: `3px solid ${panel.color}${done ? "85" : "55"}`,
                   display: "flex", alignItems: "center", justifyContent: "center",
                   boxShadow: done
-                    ? `0 0 48px ${panel.color}35`
-                    : `0 0 ${16 + pulse * 16}px ${panel.color}18`,
+                    ? `0 0 70px ${panel.color}45`
+                    : `0 0 ${22 + pulse * 24}px ${panel.color}28`,
                 }}>
                   {panel.icon === "heart"
-                    ? <IHeart c={panel.color} s={88} pulse={done ? 0 : pulse * 0.6} />
+                    ? <IHeart c={panel.color} s={128} pulse={done ? 0 : pulse * 0.6} />
                     : panel.icon === "scan"
-                      ? <IScan c={panel.color} s={88} prog={prog} />
-                      : renderIcon(panel.icon, panel.color, 88)}
+                      ? <IScan c={panel.color} s={128} prog={prog} />
+                      : renderIcon(panel.icon, panel.color, 128)}
                 </div>
 
                 {/* Data bars */}
-                <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 14 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
+                <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 20 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 8 }}>
                     {done
-                      ? <ICheck c={colors.vitalsNormal} s={28} />
+                      ? <ICheck c={colors.vitalsNormal} s={36} />
                       : <div style={{
-                          width: 12, height: 12, borderRadius: "50%",
+                          width: 18, height: 18, borderRadius: "50%",
                           background: panel.color,
-                          boxShadow: `0 0 ${8 + pulse * 10}px ${panel.color}`,
+                          boxShadow: `0 0 ${10 + pulse * 14}px ${panel.color}`,
                           opacity: 0.68 + 0.32 * pulse,
                         }} />}
                     <span style={{
-                      fontFamily: fonts.mono, fontSize: 20, fontWeight: 700,
+                      fontFamily: fonts.mono, fontSize: 28, fontWeight: 700,
                       color: done ? colors.vitalsNormal : panel.color,
-                      letterSpacing: 2.5, textTransform: "uppercase",
+                      letterSpacing: 3, textTransform: "uppercase",
                     }}>
                       {done ? "Complete" : "AI Generating"}
                     </span>
@@ -701,23 +733,23 @@ export const Scene2_MCC: React.FC = () => {
                   {[0, 1, 2].map(ni => {
                     const barP = interpolate(prog, [ni * 0.26, ni * 0.26 + 0.38], [0, 1], { ...CE, easing: eOut });
                     return (
-                      <div key={ni} style={{ display: "flex", alignItems: "center", gap: 14, opacity: barP }}>
+                      <div key={ni} style={{ display: "flex", alignItems: "center", gap: 16, opacity: barP }}>
                         <div style={{
-                          width: 13, height: 13, borderRadius: "50%", flexShrink: 0,
-                          background: panel.color, opacity: 0.65,
-                          boxShadow: `0 0 8px ${panel.color}60`,
+                          width: 18, height: 18, borderRadius: "50%", flexShrink: 0,
+                          background: panel.color, opacity: 0.78,
+                          boxShadow: `0 0 12px ${panel.color}72`,
                         }} />
-                        <div style={{ flex: 1, height: 14, borderRadius: 7, background: `${panel.color}16` }}>
+                        <div style={{ flex: 1, height: 20, borderRadius: 10, background: `${panel.color}22` }}>
                           <div style={{
-                            height: "100%", borderRadius: 7,
-                            background: `linear-gradient(90deg, ${panel.color}, ${panel.color}55)`,
+                            height: "100%", borderRadius: 10,
+                            background: `linear-gradient(90deg, ${panel.color}, ${panel.color}66)`,
                             width: `${(40 + ni * 22) * barP}%`,
-                            boxShadow: `0 0 10px ${panel.color}60`,
+                            boxShadow: `0 0 14px ${panel.color}72`,
                           }} />
                         </div>
                         {barP > 0.88 && (
                           <div style={{ opacity: (barP - 0.88) / 0.12 }}>
-                            <ICheck c={panel.color} s={20} />
+                            <ICheck c={panel.color} s={30} />
                           </div>
                         )}
                       </div>
@@ -732,7 +764,9 @@ export const Scene2_MCC: React.FC = () => {
 
       {/* ════════════════════════════════════════════════════════════
           BEAT 6 — CASE FINALIZED  (f765–810)
-          2×2 icon grid + "Case Ready" badge — 2 words total
+          maxWidth 1000px. 2×2 grid: 130×130 icon containers, 80px icons.
+          Line stubs: 14px height. Card checks: 48px. 
+          "Case Ready" badge: 56px heading + 60px check.
          ════════════════════════════════════════════════════════════ */}
       {p6Op > 0 && (
         <div style={{
@@ -741,39 +775,39 @@ export const Scene2_MCC: React.FC = () => {
           padding: "20px 40px 16px",
           opacity: p6Op, pointerEvents: "none", zIndex: 10,
         }}>
-          <div style={{ transform: `scale(${p6Zoom})`, width: "100%", maxWidth: 920, display: "flex", flexDirection: "column", gap: 14 }}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18, height: 360 }}>
+          <div style={{ transform: `scale(${p6Zoom})`, width: "100%", maxWidth: 1000, display: "flex", flexDirection: "column", gap: 20 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 22, height: 420 }}>
               {AI_PANELS.map((panel, ci) => {
                 const cOp = interpolate(frame, [P6S + 8 + ci * 9, P6S + 24 + ci * 9], [0, 1], CE);
                 return (
                   <div key={ci} style={{
                     ...glass,
-                    border: `1px solid ${panel.color}38`,
+                    border: `2.5px solid ${panel.color}55`,
                     opacity: cOp,
                     transform: `translateY(${interpolate(cOp, [0, 1], [12, 0])}px)`,
-                    display: "flex", alignItems: "center", gap: 24, padding: "24px 28px",
-                    boxShadow: `0 0 28px ${panel.color}12`,
+                    display: "flex", alignItems: "center", gap: 28, padding: "28px 32px",
+                    boxShadow: `0 0 48px ${panel.color}1A`,
                   }}>
                     <div style={{
-                      width: 80, height: 80, borderRadius: 16, flexShrink: 0,
-                      background: `${panel.color}10`,
-                      border: `1.5px solid ${panel.color}38`,
+                      width: 130, height: 130, borderRadius: 22, flexShrink: 0,
+                      background: `${panel.color}18`,
+                      border: `2.5px solid ${panel.color}55`,
                       display: "flex", alignItems: "center", justifyContent: "center",
                     }}>
-                      {renderIcon(panel.icon, panel.color, 42)}
+                      {renderIcon(panel.icon, panel.color, 80)}
                     </div>
-                    <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 9 }}>
-                      {[0.65, 0.42, 0.26].map((op, li) => (
+                    <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12 }}>
+                      {[0.72, 0.50, 0.32].map((op, li) => (
                         <div key={li} style={{
-                          height: 8, borderRadius: 4,
+                          height: 14, borderRadius: 7,
                           background: panel.color,
                           width: `${70 - li * 20}%`,
                           opacity: op,
                         }} />
                       ))}
                     </div>
-                    <div style={{ opacity: bigChkOp * 0.9 }}>
-                      <ICheck c={colors.vitalsNormal} s={30} />
+                    <div style={{ opacity: bigChkOp * 0.92 }}>
+                      <ICheck c={colors.vitalsNormal} s={48} />
                     </div>
                   </div>
                 );
@@ -785,16 +819,16 @@ export const Scene2_MCC: React.FC = () => {
               transform: `scale(${bigChkSc})`,
             }}>
               <div style={{
-                display: "flex", alignItems: "center", gap: 16,
-                background: `${colors.vitalsNormal}10`,
-                    border: `2.5px solid ${colors.vitalsNormal}65`,
-                    borderRadius: 18, padding: "22px 44px",
-                    boxShadow: `0 0 72px ${colors.vitalsNormal}30`,
+                display: "flex", alignItems: "center", gap: 22,
+                background: `${colors.vitalsNormal}16`,
+                border: `3px solid ${colors.vitalsNormal}78`,
+                borderRadius: 22, padding: "28px 64px",
+                boxShadow: `0 0 100px ${colors.vitalsNormal}38`,
               }}>
-                <ICheck c={colors.vitalsNormal} s={38} />
+                <ICheck c={colors.vitalsNormal} s={60} />
                 <div style={{
-                  fontFamily: fonts.heading, fontSize: 38, fontWeight: 800,
-                  color: colors.vitalsNormal, letterSpacing: 2,
+                  fontFamily: fonts.heading, fontSize: 56, fontWeight: 800,
+                  color: colors.vitalsNormal, letterSpacing: 3,
                 }}>
                   Case Ready
                 </div>

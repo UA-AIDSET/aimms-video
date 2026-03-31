@@ -39,7 +39,7 @@ function loadEnv() {
 loadEnv();
 
 // ── Constants ─────────────────────────────────────────────────────────────────
-const VOICE_ID        = 'tM6ZW48ZoSKdJKuhjatr';
+const VOICE_ID        = 'tM6ZW48ZoSKdJKuhjatr'; // default voice (scenes 1–6)
 const MODEL           = 'eleven_monolingual_v1';
 const SIMILARITY_BOOST = 0.75;
 
@@ -83,23 +83,27 @@ function parseSegments() {
   const content  = readFileSync(scriptPath, 'utf-8');
   const segments = [];
 
-  // Regex captures:  1=id  2=scene#  3=segment#(+letter)  4=type  5=speed  6=body text
+  // Regex captures:
+  //   1=id  2=scene#  3=segment#(+letter)  4=type  5=speed
+  //   6=voice override (optional, e.g. voice:e9qTHBSHe2EUZDipYDHG)
+  //   7=body text
   const blockRegex =
-    /^### (s(\d+)-(\d+[a-z]?))\s+\[(\w+)\s*\|\s*speed:([\d.]+)\]([\s\S]*?)(?=\n###|\n##|\n---|\s*$)/gm;
+    /^### (s(\d+)-(\d+[a-z]?))\s+\[(\w+)\s*\|\s*speed:([\d.]+)(?:\s*\|\s*voice:([\w]+))?\]([\s\S]*?)(?=\n###|\n##|\n---|(?![\s\S]))/gm;
 
   let match;
   while ((match = blockRegex.exec(content)) !== null) {
-    const id    = match[1];                // e.g. "s4-07b"
-    const scene = parseInt(match[2], 10);  // e.g. 4
-    const type  = match[4].toLowerCase(); // e.g. "demo"
-    const speed = parseFloat(match[5]);   // e.g. 0.83
-    const text  = match[6].trim();        // narration text
+    const id      = match[1];                      // e.g. "s0-01"
+    const scene   = parseInt(match[2], 10);        // e.g. 0
+    const type    = match[4].toLowerCase();        // e.g. "intro"
+    const speed   = parseFloat(match[5]);          // e.g. 0.88
+    const voiceId = match[6] ? match[6].trim() : null; // optional per-segment override
+    const text    = match[7].trim();               // narration text
 
     if (!text) continue; // skip empty blocks
 
     const settings = VOICE_SETTINGS_BY_TYPE[type] ?? VOICE_SETTINGS_BY_TYPE.feature;
 
-    segments.push({ id, scene, type, speed, text, settings });
+    segments.push({ id, scene, type, speed, text, settings, voiceId });
   }
 
   if (segments.length === 0) {
@@ -120,12 +124,14 @@ async function generateSegment(seg) {
     process.exit(1);
   }
 
-  const tag = `[${seg.type} | spd:${seg.speed} | stab:${seg.settings.stability} | sty:${seg.settings.style}]`;
+  const effectiveVoiceId = seg.voiceId || VOICE_ID;
+  const voiceNote = seg.voiceId ? ` | voice:${seg.voiceId}` : '';
+  const tag = `[${seg.type} | spd:${seg.speed} | stab:${seg.settings.stability} | sty:${seg.settings.style}${voiceNote}]`;
   console.log(`\n🎙️  ${seg.id}  ${tag}`);
   console.log(`   "${seg.text.slice(0, 72)}${seg.text.length > 72 ? '…' : ''}"`);
 
   const response = await fetch(
-    `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`,
+    `https://api.elevenlabs.io/v1/text-to-speech/${effectiveVoiceId}`,
     {
       method: 'POST',
       headers: {

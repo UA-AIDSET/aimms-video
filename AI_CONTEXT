@@ -1,3 +1,25 @@
+2026-03-31 (Scene2 — layout fix pass)
+- Scene2_MCC.tsx Beat 1: removed ALL card rotation (was -2.5° to +3°) — axis-aligned only
+- STACKS repositioned to verified non-overlapping symmetric grid:
+  TL/TR: left=80/1640, top=100 (face y:100–280)
+  Center: left=760, top=300 (face y:300–680)
+  BL/BR: left=80/1640, top=700 (face y:700–880)
+  x-gap between corners and center: 500px — no overlap possible
+- "Manual" label: `bottom: 48` full-width flex (was translateX hack), font 60→52px, letterSpacing 10→8
+- These changes address: rotated appearance, overcrowded Beat 1, "Manual" text clearance from bottom cards
+
+2026-03-31 (Scene2 — major visual weight upgrade)
+- Scene2_MCC.tsx: comprehensive icon size + stroke overhaul for large-screen legibility
+  - ALL SVG icons: primary strokeWidth 2.5→3.5; secondary 2→3; tertiary 1.5→2.5; fill opacities ~2×
+  - ICheck: viewBox 32→40, circle strokeWidth 2→3, checkmark strokeWidth 2.5→4
+  - Beat 1 stacks: icon scale 1.4/1.8→1.8/2.2 (effective rendered ~115/140px); "Manual" label 40→60px, opacity 33%→80%
+  - Beat 2 category icons: containers 200→260px, icons 104→148px, "Case Library" 18→34px full oasis color
+  - Beat 3 columns: width 210→260, header h 100→140px, header icons 56→88px, cards 80→110px, stubs 10→14px, check 34→48px
+  - Beat 4 panel: width 700→880px, title 30→40px, header icon 28→52px, section icons 44→68px, section checks 26→40px, "AI Generating" 22→30px, dot 11→18px
+  - Beat 5 panels: containers 200→260px, icons 88→128px, progress dots 44/22→60/32px, status text 20→28px, bars 14→20px
+  - Beat 6 summary: maxWidth 920→1000, icon containers 80→130px, icons 42→80px, stubs 8→14px, card checks 30→48px, badge check 38→60px, "Case Ready" 38→56px
+  - Glass panels: blur 16→10px (heavy blur hurt contrast); border opacity 28→55 hex
+
 2026-03-24
 - Scene1_Intro.tsx completely rebuilt (visual-verb pillar system):
   - Beat 0 (f0-130): ASTEC logo + large AIMMS (100px) + large subtitle (32px) + minimal tagline. No paragraph copy.
@@ -24,18 +46,40 @@
   - Scene titles/headings bumped (Scene6 pipeline 32→38, close 36→42; Scene4 header 28→32; etc.)
   - Vitals strip in Scene4: values 16→20px, labels 10→12px, height 42→48px
 
-2026-03-25 (Scene0)
-- NEW: Scene0_ASTEC.tsx — cinematic pre-intro building reveal (390 frames = 13s)
-  - Building photo (astec_building.png → public/screenshots/) with Ken Burns zoom (1.0→1.22 scale + pan)
-  - Dark layered overlays: bottom gradient, top sky toning, vignette, arizona red tint
-  - Beat 1 (f40-215): "Health Sciences / Education Center" 76px heading + location pill + stat badges
-  - Beat 2 (f190-372): "Arizona Simulation Technology & Education Center" 56px heading + oasis pill + 3 capability badges (Simulation-Based Training, Interprofessional Education, AI-Powered Assessment) + caption
-  - Corner brackets (matching Scene1 visual language), horizontal scan accent line
-  - Fades in (f0-22) and out (f355-390) to black
-  - Wired into AimmsFlow.tsx as first TransitionSeries.Sequence before Scene1
-  - Root.tsx total updated: 5250 → 5625 frames (adds 390 frames + 1 transition)
-  - Narration: voiceover.md updated with s0-01/s0-02/s0-03 segments → public/audio/scene0_astec.mp3
-  - TypeScript: clean compile verified (0 errors)
+2026-03-31 (Scene0 — red line root cause fix)
+- ROOT CAUSE IDENTIFIED: buildingOp fades photo f148→f182; b2Op previously started at f148. During the 34-frame overlap, UA red branding in astec_exterior.png was visible behind the ASTEC text, creating the "red line" appearance.
+- FIX: All Beat 2 content shifted +36 frames. b2Op now starts at B2S+36 (f184), AFTER buildingOp reaches 0 at B2S+34 (f182). No text appears until the photo is completely gone.
+- New Beat 2 timing: b2Op f184–206; UA eyebrow f184–216; ASTEC spring from f194; subtitle f234–268; tagline f272–304
+- Also in same pass: REMOVED oasis divider line entirely (secondary issue, also near ASTEC title)
+  - UA eyebrow "University of Arizona Health Sciences" added to Beat 2 (mono 20px, rgba white 48%, letterSpacing 4.5, marginBottom 40)
+  - ASTEC: fontWeight 900→800 (matches loaded font weights); fontSize 186→184; marginBottom 26→48 (more breathing room below title)
+  - subtitle: enters at B2S+58 (was B2S+52), marginBottom 22→30; fontSize 37→36; oasis color preserved
+  - tagline: enters at B2S+96 (was B2S+86), fontSize 26→24, opacity 62%→50%
+  - All text has explicit textShadow with rgba(0,0,0,0.55–0.70) for readability against any bg
+
+2026-03-31 (Scene0 — full rebuild)
+- Scene0_ColdOpen.tsx rebuilt as 3-beat cinematic ASTEC opening (660 frames = 22.0s)
+  - Beat 1 (f0-165): HSIB establishing — astec_exterior.png Ken Burns (1.0→1.12), letterbox bars, oasis eyebrow "University of Arizona Health Sciences" (mono, 22px, bottom-left), white bold heading "Health Sciences Innovation Building" (74px), oasis pill "Home of ASTEC"
+  - Beat 2 (f148-360): ASTEC identity reveal — dark navy bg rises as photo crossfades; "ASTEC" 184px spring entrance (damping:22 stiffness:75); subtitle 36px oasis; tagline 24px white subdued
+  - Beat 3 (f344-640): 3 pillar cards with inline SVG icons, staggered entrance (offset 18 frames each); closing tagline 38px; cards: Simulation (oasis), Education (vitalsNormal green), AI/Innovation (#48CAE4 cyan)
+  - AimmsFlow.tsx: Scene0 durationInFrames 240→660; Audio wired at from=12
+  - Root.tsx: total durationInFrames 5475→5895
+  - voiceover.md: s0-01/s0-02/s0-03 rewrote to fit timing; generated via ElevenLabs; stitched to public/audio/scene0_astec.mp3 (~20.2s)
+  - generate-voiceover.js: fixed regex bug (s*$ in multiline lookahead captured empty text — replaced with (?![\s\S]) for true end-of-string matching)
+  - Audio timing: s0-01 ~3.4s (Beat1), s0-02 ~9.3s (Beat2 into Beat3), s0-03 ~7.5s (Beat3 close)
+
+2026-03-31 (Scene5 — readability + legibility overhaul)
+- Scene5_AIMHEI.tsx refined for full legibility (no rebuild — same 6-beat structure preserved):
+  - ICONS: all strokeWidths raised from ~2 to 3–5px; default sizes raised from 32–36 to 48px
+  - ICheck/ICross: circle strokeWidth 1.8→3, path/lines strokeWidth 2.8→5
+  - BEAT 1: "Analyzing Transcript" heading 32→54px; progress bar h=16→28px; adds "% complete" counter; chat bubbles h=32–40→56–62px, 2-line stubs, stronger contrast (azurite72 vs green42)
+  - BEAT 2: arc strokeWidth 22→34; score number 96→110px; "Score" label 20→28px; corner icon boxes 72→88px, icons 40→52px
+  - BEAT 3 (CRITICAL): Added text labels to all 5 competency bars (Clinical Skills, Physical Exam, Communication, Patient Care, Empathy & Rapport); bar height 18→22px; icon boxes 64→82px; score number (38px) displayed at end of each row; delta arrow strokeWidth 2.5→3
+  - BEAT 4: "Rubric Review" heading 18→44px (heading font, uppercase); added category titles per card (History Taking, Physical Exam, Clinical Reasoning, Communication); replaced stub lines with real text labels per rubric item (21px body font); ICheck/ICross inside cards 36→42px; card gap 16→20px; accent bar h=6→8px
+  - BEAT 5: "Faculty Editing" label added to edit indicator (28px); cross/check icons 36→52px; row stub line h=10→14px; score arc 128→190px (r=52→70, SL5 updated), arc strokeWidth 12→20px; score number 28→46px; "Adjusted" 18→32px
+  - BEAT 6: check SVG 220→320px (r=88→120, bigCheckCirc updated, bigCheckPath 220→300); arc+track strokeWidth 10→20px; check path strokeWidth 14→22px; "Finalized" 52→80px; glow ring border 3→4px; icon nodes 88→112px (s=44→58); icon node gap 14→20px
+  - RUBRIC_ITEMS array added (4 sets of labeled criteria matching each rubric category)
+  - COMPS array: added `label` property per competency; RUBRIC array: added `label` property per category
 
 2026-03-25
 - GLOBAL VISUAL WEIGHT UPGRADE applied to all scenes (readable from across a room):

@@ -31,15 +31,16 @@ Generate both, listen, and keep the one that sounds most natural.
 ---
 
 ## Scene 0: Cold Open (ASTEC Building)
+Scene duration: 660 frames (22.0s) — combine s0-01 through s0-03 into scene0_astec.mp3
 
-### s0-01 [intro | speed:0.86]
-At the University of Arizona Health Sciences — the Arizona Simulation Technology and Education Center trains the next generation of clinical professionals.
+### s0-01 [intro | speed:0.88 | voice:e9qTHBSHe2EUZDipYDHG]
+The Health Sciences Innovation Building — home to ASTEC.
 
-### s0-02 [intro | speed:0.86]
-Thousands of students. Four health professions colleges. One unified simulation platform.
+### s0-02 [intro | speed:0.88 | voice:e9qTHBSHe2EUZDipYDHG]
+ASTEC — the Arizona Simulation Technology and Education Center. Advancing healthcare education through simulation, innovation, and technology.
 
-### s0-03 [intro | speed:0.88]
-This is where AIMMS was built.
+### s0-03 [intro | speed:0.88 | voice:e9qTHBSHe2EUZDipYDHG]
+State-of-the-art simulation. Interprofessional training. AI-driven innovation — preparing safer, smarter healthcare professionals.
 
 ---
 
